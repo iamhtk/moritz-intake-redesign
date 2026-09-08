@@ -1,0 +1,133 @@
+/*
+ * Tabular Playbook theme.
+ *
+ * The grid was ported from Draftwise Designwise, which runs Tailwind v3 with a
+ * theme that redefines names this playground already uses for something else:
+ *
+ *   - `primary` / `secondary` / `tertiary` are *text* colours there, but the
+ *     shadcn theme here maps `primary` to a brand fill. Reusing the names would
+ *     silently render the wrong colour rather than fail, so the ported markup is
+ *     rewritten onto a `dt-` namespace registered below.
+ *   - the whole font-size scale is one step smaller than Tailwind's default.
+ *     That one *can* be scoped, because v4 size utilities resolve `var(--text-*)`
+ *     at use site — see `.tabular-playbook-scope` at the bottom.
+ *
+ * The `dt-` namespace survives as a naming shim only: every value below now
+ * resolves to a Foundation token, so the grid paints from the Moritz palette and
+ * tracks any future change to it. The names are kept because the grid needs a
+ * three-step surface/hairline/text ramp that the semantic scale has no name for
+ * (`muted` and `border` are single stops), and `bg-dt-bg-tertiary` says more at
+ * the call site than a hand-mixed `bg-muted/55` repeated 30 times.
+ *
+ * Declared `inline` so the utilities compile to the Foundation variable itself
+ * (`color: var(--foreground)`) rather than a second indirection — the same
+ * pattern `app/globals.css` uses to expose the brand ramp.
+ */
+
+@theme inline {
+  /*
+   * Text. Designwise's ramp was a green-tinted near-black stepping to a mid
+   * grey; the Foundation neutrals land within a few points of each stop, so the
+   * hierarchy is preserved and only the green cast goes. Tertiary has no
+   * semantic name of its own (it sits between `muted-foreground` and the
+   * borders) so it takes the brand grey directly.
+   */
+  --color-dt-fg-primary: var(--foreground);
+  --color-dt-fg-secondary: var(--muted-foreground);
+  --color-dt-fg-tertiary: var(--mz-gray-130);
+  --color-dt-fg-contrast: var(--primary-foreground);
+  --color-dt-fg-link: var(--primary);
+
+  /*
+   * Surfaces. `muted` (Gray 10) is the header/hover fill; the lighter wash used
+   * for inset panels is mixed back towards the page so the two stay one step
+   * apart, as they were in the source.
+   */
+  --color-dt-bg-primary: var(--background);
+  --color-dt-bg-secondary: color-mix(
+    in oklab,
+    var(--muted) 55%,
+    var(--background)
+  );
+  --color-dt-bg-tertiary: var(--muted);
+  --color-dt-bg-accent: color-mix(
+    in oklab,
+    var(--muted) 55%,
+    var(--background)
+  );
+  --color-dt-bg-overlay: color-mix(
+    in oklab,
+    var(--foreground) 40%,
+    transparent
+  );
+  --color-dt-bg-contrast: var(--foreground);
+
+  /*
+   * Hairlines. A dense grid needs a lighter default rule than `--border`
+   * (Gray 40), which is tuned for a control's resting stroke — at one rule per
+   * cell that reads as a cage. So the two grid weights step down the brand ramp
+   * and `--border` is reserved for the heaviest rule.
+   */
+  --color-dt-line-primary: var(--border);
+  --color-dt-line-secondary: var(--mz-gray-20);
+  --color-dt-line-tertiary: var(--mz-gray-10);
+  --color-dt-line-outline: var(--foreground);
+}
+
+/*
+ * Designwise's type scale, one step tighter than Tailwind's at every stop.
+ * Re-declaring the custom properties on the wrapper means every `text-sm` /
+ * `text-base` inside the ported tree resolves to the source's size through
+ * normal inheritance — no per-class rewriting, and nothing outside the wrapper
+ * is affected.
+ */
+.tabular-playbook-scope {
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 0.9375rem;
+  --text-xl: 1rem;
+  --text-2xl: 1.125rem;
+  --text-3xl: 1.5rem;
+
+  /*
+   * Vertical shell chrome above and below the workspace: the app card's own
+   * 8px inset top and bottom, the 56px top nav, and the page padding declared
+   * on <main> (24px top, 40px bottom). The workspace subtracts this from the
+   * viewport so the grid scrolls inside its own frame rather than pushing the
+   * page into a scroll.
+   */
+  --tp-chrome-block: 8.5rem;
+}
+
+/*
+ * The dashboard shell centres page content in a `max-w-7xl` reading column and
+ * pads it generously for prose. The playbook workspace wants neither: the grid
+ * has far more columns than that width fits, the list has its own wide columns,
+ * and both are bounded viewports rather than flowing pages, so the padding only
+ * steals room from the rows. Both views opt out and sit a uniform 8px inside the
+ * shell card, matching the card's own inset. This has to be released at the
+ * ancestor <main>: that element resolves `overflow-x` to `auto` (only
+ * `overflow-y` is declared), so widening the grid with negative margins would
+ * scroll the page sideways rather than fill it.
+ */
+main:has(> .tabular-playbook-full-width) {
+  max-width: none;
+  padding: 0.5rem;
+}
+
+/* The same chrome sum as above against the trimmed padding: 8 + 56 + 8 + 8 + 8. */
+.tabular-playbook-full-width {
+  --tp-chrome-block: 5.5rem;
+}
+
+/*
+ * The grid's scroll viewport. Both axes overflow: the table is wider than the
+ * workspace (many columns) and taller once seeded (many rows). Without this the
+ * grid grows to its content height and the whole page scrolls instead of the
+ * table. Paired with the bounded height chain in `tabular-playbook-flag-gate.tsx`
+ * and `tabular-playbook-detail-view.tsx`.
+ */
+.tabular-playbook-scroll {
+  overflow: auto;
+}

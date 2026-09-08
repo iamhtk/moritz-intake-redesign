@@ -1,0 +1,16 @@
+{
+  "name": "@repo/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "vitest": "catalog:"
+  },
+  "exports": {
+    "./vitest/base": "./vitest/base.ts",
+    "./vitest/noise-filter": "./vitest/noise-filter.ts",
+    "./playwright/base": "./playwright/base.ts"
+  }
+}

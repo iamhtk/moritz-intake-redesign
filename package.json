@@ -1,0 +1,36 @@
+{
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.25.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.5",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=legal-intake-design",
+    "lint": "prettier . --check",
+    "lint-fix": "prettier . --write",
+    "test": "turbo run test --continue=always --ui=stream --output-logs=errors-only",
+    "typecheck": "turbo run check-types --continue=always --ui=stream --output-logs=errors-only",
+    "verify": "pnpm lint && turbo run verify --continue=always --ui=stream --output-logs=errors-only"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@11.25.0",
+  "prettier": {
+    "singleQuote": true,
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ]
+  }
+}

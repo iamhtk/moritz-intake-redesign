@@ -1,0 +1,638 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../../../components/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@import 'tw-animate-css';
+
+:root {
+  /*
+   * Moritz brand grayscale ramp (light -> dark; higher number = darker), kept as
+   * exact brand-sheet hex. Namespaced as `mz-gray` so it doesn't collide with
+   * Tailwind's built-in `gray` scale.
+   */
+  --mz-gray-10: #f1f2f2;
+  --mz-gray-20: #e6e7e8;
+  --mz-gray-30: #dcddde;
+  --mz-gray-40: #d1d3d4;
+  --mz-gray-50: #c7c8ca;
+  --mz-gray-60: #bcbec0;
+  --mz-gray-70: #b1b3b6;
+  --mz-gray-80: #a7a9ac;
+  --mz-gray-90: #9d9fa2;
+  --mz-gray-100: #939598;
+  --mz-gray-110: #8a8c8e;
+  --mz-gray-120: #808285;
+  --mz-gray-130: #77787b;
+  --mz-gray-140: #6d6e71;
+  --mz-gray-150: #636466;
+  --mz-gray-160: #58595b;
+  --mz-gray-170: #4d4d4f;
+  --mz-gray-180: #414042;
+  --mz-gray-190: #282829;
+  --mz-gray-200: #141414;
+
+  /* Core */
+  --mz-black: #000000;
+  --mz-white: #ffffff;
+
+  /* Tints */
+  --mz-gold: #fbf6ed;
+  --mz-sky: #ecf8fe;
+
+  /* Status */
+  --mz-green: #5eae8b;
+  --mz-yellow: #e8a952;
+  --mz-red: #eb5444;
+
+  /* Surfaces / neutrals — direct brand equivalents. */
+  --background: var(--mz-white);
+  --foreground: var(--mz-gray-190);
+  --card: var(--mz-white);
+  --card-foreground: var(--mz-gray-190);
+  --popover: var(--mz-white);
+  --popover-foreground: var(--mz-gray-190);
+  --primary: var(--mz-gray-200);
+  --primary-foreground: var(--mz-white);
+  /*
+   * Cool-blue family approximated to the nearest brand swatch (the Foundation
+   * palette has no saturated blue). Secondary stays a solid with white text, so
+   * it maps to a mid brand gray rather than the pale Sky tint.
+   */
+  --secondary: var(--mz-gray-140);
+  --secondary-foreground: var(--mz-white);
+  --muted: var(--mz-gray-10);
+  --muted-foreground: var(--mz-gray-160);
+  --accent: var(--mz-sky);
+  --accent-foreground: var(--mz-gray-190);
+  --destructive: var(--mz-red);
+  --destructive-foreground: var(--mz-white);
+  --success: var(--mz-green);
+  --success-foreground: var(--mz-gray-190);
+  --warning: var(--mz-yellow);
+  --warning-foreground: var(--mz-gray-190);
+  --info: var(--mz-sky);
+  --info-foreground: var(--mz-gray-190);
+  --actor-client: var(--mz-green);
+  --actor-opposing: var(--mz-sky);
+  --actor-legal: var(--mz-gray-150);
+  --actor-admin: var(--mz-yellow);
+  --message-own: oklch(from var(--secondary) 0.96 0.02 h);
+  /* Default resting border — Gray 40 reads a touch darker than the faint Gray 20. */
+  --border: var(--mz-gray-40);
+  --input: var(--mz-gray-40);
+  --ring: var(--mz-gray-130);
+  --chart-1: var(--mz-gray-10);
+  --chart-2: var(--mz-gray-40);
+  --chart-3: var(--mz-gray-70);
+  --chart-4: var(--mz-gray-100);
+  --chart-5: var(--mz-gray-130);
+  --sidebar: var(--mz-white);
+  --sidebar-foreground: var(--mz-gray-190);
+  --sidebar-primary: var(--mz-gray-200);
+  --sidebar-primary-foreground: var(--mz-white);
+  --sidebar-accent: var(--mz-gray-10);
+  --sidebar-accent-foreground: var(--mz-gray-190);
+  --sidebar-border: var(--mz-gray-30);
+  --sidebar-ring: var(--mz-gray-130);
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif:
+    var(--font-cormorant-garamond), 'EB Garamond', Georgia, 'Times New Roman',
+    serif;
+  --font-mono:
+    var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+  --radius: 0.625rem;
+  --shadow-x: 0;
+  --shadow-y: 1px;
+  --shadow-blur: 3px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.1;
+  --shadow-color: #151515;
+  --shadow-2xs: 0 1px 2px 0 hsl(0 0% 8.2353% / 0.05);
+  --shadow-xs: 0 1px 2px 0 hsl(0 0% 8.2353% / 0.05);
+  --shadow-sm: 0 1px 2px 0 hsl(0 0% 8.2353% / 0.05);
+  --shadow:
+    0 1px 3px 0 hsl(0 0% 8.2353% / 0.1), 0 1px 2px -1px hsl(0 0% 8.2353% / 0.1);
+  --shadow-md:
+    0 4px 6px -1px hsl(0 0% 8.2353% / 0.1),
+    0 2px 4px -2px hsl(0 0% 8.2353% / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px hsl(0 0% 8.2353% / 0.1),
+    0 4px 6px -4px hsl(0 0% 8.2353% / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px hsl(0 0% 8.2353% / 0.1),
+    0 8px 10px -6px hsl(0 0% 8.2353% / 0.1);
+  --shadow-2xl: 0 25px 50px -12px hsl(0 0% 8.2353% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+@theme inline {
+  /* Custom breakpoint for 7xl screens (matches max-w-7xl = 80rem / 1280px) */
+  --breakpoint-7xl: 80rem;
+
+  /* Accordion animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+
+  /* Collapsible animations — the same shape as the accordion's, on the height
+     the Collapsible primitive publishes. */
+  --animate-collapsible-down: collapsible-down 0.2s ease-out;
+  --animate-collapsible-up: collapsible-up 0.2s ease-out;
+
+  @keyframes collapsible-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes collapsible-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-actor-client: var(--actor-client);
+  --color-actor-opposing: var(--actor-opposing);
+  --color-actor-legal: var(--actor-legal);
+  --color-actor-admin: var(--actor-admin);
+  --color-message-own: var(--message-own);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  /* Tailwind's default font-weight scale. The Foundation faces (Inter,
+     Cormorant Garamond, IBM Plex Mono) support the broader range used here. */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Map the brand grayscale to Tailwind color utilities (bg-mz-gray-130, etc.). */
+  --color-mz-gray-10: var(--mz-gray-10);
+  --color-mz-gray-20: var(--mz-gray-20);
+  --color-mz-gray-30: var(--mz-gray-30);
+  --color-mz-gray-40: var(--mz-gray-40);
+  --color-mz-gray-50: var(--mz-gray-50);
+  --color-mz-gray-60: var(--mz-gray-60);
+  --color-mz-gray-70: var(--mz-gray-70);
+  --color-mz-gray-80: var(--mz-gray-80);
+  --color-mz-gray-90: var(--mz-gray-90);
+  --color-mz-gray-100: var(--mz-gray-100);
+  --color-mz-gray-110: var(--mz-gray-110);
+  --color-mz-gray-120: var(--mz-gray-120);
+  --color-mz-gray-130: var(--mz-gray-130);
+  --color-mz-gray-140: var(--mz-gray-140);
+  --color-mz-gray-150: var(--mz-gray-150);
+  --color-mz-gray-160: var(--mz-gray-160);
+  --color-mz-gray-170: var(--mz-gray-170);
+  --color-mz-gray-180: var(--mz-gray-180);
+  --color-mz-gray-190: var(--mz-gray-190);
+  --color-mz-gray-200: var(--mz-gray-200);
+  --color-mz-black: var(--mz-black);
+  --color-mz-white: var(--mz-white);
+  --color-mz-gold: var(--mz-gold);
+  --color-mz-sky: var(--mz-sky);
+  --color-mz-green: var(--mz-green);
+  --color-mz-yellow: var(--mz-yellow);
+  --color-mz-red: var(--mz-red);
+
+  /*
+   * Field stroke tokens — expose the field border colours under stable semantic
+   * names so fields can read `border-field` / `border-field-strong` /
+   * `border-error` (plus the matching `bg-*` / `ring-*` variants). rest = Gray 40
+   * (matches `--input`), the hover/emphasis stroke = Gray 190 at 35%, error =
+   * brand red, and a lighter placeholder gray than `muted-foreground`.
+   */
+  --color-field: var(--mz-gray-40);
+  --color-field-strong: color-mix(
+    in oklab,
+    var(--mz-gray-190) 35%,
+    transparent
+  );
+  --color-error: var(--mz-red);
+  --color-field-placeholder: var(--mz-gray-130);
+
+  /*
+   * Redline ink - the brand green and red carried to text weight for the draft
+   * viewer. The status swatches are built for badge and button fills and reach
+   * only 2.66:1 and 3.57:1 on the paper, under the 4.5:1 body-text floor; these
+   * hold the hue and clear it at 5.00:1 and 4.93:1.
+   */
+  --color-redline-inserted: oklch(from var(--mz-green) 0.53 0.105 h);
+  --color-redline-deleted: oklch(from var(--mz-red) 0.57 0.2 h);
+
+  /* Text scale — bundles size, line-height, and tracking per step so
+     `text-xs` / `text-sm` / `text-base` carry the design out of the box. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-xs--letter-spacing: 0.18px;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-sm--letter-spacing: 0.07px;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Allow the browser to synthesize missing weights/styles. */
+    font-synthesis-weight: auto;
+  }
+}
+
+@layer components {
+  .logo {
+    @apply text-foreground;
+  }
+
+  /*
+   * A scrollbar that surfaces only while its region is moving, for readers whose
+   * system draws scrollbars permanently. The gutter is reserved at all times, so
+   * the thumb arriving never reflows the content beside it; only the thumb's
+   * colour changes, keyed off the `data-scrolling` mark that useScrollActivity
+   * writes. The -webkit- rules cover engines predating standard scrollbar
+   * properties, which is why both spellings are here.
+   */
+  .mz-scrollbar-on-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 200ms ease-out;
+  }
+
+  .mz-scrollbar-on-scroll[data-scrolling] {
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .mz-scrollbar-on-scroll::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .mz-scrollbar-on-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mz-scrollbar-on-scroll::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    transition: background-color 200ms ease-out;
+  }
+
+  .mz-scrollbar-on-scroll[data-scrolling]::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+  }
+
+  .ProseMirror table {
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  .ProseMirror table th,
+  .ProseMirror table td {
+    border-right-width: 1px;
+    border-right-style: solid;
+    /* !important used to overwrite the tailwind .prose style */
+    padding: 2px !important;
+  }
+}
+
+/*
+ * Heading scale — the full scale sits on the serif display face (Cormorant
+ * Garamond). Weights are tuned for grayscale antialiasing: the large display
+ * steps (heading-0/1, 36–48px) stay lighter (500) for elegance, while the
+ * smaller in-use headings (heading-2/3/4, 20–30px) push to 600 for legibility.
+ */
+
+/* 48px serif */
+.heading-0 {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  font-weight: 500;
+  font-size: 3rem;
+  letter-spacing: -0.48px;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+/* 36px serif */
+.heading-1 {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  font-weight: 500;
+  font-size: 2.25rem;
+  letter-spacing: -0.48px;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+/* 30px serif */
+.heading-2 {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  font-weight: 600;
+  font-size: 1.875rem;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+/* 24px serif */
+.heading-3 {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.48px;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+/* 20px serif */
+.heading-4 {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+/*
+ * Typeface variant for the Heading/Subheading primitives. They default to the
+ * serif display face via the `.heading-*` scale; `variant="sans"` sets
+ * `data-font="sans"` to swap onto the Inter body face. Inter has a larger
+ * x-height and heavier strokes than Cormorant Garamond, so we optically
+ * rebalance the sans peer: lighter weight (500) and a slightly smaller size per
+ * step. The two-attribute selectors (specificity 0,2,0) outrank the unlayered
+ * `.heading-*` rules (0,1,0) regardless of source order.
+ */
+[data-slot='heading'][data-font='sans'],
+[data-slot='subheading'][data-font='sans'] {
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+/* heading-2 is 30px serif; the sans peer reads right a touch smaller. */
+[data-slot='heading'][data-font='sans'] {
+  font-size: 1.625rem;
+  letter-spacing: -0.025em;
+}
+
+/* heading-4 is 20px serif; the sans peer reads right a touch smaller. */
+[data-slot='subheading'][data-font='sans'] {
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+b,
+strong {
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes mz-animate-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mz-animate-enter {
+  animation: mz-animate-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Completion medallion: the ring fades/scales in, then the check strokes on. */
+@keyframes mz-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mz-animate-reveal {
+  animation: mz-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mz-check-draw {
+  from {
+    stroke-dashoffset: -26;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.mz-animate-check {
+  stroke-dasharray: 26;
+  animation: mz-check-draw 0.7s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Streaming-text shimmer (shadcn `shimmer` utility). Sweeps a brighter band
+ * across muted text to signal in-progress/streaming status — used by the
+ * Attachment title while a file is `uploading`/`processing`. The gradient is
+ * clipped to the glyphs (`background-clip: text` + transparent fill), then the
+ * background position is animated to slide the highlight. Colors come from the
+ * theme tokens so it tracks light and dark.
+ */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 35%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 65%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mz-animate-enter {
+    animation: none;
+  }
+
+  .mz-animate-reveal {
+    animation: none;
+  }
+
+  .mz-animate-check {
+    animation: none;
+    stroke-dasharray: none;
+  }
+
+  .shimmer {
+    animation: none;
+    background-image: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    color: var(--muted-foreground);
+  }
+}
+
+/*
+ * Workspace pages opt out of the dashboard shell's reading-width column.
+ *
+ * The shell constrains <main> to max-w-7xl and pads it for prose, which is right
+ * for forms and reading but wrong for a wide data grid: the column is narrower
+ * than the grid's columns and the padding only steals rows. A workspace route
+ * therefore takes the full width and sits a uniform 8px inside the shell card,
+ * matching the card's own inset.
+ *
+ * It is also a bounded viewport rather than a flowing page — it fills <main> and
+ * scrolls inside its own frame — so <main> stops scrolling and becomes the
+ * column its child stretches into. That is what makes the workspace's height the
+ * space actually left over, rather than a `calc()` against the viewport that has
+ * to be kept in step with the nav and card insets by hand.
+ *
+ * Scoped with :has() so only a page that marks itself full-bleed is affected;
+ * every other route keeps the reading column and the page padding.
+ */
+main:has(> [data-layout='full-bleed']) {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+main:has(> [data-layout='full-bleed']) > [data-layout='full-bleed'] {
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+/*
+ * The case detail's wide-column views opt out of the reading-width column.
+ *
+ * max-w-7xl is right for a conversation but not for a document: the first-draft
+ * viewer puts an 816px page, a comment margin and the docked details rail side
+ * by side, and the capped column squeezes the page while leaving a dead band
+ * between the content and the rail (which docks to the frame, not the column).
+ * Only the cap is released: the page padding stays, because the case header
+ * bleeds across exactly that padding.
+ */
+main:has(> [data-layout='wide-column']) {
+  max-width: none;
+}

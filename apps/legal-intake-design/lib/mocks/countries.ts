@@ -1,0 +1,60 @@
+import type { Country } from '@/lib/types';
+
+export const MOCK_COUNTRIES: Country[] = [
+  {
+    code: 'US',
+    name: 'United States',
+    timezone: 'America/Los_Angeles',
+    stripeMarket: 'US',
+    legalAutoApprove: true,
+    nonLegalAutoApprove: true,
+  },
+  {
+    code: 'GB',
+    name: 'United Kingdom',
+    timezone: 'Europe/London',
+    stripeMarket: 'GB',
+    legalAutoApprove: false,
+    nonLegalAutoApprove: false,
+  },
+  {
+    code: 'NO',
+    name: 'Norway',
+    timezone: 'Europe/Oslo',
+    stripeMarket: 'NO',
+    legalAutoApprove: true,
+    nonLegalAutoApprove: true,
+  },
+  {
+    code: 'DK',
+    name: 'Denmark',
+    timezone: 'Europe/Copenhagen',
+    stripeMarket: 'DK',
+    legalAutoApprove: true,
+    nonLegalAutoApprove: false,
+  },
+  {
+    code: 'AU',
+    name: 'Australia',
+    timezone: 'Australia/Sydney',
+    stripeMarket: 'AU',
+    legalAutoApprove: false,
+    nonLegalAutoApprove: false,
+  },
+  {
+    code: 'SE',
+    name: 'Sweden',
+    timezone: 'Europe/Stockholm',
+    stripeMarket: 'SE',
+    legalAutoApprove: true,
+    nonLegalAutoApprove: true,
+  },
+  {
+    code: 'DE',
+    name: 'Germany',
+    timezone: 'Europe/Berlin',
+    stripeMarket: 'DE',
+    legalAutoApprove: false,
+    nonLegalAutoApprove: false,
+  },
+];

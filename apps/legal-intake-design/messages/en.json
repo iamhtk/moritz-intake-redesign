@@ -1,0 +1,2508 @@
+{
+  "common": {
+    "appName": "Moritz",
+    "copyright": "© {year} {appName}. All rights reserved.",
+    "languageName": "English",
+    "legalAssistant": "Moritz Legal Assistant",
+    "welcomeUser": "Welcome, {name}",
+    "signOut": "Sign out",
+    "languages": {
+      "label": "Language",
+      "description": "Change the language used across the portal.",
+      "en": "English"
+    },
+    "error": {
+      "title": "Error!"
+    },
+    "success": {
+      "title": "Success!"
+    },
+    "unsavedChanges": {
+      "title": "Leave without saving?",
+      "description": "You have unsaved details. If you leave now, your title, description, and any attachments will be lost.",
+      "confirm": "Leave and discard",
+      "cancel": "Keep editing"
+    },
+    "theme": {
+      "toggle": "Toggle theme",
+      "switchToLight": "Switch to light mode",
+      "switchToDark": "Switch to dark mode"
+    }
+  },
+  "notifications": {
+    "viewer": {
+      "title": "Notifications",
+      "empty": "No unread notifications",
+      "markAllRead": "Mark all as read"
+    },
+    "page": {
+      "title": "Notifications",
+      "bellLabel": "Open notifications",
+      "empty": "No notifications yet",
+      "markAllRead": "Mark all as read",
+      "invoicePaid": "Invoice paid"
+    }
+  },
+  "navigation": {
+    "appSubtitle": "Legal Portal",
+    "home": "Home",
+    "companies": "Companies",
+    "lawFirms": "Law firms",
+    "notWhitelistedCompanies": "Not whitelisted companies",
+    "noCompanies": "No companies found.",
+    "cases": "Cases",
+    "newCase": "New case",
+    "activeCases": "Active cases",
+    "myCases": "My cases",
+    "proposals": "Proposals",
+    "quotes": "Quotes",
+    "settings": "Settings",
+    "assignCases": "All cases",
+    "playbooks": "Playbook Studio",
+    "aiEvals": "AI Evals",
+    "tabularPlaybooks": "Playbooks",
+    "caseTypes": "Case types",
+    "users": "Users",
+    "waitlist": "Waitlist",
+    "countries": "Countries",
+    "auditLog": "Audit Log",
+    "sentryTest": "Sentry Test",
+    "notifications": "Activity",
+    "support": "Support",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Continue to the platform",
+      "descriptionLine1": "For clients and legal professionals",
+      "descriptionLine2": "Sign in or create a new account",
+      "legalNoticePrefix": "By continuing, you agree to our",
+      "legalNoticeTerms": "Terms & Conditions",
+      "legalNoticeAnd": "and",
+      "legalNoticePrivacy": "Privacy Policy",
+      "workos": "Sign in",
+      "divider": "Or",
+      "lastUsed": "Last used on this device",
+      "emailPlaceholder": "Email",
+      "email": "Continue with email",
+      "usernamePlaceholder": "Username",
+      "passwordPlaceholder": "Password",
+      "credentials": "Sign in with credentials",
+      "emailBlockedTitle": "Use your single sign-on login",
+      "emailBlockedDescription": "This email already uses secure single sign-on. Please use your single sign-on provider to access your account.",
+      "emailExistsTitle": "Use your email to sign in",
+      "emailExistsDescription": "This account was created with email sign-in. Please continue with email to access your account.",
+      "passkey": "Sign in with passkey",
+      "passkeyError": "Passkey authentication failed. Please try again."
+    },
+    "signInError": {
+      "title": "We couldn't sign you in",
+      "description": "Check the details below and try again.",
+      "reasons": {
+        "AccessDenied": {
+          "title": "Access denied",
+          "description": "Your account doesn't have access yet. Contact your administrator if you believe this is a mistake."
+        },
+        "OAuth": {
+          "title": "Single sign-on failed",
+          "description": "We couldn't complete the sign-in with your identity provider. Try again or choose a different option."
+        },
+        "OAuthAccountNotLinked": {
+          "title": "Account not linked",
+          "description": "This sign-in method isn't linked to your account yet. Sign in using the provider you originally used."
+        },
+        "Verification": {
+          "title": "Verification failed",
+          "description": "The code was incorrect or has expired. Please request a new code from the sign-in page."
+        },
+        "CredentialsSignin": {
+          "title": "Incorrect credentials",
+          "description": "The username or password you entered is incorrect. Check your details and try again."
+        },
+        "EmailSignin": {
+          "title": "Email sign-in failed",
+          "description": "We couldn't send the verification email. Try again in a moment."
+        },
+        "Configuration": {
+          "title": "Configuration issue",
+          "description": "We're having trouble with the sign-in service. Please try again later."
+        },
+        "SessionRequired": {
+          "title": "Sign-in required",
+          "description": "You need to sign in before continuing."
+        },
+        "WebAuthn": {
+          "title": "Passkey authentication failed",
+          "description": "We couldn't verify your passkey. Please try again or use another sign-in method."
+        },
+        "Default": {
+          "title": "Something went wrong",
+          "description": "Please try again. If the problem continues, contact support."
+        }
+      },
+      "actions": {
+        "back": "Back to sign in"
+      },
+      "supportCode": "Error code: {code}"
+    },
+    "signInVerify": {
+      "title": "Check your email",
+      "description": "We've sent a 6-digit code to {email}.",
+      "descriptionNoEmail": "We've sent a 6-digit code to your email.",
+      "hint": "Enter the code below to sign in. The code expires in 10 minutes.",
+      "codePlaceholder": "Enter 6-digit code",
+      "submit": "Verify",
+      "incorrectCode": "Incorrect code. Please try again.",
+      "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
+      "resendPrompt": "Didn't receive the code?",
+      "resendLink": "Try again",
+      "actions": {
+        "back": "Back to sign in"
+      }
+    }
+  },
+  "smoke": {
+    "title": "Legal Intake Ready",
+    "description": "Workspace smoke page for automated checks.",
+    "badge": "smoketest",
+    "body": "If you can read this, the app rendered without authentication or data dependencies."
+  },
+  "onboarding": {
+    "brandPanel": {
+      "eyebrow": "Lawyers on Moritz",
+      "showProfile": "Show {name}'s profile"
+    },
+    "inactive": {
+      "title": "Your account is inactive",
+      "description": "This account has been deactivated by an administrator. You will not be able to access the portal until it is re-enabled.",
+      "help": "Please <support>contact Moritz</support> support for help."
+    },
+    "review": {
+      "title": "Your enquiry is sent.",
+      "body1": "Thanks for showing interest, {name}!",
+      "body2": "Our representative will reach you for scheduling a convenient time to discuss the plans, pricing and contract.",
+      "bodyButton": "Go to home",
+      "demo1": "Request a demo?",
+      "demo2": "Book a demo now, or get answers to your questions by scheduling a meeting with one of our experts.",
+      "demoButton": "View Available Slots"
+    },
+    "invite": {
+      "title": "Welcome to Moritz",
+      "subtitle": "{inviterName} invited you to join {companyName} on Moritz.",
+      "subtitleNoInviter": "You've been invited to join {companyName} on Moritz.",
+      "companyRole": "You're joining as a team member.",
+      "accept": "Accept invitation",
+      "invitedAs": "Invited as {email}",
+      "consent": "I agree to Moritz's <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>."
+    },
+    "attorneyInvite": {
+      "title": "Welcome to Moritz",
+      "subtitle": "{inviterName} invited you to join {companyName} as a lawyer on Moritz.",
+      "subtitleNoInviter": "You've been invited to join {companyName} as a lawyer on Moritz.",
+      "companyRole": "You're joining as a lawyer.",
+      "accept": "Accept invitation",
+      "invitedAs": "Invited as {email}",
+      "consent": "I agree to Moritz's <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>."
+    },
+    "welcome": {
+      "title": "Welcome to Moritz",
+      "intro": "Let's set up your account so you can get started.",
+      "getStarted": "Get started",
+      "signedInAs": "Signed in as {email}",
+      "consent": "I agree to Moritz's <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>."
+    },
+    "registration": {
+      "heading": "Welcome — Complete your registration",
+      "steps": {
+        "progress": "Screen {current} of {total}",
+        "personalDescription": "We need to verify the mail address to continue",
+        "companyDescription": "Share the company information needed to continue."
+      }
+    },
+    "verifyEmail": {
+      "title": "Welcome {name}!",
+      "description": "We need to verify your email address to continue"
+    },
+    "emailSent": {
+      "title": "Activation Link Sent",
+      "description": "We've sent a verification email to {email}",
+      "hint": "Open the link in your email to verify your account. The message may take a minute to arrive and can sometimes appear in your spam folder.",
+      "changeEmail": "Change email"
+    },
+    "details": {
+      "title": "Welcome to Moritz!"
+    },
+    "breadcrumb": {
+      "customerType": "Account type",
+      "details": "Information"
+    },
+    "customerType": {
+      "title": "Welcome to Moritz",
+      "subtitle": "First, tell us how you'll be using Moritz so we can set you up the right way.",
+      "verificationComplete": "Verification Complete",
+      "verificationCompleteDescription": "You are successfully verified.",
+      "continue": "Continue",
+      "hint": "Need legal help for your own company? Choose \"Get legal work done.\"",
+      "client": {
+        "title": "Get legal work done",
+        "description": "Send a contract or legal matter and get it back the same day, handled by elite lawyers at a fraction of traditional cost."
+      },
+      "attorney": {
+        "title": "Practice law with Moritz",
+        "description": "You're a lawyer or law firm. Apply to take on cases from fast-moving companies through the Moritz network."
+      }
+    },
+    "waitlist": {
+      "title": "Moritz isn't live in your country yet",
+      "description": "Join the waitlist and we'll email you the moment we launch.",
+      "summary": {
+        "email": "Email",
+        "company": "Company",
+        "companyFallback": "Not provided",
+        "country": "Country"
+      },
+      "cta": {
+        "notify": "Join the waitlist",
+        "notifying": "Joining..."
+      },
+      "success": {
+        "title": "You're on the list!",
+        "description": "Thanks for your interest. We'll notify you when we launch in {country}.",
+        "cta": "Back to Home"
+      },
+      "error": {
+        "title": "Something went wrong",
+        "description": "We couldn't add you to the waitlist. Please try again.",
+        "cta": "Try Again"
+      }
+    },
+    "waitlistContact": {
+      "title": "Thanks for your interest",
+      "description": "Book a call with our team to discuss your use cases and explore how Moritz can help.",
+      "cta": {
+        "bookCall": "Book a call"
+      }
+    },
+    "complete": {
+      "success": {
+        "title": "You're all set",
+        "description": "Create your first case and a lawyer will get to work on it.",
+        "cta": "Go to dashboard"
+      },
+      "attorneySuccess": {
+        "title": "You're all set",
+        "description": "We'll let you know as soon as a new case matches your expertise.",
+        "cta": "Go to dashboard"
+      },
+      "loading": {
+        "title": "Setting up your account..."
+      },
+      "error": {
+        "title": "Something went wrong",
+        "description": "We couldn't complete your signup. Please try again.",
+        "defaultMessage": "An unexpected error occurred",
+        "cta": "Go to Home"
+      }
+    },
+    "verify": {
+      "title": "Verify your phone number",
+      "description": "We'll text you a 6-digit code so we can reach you about your cases.",
+      "sendCode": "Send verification code",
+      "verify": "Verify",
+      "enterCode": "Enter the code",
+      "codeSent": "Code sent to {phoneNumber}",
+      "codeSentTo": "Enter the 6-digit code we sent to {phoneNumber}.",
+      "verified": "Phone number verified",
+      "verifiedTitle": "Your phone number is verified",
+      "verifiedDescription": "We'll use this number to reach you about your cases. You can change it if you need to.",
+      "changeNumber": "Change number",
+      "didntGetCode": "Didn't get a code?",
+      "resendCode": "Resend code",
+      "resendIn": "Resend code in {seconds}s",
+      "smsNote": "Standard message and data rates may apply. We'll only use your number to contact you about your cases."
+    },
+    "address": {
+      "title": "What's your company's address?",
+      "description": "We'll send your engagement letter and signed documents to this address.",
+      "searchLabel": "Find your address",
+      "findAddress": "Find address",
+      "selectAddress": "Select your address",
+      "selectAddressPlaceholder": "Choose your address",
+      "keepTyping": "Keep typing to search…",
+      "noResults": "No matching addresses. You can enter it manually below.",
+      "enterManually": "Enter address manually",
+      "searchAgain": "Search for a different address",
+      "addressRequired": "Please find and select your address, or enter it manually.",
+      "line1Required": "Please enter your street address.",
+      "cityRequired": "Please enter your town or city.",
+      "postalRequired": "Please enter your postal code."
+    }
+  },
+  "registration": {
+    "sections": {
+      "yourDetails": "Personal information",
+      "yourDetailsDescription": "Tell us a bit about yourself.",
+      "companyDetails": "Company details",
+      "companyDetailsDescription": "Tell us about the company you represent.",
+      "lawFirmDetails": "Your law firm",
+      "lawFirmDetailsDescription": "Tell us about your firm. Your name and logo are shown to clients across Moritz.",
+      "attorneyProfile": "Your professional profile",
+      "attorneyProfileDescription": "Tell clients about your background. This appears on your Moritz profile.",
+      "attorneyExpertise": "Where you practice",
+      "attorneyExpertiseDescription": "Select the jurisdictions you're admitted to practice in.",
+      "notifications": "Notification preferences",
+      "notificationsShort": "Notifications",
+      "noCompany": "No company associated.",
+      "company": {
+        "management": {
+          "title": "Company management",
+          "description": "Manage your company settings and access.",
+          "dangerZone": "Danger zone",
+          "dangerZoneDescription": "These actions are permanent and cannot be undone."
+        },
+        "preferredLegalCompanies": {
+          "title": "Preferred Legal Providers"
+        },
+        "archive": {
+          "label": "Delete Account",
+          "title": "Delete Account",
+          "description": "Proceeding will remove your team's access to the platform immediately. Important: In accordance with Norwegian Anti-Money Laundering (AML) regulations and our Privacy Statement, Moritz retains case files and identification data for 10 years. Your data will remain securely archived but inaccessible to you.",
+          "confirmAccess": "I understand I will lose access to all case history and documents immediately.",
+          "confirmMatters": "I understand that active legal matters will be terminated.",
+          "confirmRetention": "I acknowledge that Moritz retains case data for 10 years to comply with legal obligations.",
+          "teamWarning": "Team members will lose access and will be logged out immediately once deleted.",
+          "confirm": "Delete Account",
+          "cancel": "Cancel",
+          "deleting": "Deleting...",
+          "success": "Your account has been deleted.",
+          "error": "Failed to delete account. Please try again or contact support."
+        }
+      }
+    },
+    "loading": "Loading...",
+    "fields": {
+      "name": "Full name",
+      "nameRequired": "Please enter your full name.",
+      "title": "Your title",
+      "titlePlaceholder": "e.g. Chief Executive Officer",
+      "titleRequired": "Please enter your title.",
+      "companyNameRequired": "Please enter your company name.",
+      "phoneInvalid": "Please enter a valid phone number for the selected country.",
+      "description": "Description",
+      "email": "Email address",
+      "phoneNumber": "Phone number",
+      "contactPrivacyNote": "Your email and phone number will only be used to send you notifications about your cases. We will never share your contact information with third parties or use it for marketing purposes.",
+      "companyName": "Company name",
+      "firmName": "Law firm name",
+      "firmNameRequired": "Please enter your law firm's name.",
+      "firmWebsite": "Firm website",
+      "firmSize": "Firm size",
+      "orgNumber": "ID number (optional)",
+      "organizationNumber": "Organization number (optional)",
+      "einNumber": "EIN number (optional)",
+      "companyUrl": "Company website",
+      "companyDescription": "Company description",
+      "country": "Country",
+      "companySize": "Company size",
+      "companySizePlaceholder": "Select company size",
+      "companySizeRequired": "Please select your company size.",
+      "bio": "Professional bio",
+      "bioPlaceholders": [
+        "Ex-Clifford Chance M&A lawyer, Oxford JD. I take startups from term sheet to signature, fast.",
+        "Former Big Law litigator. 10+ years untangling commercial disputes for venture-backed teams.",
+        "Ex-in-house counsel at two unicorns. I ship SaaS, privacy, and employment contracts overnight."
+      ],
+      "bioRequired": "Please add a short bio.",
+      "linkedin": "LinkedIn profile",
+      "linkedinPlaceholder": "https://www.linkedin.com/in/your-profile",
+      "linkedinRequired": "Please add your LinkedIn profile.",
+      "linkedinInvalid": "Please enter a valid LinkedIn URL.",
+      "jurisdictions": "Jurisdictions you can practice in",
+      "jurisdictionsPlaceholder": "Search countries…",
+      "jurisdictionsEmpty": "No countries found.",
+      "jurisdictionsRequired": "Please select at least one jurisdiction.",
+      "states": "States you're admitted to practice in",
+      "statesPlaceholder": "Search states…",
+      "statesEmpty": "No states found.",
+      "statesRequired": "Please select at least one state.",
+      "orgType": "Org type",
+      "companyType": "Company type",
+      "countryOptions": {
+        "norway": "Norway",
+        "usa": "United States",
+        "uk": "United Kingdom",
+        "australia": "Australia",
+        "other": "Other"
+      },
+      "sizeOptions": {
+        "preIncorporation": "Pre-incorporation",
+        "small": "Small (1-50 employees)",
+        "medium": "Medium (51-250 employees)",
+        "large": "Large (251+ employees)"
+      },
+      "role": "Your role",
+      "rolePlaceholder": "Select your role",
+      "roleOptions": {
+        "ownerFounder": "Founder / Owner",
+        "executive": "Executive / C-level",
+        "legalCounsel": "Legal / In-house counsel",
+        "operations": "Operations",
+        "finance": "Finance",
+        "hr": "HR / People",
+        "other": "Other"
+      },
+      "placeholders": {
+        "email": "your@email.com",
+        "companyUrl": "https://"
+      },
+      "preferredLegalCompanies": {
+        "title": "Preferred Legal Providers",
+        "description": "Select legal providers you'd like to work with. When you create a case, only your selected providers will be able to claim it. Leave empty to allow any provider.",
+        "loading": "Loading available legal providers...",
+        "noCompaniesAvailable": "No legal providers are currently available.",
+        "noneSelected": "Any legal provider can claim your cases",
+        "teamMembers": "Team"
+      }
+    },
+    "profilePicture": "Profile picture",
+    "photo": {
+      "label": "Profile picture",
+      "upload": "Upload photo",
+      "change": "Change photo",
+      "remove": "Remove photo",
+      "uploading": "Uploading...",
+      "helpText": "JPEG, PNG or WebP. Max 1MB.",
+      "errors": {
+        "tooLarge": "Image must be less than 1MB",
+        "invalidFormat": "Please upload a valid image (JPEG, PNG, or WebP)",
+        "uploadFailed": "Failed to upload image. Please try again."
+      }
+    },
+    "logo": {
+      "label": "Firm logo",
+      "upload": "Upload logo",
+      "change": "Change logo",
+      "remove": "Remove logo",
+      "uploading": "Uploading...",
+      "helpText": "JPEG, PNG or WebP. Max 1MB.",
+      "errors": {
+        "tooLarge": "Image must be less than 1MB",
+        "invalidFormat": "Please upload a valid image (JPEG, PNG, or WebP)",
+        "uploadFailed": "Failed to upload image. Please try again."
+      }
+    },
+    "companyType": {
+      "LEGAL": "Legal provider",
+      "NON_LEGAL": "Client"
+    },
+    "actions": {
+      "continue": "Continue",
+      "back": "Back",
+      "updatePersonalDetails": "Update Personal Details",
+      "createCompany": "Create Company",
+      "updateCompanyDetails": "Update Company Details",
+      "savePreferredLegalCompanies": "Save Preferences"
+    },
+    "guard": {
+      "complete": "All set — you'll be redirected or shown a review message once approved.",
+      "incomplete": "Complete both: verify email and fill company details.",
+      "companyIncomplete": "Please complete company details to continue."
+    },
+    "feedback": {
+      "personal": {
+        "success": "Your details are saved.",
+        "successVerification": "Your details are saved. We've sent a verification email.",
+        "emailChangeConfirm": "Save these changes and send a new verification email? You'll need to verify the new address to continue.",
+        "error": "We couldn't save your details. Check the fields and try again."
+      },
+      "company": {
+        "success": "Company details saved.",
+        "error": "We couldn't save company details. Please try again."
+      },
+      "notifications": {
+        "success": "Notification preferences updated.",
+        "error": "We couldn't update notification preferences. Try again."
+      },
+      "preferredLegalCompanies": {
+        "success": "Preferred legal providers updated.",
+        "error": "We couldn't update your preferences. Please try again."
+      }
+    },
+    "emailVerification": {
+      "verifiedAt": "Email verified {date}",
+      "verified": "Email verified",
+      "sent": "Verification email sent — check your inbox.",
+      "notVerified": "Email not verified.",
+      "missingEmailTooltip": "Add and save an email first",
+      "resendTooltip": "Resend verification email",
+      "sendTooltip": "Send verification email",
+      "resend": "Resend email",
+      "resendIn": "Resend email in {seconds}s",
+      "send": "Send verification email",
+      "error": "Failed to send verification email. Please try again.",
+      "page": {
+        "title": "Verify your email",
+        "description": "Your email address needs to be verified before you can receive important notifications and updates about your cases.",
+        "instructions": "Click the button below to send a verification link to your email address. You'll receive an email with a secure link that will verify your account when clicked.",
+        "sendButton": "Send verification email",
+        "sending": "Sending...",
+        "emailInUse": "This email address is already in use by another user. Please use a different email.",
+        "sent": {
+          "title": "Verification email sent",
+          "description": "We've sent a verification email to {email}",
+          "instructions": "Open the link in your email to verify your account. The message may take a minute to arrive and can sometimes appear in your spam folder.",
+          "expires": "This link expires in 24 hours.",
+          "changeEmail": "Change email"
+        },
+        "verified": {
+          "title": "Email verified",
+          "description": "Your email has been successfully verified. You will now receive important notifications and updates about your cases.",
+          "goToDashboard": "Go to dashboard"
+        },
+        "invalid": {
+          "title": "Invalid verification link",
+          "description": "The verification link is invalid or has already been used.",
+          "instructions": "Please request a new verification email to complete the verification process.",
+          "sendNew": "Send new verification email"
+        },
+        "expired": {
+          "title": "Verification link expired",
+          "description": "The verification link has expired for security reasons.",
+          "instructions": "Please request a new verification email. The new link will be valid for 24 hours.",
+          "sendNew": "Send new verification email"
+        },
+        "error": {
+          "title": "Failed to send email",
+          "description": "We couldn't send the verification email. Please try again.",
+          "support": "If this error persists, please contact Moritz support.",
+          "retry": "Try again"
+        }
+      }
+    },
+    "team": {
+      "title": "Team members",
+      "description": "Invite teammates to collaborate under {company}.",
+      "unnamedCompany": "your company",
+      "ownerRequired": "You need to be a company owner to manage the team.",
+      "members": {
+        "heading": "Members",
+        "empty": "No additional members yet.",
+        "unknownName": "Unnamed user",
+        "noEmail": "No email on file",
+        "ownerRole": "Owner",
+        "memberRole": "Member",
+        "disabled": "Disabled",
+        "youLabel": "You",
+        "remove": "Remove",
+        "removeSuccess": "Team member removed.",
+        "removeError": "We couldn’t remove that member. Try again."
+      },
+      "invite": {
+        "heading": "Invite teammate",
+        "emailLabel": "Invite email",
+        "placeholder": "teammate@example.com",
+        "button": "Send invite",
+        "description": "We’ll email them a link to sign in and join your company.",
+        "errorMissingEmail": "Enter an email address.",
+        "success": "Invitation sent.",
+        "error": "We couldn’t send the invitation. Try again.",
+        "errorAlreadyInAnotherCompany": "This person is already a member of another company. Contact support to resolve this issue."
+      },
+      "invites": {
+        "heading": "Invitations",
+        "empty": "No invitations sent yet.",
+        "status": {
+          "PENDING": "Pending",
+          "ACCEPTED": "Accepted",
+          "REVOKED": "Revoked",
+          "EXPIRED": "Expired"
+        },
+        "sentOn": "Sent {date}",
+        "expires": "Expires {date}",
+        "acceptedOn": "Accepted {date}",
+        "revoke": "Cancel invite",
+        "revokeSuccess": "Invitation revoked.",
+        "revokeError": "We couldn’t cancel that invitation. Try again."
+      }
+    },
+    "phoneVerification": {
+      "verify": "Verify",
+      "title": "Phone Number Verification",
+      "codeSent": "Verification code sent to your phone.",
+      "codeSentTo": "A verification code has been sent to {phoneNumber}. Please input it below to confirm your number.",
+      "enterCode": "Enter Code",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "verified": "Verified",
+      "invalidCode": "Please enter a valid code.",
+      "verifyFirst": "Please verify your phone number before enabling SMS notifications.",
+      "sendCode": "Send Verification Code",
+      "changePhoneNumber": "Change Phone Number",
+      "didntGetCode": "Didn't get a code?",
+      "resendCode": "Resend Code",
+      "resendIn": "Didn't get a code? Resend Code in {seconds} seconds."
+    },
+    "notifications": {
+      "description": "Choose which events trigger notifications. In-app notifications are always enabled.",
+      "eventTypeHeader": "Event",
+      "channelEmail": "Email",
+      "channelSms": "SMS",
+      "smsTitle": "SMS notifications",
+      "customizeEventsTitle": "Customize Events",
+      "smsVerifyPhone": "Phone number needs to be verified to enable SMS notifications.",
+      "verifyNow": "Verify Now",
+      "smsVerifyTooltip": "Phone number verification required to select.",
+      "smsDisclosure": "By enabling SMS notifications, you agree to receive text messages about your legal cases. Message frequency varies. Message and data rates may apply. Reply STOP to unsubscribe at any time.",
+      "fullCaseViewLabel": "Full case view emails",
+      "fullCaseViewDescription": "Receive the complete conversation history and document list in email notifications instead of just a summary. Useful if you prefer to reply to case updates via email.",
+      "relayEmailLabel": "Instant email relay",
+      "relayEmailDescription": "When someone replies to a case via email, immediately forward the message to you. Makes case communication feel like a natural email thread.",
+      "labels": {
+        "NEW_MESSAGE": "New messages in your cases",
+        "COMPANY_CREATED": "New companies created",
+        "CASE_READY_FOR_CLAIM": "Case ready for claim",
+        "CASE_COLLABORATOR_ADDED": "New case collaborators added",
+        "QUOTE_CREATED": "Quote ready",
+        "CASE_CLOSED": "Case closed",
+        "QUOTE_ROUND_INVITATION": "Quote round invitations",
+        "QUOTE_ROUND_CLOSED": "Quote round closed",
+        "QUOTE_ACCEPTED": "Quote accepted",
+        "LAWYER_DIRECTLY_ASSIGNED": "Lawyer assigned to case",
+        "LAWYER_DIRECTLY_ASSIGNED_LEGAL": "Assigned to a case",
+        "LAWYER_DIRECTLY_ASSIGNED_NON_LEGAL": "Lawyer assigned to your case",
+        "INVOICE_CREATED": "Invoice ready"
+      }
+    }
+  },
+  "dashboard": {
+    "header": {
+      "title": "Moritz Legal Assistant",
+      "auth": "Moritz"
+    },
+    "client": {
+      "startFirst": "Start your first case",
+      "startNew": "Start a new case",
+      "description": "Describe the matter in plain language and Moritz will analyze your details and documents, ask follow-up questions, and create a first draft for a lawyer to review.",
+      "newCaseTitle": "New Case",
+      "formSteps": {
+        "ariaLabel": "Case creation steps",
+        "caseInformation": "Case information",
+        "confirmAndSubmit": "Confirm and submit"
+      },
+      "examples": "Examples",
+      "exampleOne": "We’re raising a seed round and need help reviewing a SAFE/convertible note.",
+      "exampleTwo": "We’re forming a Delaware C-Corp and want advice on founder equity and vesting.",
+      "exampleThree": "We’re hiring our first employees and need help with stock option grants and IP assignment.",
+      "createCard": {
+        "title": "Create new case",
+        "description": "Ready to start a case? It's free to get started.",
+        "limitReachedDescription": "You've reached the case limit for your current plan. Upgrade to create more.",
+        "upgradeCta": "Upgrade now",
+        "cta": "Create case",
+        "emailCta": "Via email",
+        "emailCtaTooltip": "Send an email to this address to start a case automatically.",
+        "emailDialogTitle": "Submit new case through email",
+        "emailDialogDescription": "Copy the address below and send your case details to it.",
+        "emailDialogHintUnique": "This address is personal to you — do not share it.",
+        "emailDialogHintSender": "Send from the email address you signed up with.",
+        "emailDialogHintSave": "Save it to your contacts for easy access later.",
+        "emailCopyButton": "Copy address",
+        "emailCopied": "Copied!",
+        "emailCloseButton": "Close"
+      },
+      "meetingCard": {
+        "title": "Schedule a meeting",
+        "description": "Need assistance? Book a free meeting with our expert lawyers.",
+        "cta": "Schedule meeting"
+      },
+      "homepageV2": {
+        "greeting": {
+          "morning": "Good morning",
+          "afternoon": "Good afternoon",
+          "evening": "Good evening",
+          "fallback": "Welcome back"
+        },
+        "quickActions": {
+          "emailCase": "Email a case",
+          "scheduleMeeting": "Book a call",
+          "browseCases": "Browse cases",
+          "startWithIronclad": "Start a case with Ironclad",
+          "startWithIroncladToast": "Starting a case with Ironclad…"
+        },
+        "trustBar": {
+          "headline": "Real lawyers review every case",
+          "schools": "Trained at Harvard, Stanford, Yale, Columbia & Oxford",
+          "mattersValue": "500+",
+          "mattersLabel": "Matters handled",
+          "ratingValue": "4.9/5",
+          "ratingLabel": "Client rating"
+        },
+        "team": {
+          "title": "Your legal team",
+          "cta": "Start a case"
+        }
+      }
+    },
+    "legal": {
+      "title": "Available cases",
+      "description": "These cases are unassigned. Claim one to become the assigned lawyer.",
+      "empty": "No available cases right now.",
+      "client": "Client",
+      "unknownClient": "Unknown",
+      "parties": "Parties",
+      "noPartiesIdentified": "No parties specified"
+    }
+  },
+  "caseList": {
+    "noCases": "No cases",
+    "untitled": "Untitled"
+  },
+  "casesPage": {
+    "columns": {
+      "case": "Case",
+      "caseNumber": "Case #",
+      "customer": "Client Name",
+      "company": "Client",
+      "counsel": "Counsel",
+      "quote": "Quote",
+      "status": "Status",
+      "created": "Submitted",
+      "updated": "Last Update",
+      "toggle": "Toggle columns"
+    },
+    "updated": {
+      "never": "Not available yet"
+    },
+    "filters": {
+      "all": "All",
+      "allWithCount": "All ({count})",
+      "unreadOnly": "Unread only",
+      "statusLabel": "Status:",
+      "statusWithCount": "{status} ({count})",
+      "statusCount": "{count} selected",
+      "clearAll": "Clear filters",
+      "columnCount": "{count} shown",
+      "dateLabel": "Updated:",
+      "date": {
+        "all": "Any time",
+        "recent": "Last 24 hours",
+        "stale": "Over 72 hours ago"
+      },
+      "searchPlaceholder": "Search cases",
+      "searchLabel": "Search cases"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {start}-{end}",
+      "empty": "No cases to display"
+    }
+  },
+  "cases": {
+    "create": {
+      "label": "Case description",
+      "placeholder": "Hi there, tell us what happened. Include dates, names, and any documents you have…",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter a title for your case",
+      "tip": "Tip: Shift+Enter for a newline",
+      "attachmentLabel": "Attachments",
+      "attachmentSectionTitle": "Attach supporting documents",
+      "attachmentHint": "Supported: PDF, Word (.docx), Excel (.xlsx), PNG/JPEG images. Max 15 MB per file.",
+      "dropzoneText": "Drag and drop or",
+      "dropzoneButton": "Attach a File",
+      "attachmentsSelected": "Ready to upload",
+      "attachmentTooLarge": "One or more files exceed the {limit} limit.",
+      "attachmentTooLargeInline": "Exceeds {limit}",
+      "attachmentUploading": "Uploading…",
+      "attachmentUploadSuccess": "Uploaded",
+      "attachmentUploadFailedInline": "Upload failed",
+      "removeAttachment": "Remove",
+      "cancel": "Cancel",
+      "next": "Next",
+      "back": "Back",
+      "viewAll": "View all",
+      "showLess": "Show less",
+      "reviewNoAttachment": "No attachment added.",
+      "attachmentUploadError": "We created your case, but couldn't upload the attachment. You can try again from the case page.",
+      "submit": "Start case",
+      "submitting": "Starting case...",
+      "continue": "Continue",
+      "saveAsDraft": "Save as draft",
+      "savingDraft": "Saving draft...",
+      "draftSaved": "Draft saved.",
+      "error": "Unable to start a case right now. Please try again.",
+      "steps": {
+        "input": {
+          "title": "Tell us about your case",
+          "description": "Share what happened in your own words. Add a short title and any documents you already have."
+        },
+        "preview": {
+          "title": "Review your case",
+          "description": "Take a moment to check everything looks right before you start your case."
+        }
+      },
+      "uploadProgress": {
+        "uploadingAttachments": "Uploading {count, plural, =1 {# Attachment} other {# Attachments}}",
+        "uploadComplete": "Upload complete",
+        "filesNotUploaded": "Some attachments could not be uploaded",
+        "uploadFailedDescription": "Your case has been created. You can upload the missing files from the case page.",
+        "percentDone": "{percent}% Done",
+        "close": "Close",
+        "continue": "Go to case"
+      }
+    },
+    "close": {
+      "button": "Close case",
+      "lawyer": {
+        "confirmTitle": "Close case",
+        "confirmDescription": "Confirm that you completed everything needed to support the client. You can reopen the case to add further information later anytime."
+      },
+      "client": {
+        "confirmTitle": "Close case",
+        "confirmDescription": "Closing the case wraps things up here, but we are still available. Just reopen it if you need us again."
+      },
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "closing": "Closing...",
+      "success": "Case closed successfully.",
+      "error": "Failed to close the case."
+    },
+    "reopen": {
+      "button": "Reopen case",
+      "confirmTitle": "Reopen case",
+      "confirmDescription": "The case will move back to in progress. You and the other party will regain full access to update details, send messages, and share documents.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "reopening": "Reopening...",
+      "success": "Case reopened successfully.",
+      "error": "Failed to reopen the case."
+    },
+    "confirmation": {
+      "successTitle": "Case Successfully Submitted",
+      "successDescription": "Thanks — we've received your case and started reviewing it. Here's what to expect next.",
+      "seeDetails": "See Case Details",
+      "goToCases": "Go to my cases",
+      "whatHappensNext": "What happens next?",
+      "steps": {
+        "submit": {
+          "title": "Submit case"
+        },
+        "payment": {
+          "title": "Payment"
+        },
+        "assignment": {
+          "title": "Assigning Lawyer"
+        },
+        "review": {
+          "title": "Legal Review"
+        }
+      }
+    },
+    "paymentSuccess": {
+      "title": "Payment Successful",
+      "description": "Your payment has been received. A lawyer will be assigned to your case shortly.",
+      "backToCase": "Back to Case",
+      "viewInvoice": "View Invoice"
+    },
+    "paymentCancelled": {
+      "title": "Payment Cancelled",
+      "description": "Your payment was not completed. You can initiate payment again from your case.",
+      "backToCase": "Back to Case"
+    },
+    "claim": {
+      "submit": "Claim",
+      "submitting": "Claiming...",
+      "error": "Unable to claim this case right now. Please try again."
+    },
+    "status": {
+      "label": "Status",
+      "placeholder": "Select status",
+      "READY_FOR_SUBMISSION_REVIEW": "Submission review",
+      "READY_FOR_ASSIGNMENT": "Ready for assignment",
+      "READY_FOR_CLAIM": "Proposal",
+      "IN_PROGRESS": "In progress",
+      "CLOSED": "Closed",
+      "updateSuccess": "Case status updated successfully.",
+      "updateError": "Failed to update case status."
+    },
+    "multiFieldUpdate": {
+      "modified": "Modified",
+      "saveChanges": "Save changes",
+      "reset": "Reset all",
+      "noChanges": "No changes to save",
+      "updateSuccess": "Case updated successfully",
+      "updateError": "Failed to update case",
+      "changeSummary": "Changes to be saved:",
+      "partiesPlaceholder": "Enter party names...",
+      "deadlineLabel": "Claim deadline",
+      "deadlineHint": "Optional deadline for lawyers to claim this case.",
+      "deadlineTimezone": "Times are in {timezone}",
+      "clearDeadline": "Clear"
+    },
+    "titleEditor": {
+      "edit": "Edit title",
+      "save": "Save",
+      "cancel": "Cancel",
+      "placeholder": "Enter a case title",
+      "success": "Case title updated.",
+      "error": "Unable to update the case title. Please try again.",
+      "emptyError": "Enter a case title before saving."
+    },
+    "type": {
+      "label": "Case type",
+      "placeholder": "Select a case type",
+      "updated": "Case type updated successfully",
+      "updateError": "Unable to update case type. Please try again."
+    },
+    "details": {
+      "overview": "Overview",
+      "noDescription": "No description",
+      "client": "Client",
+      "assignedLawyer": "Assigned lawyer",
+      "unassigned": "Unassigned",
+      "caseType": "Case type",
+      "parties": "Parties",
+      "noPartiesIdentified": "No parties specified",
+      "anonTitle": "Anon title",
+      "anonTitlePlaceholder": "Enter anonymous title...",
+      "anonDescription": "Anonymous description",
+      "anonDescriptionPlaceholder": "Enter anonymous description...",
+      "noAnonDescription": "No anonymous description",
+      "created": "Created",
+      "updated": "Updated",
+      "backToCases": "Back to cases",
+      "allCases": "All Cases",
+      "allProposals": "All Proposals",
+      "share": "Share",
+      "cancel": "Cancel the Case",
+      "clientInfo": "Client Information",
+      "opposingPartyInfo": "Opposing Party Information",
+      "unknownClient": "Unknown Client",
+      "unknownParty": "Unknown Party",
+      "opposingParty": "Opposing Party",
+      "supportTitle": "For more information",
+      "supportLawyer": "Lawyer Support @ Moritz",
+      "contactSupport": "Contact Support",
+      "description": "Client Request",
+      "requestReceived": "Request Received",
+      "detailPlaceholder": "Information line 2",
+      "status": "Status",
+      "statusUpdated": "Status updated successfully.",
+      "statusUpdateError": "Failed to update status.",
+      "deadlineLabel": "Deadline",
+      "deadlineExpired": "Claiming period expired"
+    },
+    "clientView": {
+      "backToCases": "All Cases",
+      "cancelCase": "Cancel the Case",
+      "share": "Share",
+      "brief": "Brief",
+      "noDescription": "No description provided",
+      "tabs": {
+        "whatsNew": "What's New",
+        "caseInformation": "Case Information",
+        "payments": "Payments",
+        "documents": "Documents",
+        "activity": "Activity"
+      },
+      "timeline": {
+        "title": "What Happens Next?",
+        "steps": {
+          "submit": {
+            "title": "Submit case",
+            "description": "Case successfully submitted and ready for review."
+          },
+          "payment": {
+            "title": "Payment",
+            "received": "We received the payment",
+            "pendingDescription": "Moritz reviews your case and finds the best price for you, and sends an invoice in 24 hours.",
+            "unpaidTitle": "Invoice ready for payment",
+            "unpaidDescription": "An invoice is now available. Please complete the payment to proceed with your case.",
+            "paymentRequestedTitle": "Payment requested",
+            "paymentRequestedDescription": "You have outstanding payment requests. Your case will proceed once the payment has been completed.",
+            "viewPayments": "View payments",
+            "quoteAvailableTitle": "Quote available",
+            "quoteAvailableDescription": "A quote for legal services has been prepared for your review. Accept the quote to proceed with the invoice.",
+            "completedDescription": "We have successfully received your payment. We will notify you once a lawyer has been assigned and is ready to handle your case. Typically, this process takes 24 hours or less.",
+            "downloadInvoice": "Download Invoice",
+            "receivedBanner": "Payment of {amount} Received"
+          },
+          "assigningLawyer": {
+            "title": "Assigning Lawyer",
+            "description": "Based on your case, Moritz finds the lawyer and assigns to your case."
+          },
+          "legalReview": {
+            "title": "Legal Review"
+          },
+          "closed": {
+            "title": "Case Closed",
+            "description": "This case has been closed."
+          }
+        }
+      },
+      "chat": {
+        "title": "Chat",
+        "participants": "{count} Participants",
+        "attach": "Attach",
+        "placeholder": "Type your message here.",
+        "back": "Back",
+        "closedNotice": "This case is closed. Reopen it to send messages or get further help.",
+        "arclineSupportTeam": {
+          "name": "Moritz Support Team",
+          "description": "The Moritz Support Team may participate when needed."
+        },
+        "emptyState": {
+          "title": "Chat and Support",
+          "description": "Use this space to connect with your lawyer once assigned, share updates, and ask questions."
+        },
+        "fullScreen": "Full screen",
+        "download": {
+          "title": "Download Chat History",
+          "chooseLabel": "Choose what to include",
+          "conversations": "Conversations",
+          "events": "Events (like payments, member notifications, etc.)",
+          "fileType": "File Type",
+          "textOption": "Text (Better Compatibility)",
+          "cancel": "Cancel",
+          "downloadNow": "Download Now"
+        },
+        "emailCaseButton": "Email case",
+        "emailCaseDialogTitle": "Send to this case via email",
+        "emailCaseDialogDescription": "Copy the address below and email your message or attachments to this case.",
+        "emailCaseHintCaseSpecific": "This address is specific to this case.",
+        "emailCaseHintAttachments": "Attachments in your email will be added to the case.",
+        "emailCaseHintSender": "Send from the email address you signed up with.",
+        "emailCaseCopyButton": "Copy address",
+        "emailCaseCopied": "Copied!",
+        "emailCaseCloseButton": "Close"
+      }
+    },
+    "archivedCompany": {
+      "title": "Client Company Archived",
+      "description": "{companyName} archived their account on {date}. They cannot access this case or respond to messages until their account is restored."
+    },
+    "archived": "Archived",
+    "documents": {
+      "title": "Documents ({count})",
+      "header": "Uploaded documents",
+      "empty": "No documents uploaded",
+      "download": "Download",
+      "upload": "Upload",
+      "count": "{count} Documents",
+      "noAttachments": "This case has no attachments.",
+      "search": "Search anything",
+      "fileName": "File name",
+      "uploadedDate": "Uploaded date",
+      "deleteConfirm": "Delete this document?",
+      "deleteAria": "Delete document",
+      "deleteSuccess": "Document deleted successfully!",
+      "deleteError": "An unexpected error occurred while deleting the document. Please try again.",
+      "uploadError": "Failed to upload document. Please try again.",
+      "unsupportedFileType": "The file type is not supported.",
+      "dropLabel": "Drop files to upload",
+      "dropDescription": "or click to choose files",
+      "uploading": "Uploading..."
+    },
+    "drafts": {
+      "documentsTitle": "Draft documents",
+      "copySuccess": "Draft copied to clipboard",
+      "copyError": "Failed to copy draft",
+      "empty": "No draft documents yet",
+      "readOnlyNote": "Draft documents are provided by admins or the system. You can download them here.",
+      "firstMessageTitle": "First message draft",
+      "firstMessageDescription": "Use this as a starting point when reaching out to the client.",
+      "firstMessageEmpty": "No first message draft provided yet."
+    },
+    "conversation": {
+      "empty": "No messages yet. Start the conversation below."
+    },
+    "delete": {
+      "button": "Delete case",
+      "confirmTitle": "Delete case",
+      "confirmDescription": "Confirm that all progress, history and documents will be removed instantly. You, your team members and the lawyer will lose access to the case immediately.",
+      "cancel": "Go back",
+      "confirm": "Confirm",
+      "deleting": "Deleting...",
+      "success": "Case deleted.",
+      "error": "An unexpected error occurred while deleting the case. Please try again."
+    },
+    "share": {
+      "button": "Share",
+      "dialogTitle": "Share case",
+      "dialogDescription": "Manage who has access to this case.",
+      "placeholderContent": "Sharing options will be added here.",
+      "searchPlaceholder": "Search by name or email...",
+      "sharedWith": "Shared with",
+      "availableUsers": "Available users",
+      "noUsersFound": "No users found",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saveSuccess": "Case sharing updated successfully."
+    },
+    "payments": {
+      "noPayments": "No payments yet.",
+      "paidTitle": "Payment received",
+      "paidDescription": "We have successfully received your payment.",
+      "requestedTitle": "Payment requested",
+      "requestedDescription": "Please complete the payment to proceed with your case.",
+      "requestedAt": "Requested at {date}",
+      "paidAt": "Paid at {date}",
+      "completedPayments": "Completed payments",
+      "viewInvoice": "View Invoice"
+    },
+    "billing": {
+      "quoteTitle": "Service Quote",
+      "invoiceTitle": "Invoice",
+      "acceptQuote": "Accept Quote",
+      "accepting": "Accepting...",
+      "quoteAccepted": "Quote accepted",
+      "invoiceDescription": "Description",
+      "payInvoice": "Pay Now",
+      "paying": "Processing...",
+      "paymentInitiated": "Redirecting to payment...",
+      "amount": "Amount",
+      "tax": "Tax",
+      "estimatedTax": "Estimated Tax",
+      "taxAtCheckout": "Tax calculated at checkout",
+      "taxCalculationFailed": "Tax estimation failed; final tax calculated at checkout",
+      "total": "Total",
+      "error": "Something went wrong",
+      "missingInvoice": "No invoice available to send.",
+      "invoicePaidBanner": "Payment of {amount}",
+      "invoiceCreatedBanner": "Invoice of {amount}",
+      "quoteCreatedBanner": "Quote of {amount}",
+      "quoteCreatedBannerEstimate": "Quote of {amount} (est.)"
+    },
+    "tabs": {
+      "firstDraft": "AI First Draft",
+      "firstDraftTitle": "First Draft by Moritz",
+      "firstDraftDescription": "Moritz's AI agent has created a first draft based on the client's request. Moritz's AI can make mistakes. Review drafted content before responding to the client.",
+      "caseInformation": "Information",
+      "caseInformationTitle": "Case Information",
+      "caseNumber": "Case number",
+      "client": "Client",
+      "unknownClient": "Unknown Client",
+      "opposingParty": "Opposing Party",
+      "attachments": "Attachments",
+      "attachmentsTitle": "Attached Documents",
+      "attachmentsDescription": "Documents attached to this case.",
+      "draftedDocuments": "Drafted documents",
+      "draftedResponse": "Drafted response to client",
+      "draftContent": "Draft Content",
+      "noDraft": "No draft available.",
+      "caseDescription": "Client Request",
+      "copy": "Copy"
+    },
+    "cost": {
+      "title": "Cost",
+      "amount": "Amount",
+      "total": "Total",
+      "taxIncluded": "Tax included",
+      "estimatedTax": "Estimated Tax",
+      "taxAtCheckout": "Tax calculated at checkout",
+      "taxCalculationFailed": "Tax estimation failed; final tax calculated at checkout",
+      "noInvoice": "No invoice found."
+    },
+    "actions": {
+      "claimedSuccess": "Case claimed successfully",
+      "claimedError": "Failed to claim case",
+      "rejectedSuccess": "Proposal rejected",
+      "rejectedError": "Failed to reject proposal",
+      "rejecting": "Rejecting...",
+      "reject": "Reject",
+      "accepting": "Accepting...",
+      "accept": "Accept",
+      "confirmRejectTitle": "Reject Proposal?",
+      "confirmRejectDescription": "Are you sure you want to reject this proposal? This case will no longer be available for your company to claim.",
+      "confirmRejectAction": "Reject Proposal",
+      "cancel": "Cancel",
+      "confirmAcceptTitle": "Are you sure?",
+      "confirmAcceptDescription": "This action will assign you as the lawyer for this case. You will be responsible for handling the client communication and legal proceedings.",
+      "confirmAcceptAction": "Accept Case"
+    }
+  },
+  "quotes": {
+    "page": {
+      "title": "Quote Rounds",
+      "description": "View and participate in quote rounds for legal cases."
+    },
+    "list": {
+      "filterAll": "All",
+      "filterQuotesPlaced": "Quotes Placed",
+      "search": "Search",
+      "searchPlaceholder": "Find Anything",
+      "loading": "Loading quote rounds...",
+      "empty": "No quote rounds found. You will be notified when you are invited to participate in a quote round.",
+      "requestCount": "{count, plural, one {# request for quotes} other {# requests for quotes}}",
+      "columnQuoteNumber": "Quote #",
+      "columnClient": "Client",
+      "columnCaseTitle": "Case Title",
+      "columnBenchmark": "Benchmark",
+      "columnYourQuote": "Your Quote",
+      "columnExpiry": "Expiry",
+      "untitledCase": "Untitled Case",
+      "previous": "Previous",
+      "next": "Next",
+      "expired": "Expired"
+    },
+    "detail": {
+      "backToQuoteRounds": "Back to Quote Rounds",
+      "loading": "Loading quote round details...",
+      "loadError": "Failed to load quote round",
+      "quoteRound": "Quote Round",
+      "deadline": "Deadline",
+      "caseOverviewAnonymized": "Case Overview (Anonymized)",
+      "caseDetails": "Case Details",
+      "completeConflictCheckToView": "Complete the conflict check to view full case details.",
+      "title": "Title",
+      "caseType": "Case Type",
+      "estimatedValue": "Estimated Value",
+      "description": "Case Description",
+      "untitledCase": "Untitled Case",
+      "caseDetailsAnonymised": "Case details anonymised",
+      "anonymisedDescription": "Full details will be available after the conflict check is completed.",
+      "auctionExpiry": "Auction Expiry",
+      "benchmarkPrice": "Benchmark Price",
+      "adminNotes": "Notes from Moritz",
+      "clientInformation": "Client",
+      "opposingPartyInformation": "Opposing Party",
+      "noDescription": "No description",
+      "attachments": "Attachments",
+      "fileSizeKB": "KB"
+    },
+    "conflictCheck": {
+      "required": "Conflict Check Required",
+      "requiredDescription": "You must complete a conflict check before you can view full case details and submit a quote.",
+      "complete": "Complete Conflict Check",
+      "dialogTitle": "Conflict Check",
+      "dialogDescription": "Please confirm whether you have completed the conflict check for this case.",
+      "dueDiligenceAcknowledgment": "I acknowledge that I have performed a due diligence conflict check for this case.",
+      "confirm": "Confirm",
+      "conflictFound": "Conflict Found",
+      "reportConflictTitle": "Report Conflict?",
+      "reportConflictDescription": "Reporting a conflict will remove you from this quote round. You will no longer be able to view the case details or submit a quote.",
+      "cancel": "Cancel",
+      "confirmConflict": "Confirm Conflict",
+      "submitting": "Submitting...",
+      "noConflicts": "No Conflicts",
+      "conflictReported": "Conflict Reported",
+      "conflictReportedDescription": "You reported a conflict for this case and have been removed from this quote round."
+    },
+    "submitQuote": {
+      "yourQuote": "Your Quote",
+      "currentQuote": "Current quote: {amount}",
+      "noQuoteYet": "You have not submitted a quote yet.",
+      "benchmarkPrice": "Benchmark Price: {amount}",
+      "benchmarkDescription": "This is the reference price set by the administrator.",
+      "updateQuote": "Update Quote",
+      "submitQuote": "Submit Quote",
+      "dialogTitle": "Submit Quote",
+      "dialogTitleUpdate": "Update Quote",
+      "dialogDescription": "Enter your quote amount for this case.",
+      "amountLabel": "Quote Amount (USD)",
+      "amountPlaceholder": "0.00",
+      "notesLabel": "Scope of Delivery",
+      "notesPlaceholder": "What services are included in the proposed price?",
+      "cancel": "Cancel",
+      "submitting": "Submitting...",
+      "submit": "Submit",
+      "amount": "Amount",
+      "status": "Status",
+      "statusLabel": "Status",
+      "submittedByLabel": "Submitted by {name}",
+      "notes": "Notes",
+      "deadlinePassed": "The deadline for this quote round has passed. Waiting for admin to close the round.",
+      "successTitle": "Quote Submitted Successfully",
+      "successDescription": "Your quote has been submitted. You can update it anytime before the deadline.",
+      "close": "Close",
+      "withdraw": "Withdraw",
+      "withdrawDialogTitle": "Withdraw Quote",
+      "withdrawDialogDescription": "Are you sure you want to withdraw your quote? You can submit a new quote before the deadline.",
+      "withdrawing": "Withdrawing...",
+      "confirmWithdraw": "Withdraw Quote",
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "roundStatus": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "AWARDED": "Awarded",
+      "CANCELED": "Canceled"
+    },
+    "conflictStatus": {
+      "PENDING": "Pending",
+      "PASSED": "Passed",
+      "FAILED": "Failed"
+    },
+    "admin": {
+      "quoteRound": "Quote Round",
+      "loading": "Loading...",
+      "createQuoteRound": "Create Quote Round",
+      "createDescription": "Create a quote round to allow legal companies to compete for this case.",
+      "createDialogTitle": "Create Quote Round",
+      "createDialogDescription": "Invite legal companies to submit quotes for this case.",
+      "deadlineLabel": "Deadline",
+      "benchmarkPriceLabel": "Benchmark Price (USD, optional)",
+      "benchmarkPriceHint": "Reference price shown to legal companies when quoting.",
+      "invitedCompanies": "Invited Companies ({count} selected)",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Additional notes for participants...",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "create": "Create",
+      "deadline": "Deadline",
+      "benchmarkPrice": "Benchmark Price",
+      "participationStatus": "Participation Status",
+      "columnCompany": "Company",
+      "columnConflictCheck": "Conflict Check",
+      "submittedQuotes": "Submitted Quotes",
+      "columnAmount": "Amount",
+      "columnNotes": "Notes",
+      "columnStatus": "Status",
+      "columnActions": "Actions",
+      "accept": "Accept",
+      "noQuotesYet": "No quotes have been submitted yet.",
+      "closeRound": "Close Round",
+      "closeRoundConfirmTitle": "Close Quote Round?",
+      "closeRoundConfirmDescription": "This will end the quote round and prevent any new quotes from being submitted. All participating companies will be notified that the quote round is closed.",
+      "closeRoundConfirm": "Yes, Close Round",
+      "closing": "Closing...",
+      "reopenRound": "Reopen Round",
+      "notes": "Notes",
+      "quotesReceived": "Quotes received",
+      "viewDetails": "View Details",
+      "close": "Close",
+      "edit": "Edit",
+      "editDialogTitle": "Edit Quote Round",
+      "editDialogDescription": "Update quote round settings and invited companies.",
+      "editCompaniesHint": "Companies with ongoing conflict checks cannot be removed.",
+      "cannotRemove": "conflict check started",
+      "saving": "Saving...",
+      "save": "Save",
+      "filterByCountry": "Filter by country",
+      "allCountries": "All countries",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "noCompaniesInCountry": "No companies in this country.",
+      "country": {
+        "NORWAY": "Norway",
+        "USA": "United States",
+        "UK": "United Kingdom",
+        "AUSTRALIA": "Australia",
+        "OTHER": "Other"
+      }
+    }
+  },
+  "messages": {
+    "dateSeparators": {
+      "today": "Today",
+      "yesterday": "Yesterday, {date}"
+    },
+    "events": {
+      "quote_created": "{actor} created a quote for {amount}",
+      "quote_accepted": "{actor} accepted the quote",
+      "invoice_created": "Payment of {amount} requested",
+      "invoice_paid": "Invoice of {amount} was paid",
+      "participant_joined": "{actor} joined the chat",
+      "participant_invited": "{actor} invited {invitee}",
+      "status_changed": "{actor} changed the case status",
+      "case_closed": "<name>{actor}</name> closed the case",
+      "case_reopened": "<name>{actor}</name> reopened the case",
+      "lawyer_assigned": "{actor} has been assigned to this case",
+      "collaborator_added": "{actor} added {collaborator} to the case",
+      "collaborator_removed": "{actor} removed {collaborator} from the case",
+      "unknown_actor": "Unknown User",
+      "unknown_event": "System event: {type}",
+      "download": "Download"
+    },
+    "sendForm": {
+      "submit": "Send",
+      "submitting": "Sending...",
+      "sent": "Sent",
+      "error": "Unable to send message. Please try again.",
+      "addAttachment": "Add attachment",
+      "attach": "Attach",
+      "uploadFile": "Upload file",
+      "placeholder": "Type your message here.",
+      "loadingMore": "Loading more messages…"
+    },
+    "document": {
+      "deleted": "Document Deleted: {name}",
+      "deletedDescription": "This document has been removed.",
+      "download": "Download"
+    },
+    "errors": {
+      "editFailed": "Failed to edit message",
+      "deleteFailed": "Failed to delete message"
+    },
+    "edited": "edited",
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "editMessage": "Edit message",
+      "deleteMessage": "Delete message"
+    },
+    "deleteDialog": {
+      "title": "Delete message?",
+      "description": "This will permanently delete your message. This action cannot be undone."
+    },
+    "roles": {
+      "NON_LEGAL": "Client",
+      "LEGAL": "Lawyer",
+      "INTERNAL_ASSISTANT": "Assistant",
+      "INTERNAL_ADMIN": "System",
+      "UNKNOWN": "Unknown"
+    }
+  },
+  "adminCreate": {
+    "title": "New Case (Admin)",
+    "filingFor": "Filing for: {name}",
+    "selectUser": {
+      "title": "Select User",
+      "description": "Select the client you are filing this case for.",
+      "placeholder": "Search users by name or email...",
+      "empty": "No users found.",
+      "changeUser": "Change User"
+    }
+  },
+  "admin": {
+    "overview": {
+      "title": "Admin overview",
+      "description": "Select a company from the sidebar to review users, legal matters, and participation history.",
+      "body": "INTERNAL_ADMIN users can manage company access, disable individual accounts, and audit active legal matters. Choose a company on the left to get started.",
+      "createCase": {
+        "title": "Create case",
+        "description": "Start a new case on behalf of a client.",
+        "cta": "Create case"
+      },
+      "staleCases": {
+        "title": "Stale cases",
+        "description": "{count, plural, =0 {No stale cases} one {# case} other {# cases}} with no activity for 72+ hours",
+        "cta": "View stale cases"
+      },
+      "backfillCaseNumbers": {
+        "title": "Backfill case numbers",
+        "description": "Assign case numbers to legacy cases that are missing one.",
+        "cta": "Backfill missing case numbers",
+        "running": "Backfilling…",
+        "success": "Backfilled {count, plural, =0 {no cases} one {# case} other {# cases}}.",
+        "partial": "Backfilled {backfilled}, failed {failed}. Re-run to retry the failures.",
+        "error": "Backfill failed. Check the logs.",
+        "lastRun": "Last run: {attempted} attempted, {backfilled} backfilled, {failed} failed."
+      },
+      "pendingCases": {
+        "title": "Cases awaiting legal company selection",
+        "description": "These matters have completed intake and are ready for you to pick the legal partners that may claim them.",
+        "hint": "Review each case to choose eligible legal companies before publishing it to partners.",
+        "empty": "No cases are waiting for assignment. Great job!",
+        "client": "Client",
+        "unknownClient": "Unknown client",
+        "caseType": "Case type",
+        "parties": "Parties",
+        "noPartiesIdentified": "No parties specified",
+        "created": "Created:",
+        "manage": "Manage case"
+      }
+    },
+    "companies": {
+      "title": "Companies",
+      "description": "Browse all companies to manage access, whitelist status, and membership.",
+      "empty": "No companies have been registered yet.",
+      "whitelistedSection": "Whitelisted",
+      "nonWhitelistedSection": "Not whitelisted",
+      "deletedSection": "Deleted Companies"
+    },
+    "company": {
+      "orgNumber": "Org number",
+      "created": "Created",
+      "updated": "Updated",
+      "whitelisted": "Whitelisted",
+      "deleted": "Deleted",
+      "enable": "Whitelist",
+      "disable": "Disable",
+      "disabledLabel": "Disabled",
+      "saving": "Saving...",
+      "type": {
+        "LEGAL": "Legal",
+        "NON_LEGAL": "Client",
+        "INTERNAL_ADMIN": "Internal Admin",
+        "INTERNAL_ASSISTANT": "Internal Assistant"
+      },
+      "toggleSuccessWhitelist": "Company whitelisted successfully.",
+      "toggleSuccessDisable": "Company disabled successfully.",
+      "toggleError": "Unable to update company status.",
+      "cancel": "Cancel",
+      "confirmWhitelistTitle": "Whitelist this company?",
+      "confirmWhitelistDescription": "This company will be able to access the platform.",
+      "confirmDisableTitle": "Disable this company?",
+      "confirmDisableDescription": "This company will no longer be able to access the platform.",
+      "statusLabel": "Status",
+      "workosOrgLabel": "WorkOS Org",
+      "workosOrgPlaceholder": "org_...",
+      "workosOrgSave": "Save",
+      "workosOrgSaving": "Saving...",
+      "siemLabel": "Audit Log SIEM",
+      "siemEnabled": "Enabled",
+      "siemDisabled": "Disabled",
+      "siemEnableButton": "Enable SIEM",
+      "siemDisableButton": "Disable SIEM",
+      "siemConfirmEnableTitle": "Enable audit log SIEM?",
+      "siemConfirmEnableDescription": "Audit log events will be sent to WorkOS for SIEM export in addition to being stored locally.",
+      "siemConfirmDisableTitle": "Disable audit log SIEM?",
+      "siemConfirmDisableDescription": "Audit log events will no longer be sent to WorkOS for SIEM export. Existing events in WorkOS will not be affected.",
+      "siemDisabledReason": "Company must have a WorkOS organization to enable SIEM",
+      "scimDomainsLabel": "SCIM domains",
+      "scimDomainsPlaceholder": "example.com, corp.example.com",
+      "scimDomainsSaved": "SCIM domains updated.",
+      "scimDomainsError": "Unable to update SCIM domains.",
+      "countryLabel": "Country",
+      "countrySaved": "Country updated.",
+      "countryError": "Unable to update country.",
+      "paymentPlanLabel": "Payment plan",
+      "paymentPlan": {
+        "CREDIT_CARD": "Credit Card",
+        "INVOICE": "Invoice"
+      },
+      "paymentPlanSaved": "Payment plan updated.",
+      "paymentPlanError": "Unable to update payment plan.",
+      "sizeLabel": "Company size",
+      "size": {
+        "PRE_INCORPORATION": "Pre-incorporation",
+        "SMALL": "Small",
+        "MEDIUM": "Medium",
+        "LARGE": "Large"
+      },
+      "sizeSaved": "Company size updated.",
+      "sizeError": "Unable to update company size.",
+      "companyUrlLabel": "Website",
+      "descriptionLabel": "Description",
+      "actionsLabel": "Actions",
+      "createEnterprise": {
+        "navLabel": "Create enterprise company",
+        "title": "Create enterprise company",
+        "description": "Provision a company linked to a WorkOS organization. Users must sign in via WorkOS SSO and are provisioned via SCIM.",
+        "nameLabel": "Company name",
+        "namePlaceholder": "Acme Legal",
+        "workosOrgLabel": "WorkOS organization ID",
+        "workosOrgPlaceholder": "org_...",
+        "scimDomainsLabel": "SCIM domains",
+        "scimDomainsPlaceholder": "example.com, corp.example.com",
+        "scimDomainsHelp": "Comma-separated list of email domains. Only users whose email matches one of these can sign in.",
+        "typeLabel": "Company type",
+        "typeOption": {
+          "LEGAL": "Law firm (LEGAL)",
+          "NON_LEGAL": "Client (NON_LEGAL)"
+        },
+        "countryLabel": "Country",
+        "countryOption": {
+          "USA": "USA",
+          "NORWAY": "Norway",
+          "UK": "United Kingdom",
+          "AUSTRALIA": "Australia",
+          "OTHER": "Other"
+        },
+        "submit": "Create company",
+        "submitting": "Creating...",
+        "success": "Enterprise company {name} created.",
+        "error": "Unable to create enterprise company."
+      },
+      "setRole": {
+        "promote": "Promote to admin",
+        "demote": "Demote to member",
+        "success": "Member role updated.",
+        "error": "Unable to update member role."
+      },
+      "experimentalFeatures": {
+        "title": "Experimental Features",
+        "description": "Enable or disable experimental features for this company."
+      },
+      "preferredLegalCompanies": {
+        "label": "Preferred Legal Providers"
+      },
+      "delete": {
+        "label": "Delete company",
+        "title": "Delete {name}",
+        "description": "This action permanently removes {name}, its users, cases, documents, and cloud resources. This cannot be undone.",
+        "confirm": "Delete company",
+        "cancel": "Cancel",
+        "success": "{name} was deleted.",
+        "error": "Unable to delete the company right now.",
+        "selfDisabled": "You cannot delete your own company.",
+        "internalDisabled": "Internal companies cannot be deleted."
+      },
+      "archive": {
+        "label": "Archive company",
+        "title": "Archive {name}",
+        "description": "This will deactivate {name} and block all member access. The company data will be preserved and can be restored by an admin.",
+        "confirm": "Archive",
+        "cancel": "Cancel",
+        "success": "{name} was archived.",
+        "error": "Unable to archive the company right now.",
+        "selfDisabled": "You cannot archive your own company.",
+        "internalDisabled": "Internal companies cannot be archived."
+      },
+      "restore": {
+        "label": "Restore Company",
+        "title": "Restore {name}?",
+        "description": "This will reactivate the company and allow members to access it again. Subscriptions must be reactivated separately.",
+        "confirm": "Restore",
+        "cancel": "Cancel",
+        "success": "Company {name} has been restored successfully.",
+        "error": "Failed to restore company. Please try again."
+      },
+      "merge": {
+        "label": "Merge",
+        "title": "Merge into {name}",
+        "description": "Select the company to dissolve. All its memberships, cases, quotes, and invoices will be moved into {name}, and the source company will be archived.",
+        "sourceLabel": "Company to dissolve",
+        "sourcePlaceholder": "Search by company name",
+        "confirm": "Merge companies",
+        "cancel": "Cancel",
+        "success": "Company merged successfully into {name}.",
+        "error": "Failed to merge companies.",
+        "type": "Type",
+        "orgNumber": "Org number",
+        "members": "{count, plural, one {# member} other {# members}}",
+        "noResults": "No matching companies found."
+      }
+    },
+    "users": {
+      "title": "Users",
+      "description": "Enable or disable individual user accounts associated with this company.",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions",
+      "saving": "Saving...",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "empty": "No users associated with this company yet.",
+      "unnamed": "Unnamed user",
+      "noEmail": "No email provided",
+      "toggleSuccessEnable": "User enabled successfully.",
+      "toggleSuccessDisable": "User disabled successfully.",
+      "toggleError": "Unable to update user status."
+    },
+    "usersPage": {
+      "title": "All users",
+      "description": "Every user account, including ones not yet linked to a company.",
+      "filters": {
+        "all": "All",
+        "withCompany": "With company",
+        "withoutCompany": "No company"
+      },
+      "search": {
+        "label": "Search users",
+        "placeholder": "Search name or email"
+      },
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "company": "Company",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created"
+      },
+      "empty": "No users match the current filters.",
+      "unnamed": "(no name)",
+      "noCompany": "No company",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "pagination": {
+        "empty": "0 users",
+        "range": "{start}–{end}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "actions": {
+        "columnHeader": "Actions",
+        "enable": "Enable",
+        "disable": "Disable",
+        "enableSuccess": "User enabled.",
+        "disableSuccess": "User disabled.",
+        "toggleError": "Unable to update user.",
+        "delete": "Delete",
+        "deleteSuccess": "User {name} deleted.",
+        "deleteError": "Unable to delete user.",
+        "confirmDeleteTitle": "Delete {name}?",
+        "confirmDeleteDescription": "This removes the user and all their company memberships. This cannot be undone.",
+        "confirmDeleteConfirm": "Delete user",
+        "confirmDeleteCancel": "Cancel"
+      }
+    },
+    "userDetail": {
+      "description": "Read-only view of this user's personal details and notification preferences.",
+      "back": "Back to all users",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "notSet": "Not set",
+      "noCompany": "No company",
+      "on": "On",
+      "off": "Off",
+      "personalDetails": {
+        "title": "Personal details",
+        "description": "Profile information for this user."
+      },
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "phoneNumber": "Phone number",
+        "description": "Description",
+        "company": "Primary company",
+        "workosUserId": "WorkOS user ID",
+        "userId": "User ID",
+        "created": "Created",
+        "updated": "Updated"
+      },
+      "emailPreferences": {
+        "title": "Email preferences",
+        "description": "Top-level email preferences on the user record.",
+        "fullCaseViewEmail": "Full case view in email",
+        "relayEmail": "Relay email"
+      },
+      "sms": {
+        "title": "SMS",
+        "description": "SMS consent and opt-out status.",
+        "consent": "Consent",
+        "consented": "Consented",
+        "notConsented": "Not consented",
+        "consentedAt": "Consented at",
+        "consentSource": "Consent source",
+        "optedOutAt": "Opted out at"
+      },
+      "notificationPreferences": {
+        "title": "Notification preferences",
+        "description": "Per-channel, per-type preferences explicitly set by the user. Missing rows use the default.",
+        "empty": "No explicit notification preferences set. Defaults apply.",
+        "channel": "Channel",
+        "type": "Type",
+        "status": "Status"
+      }
+    },
+    "cases": {
+      "title": "Legal matters",
+      "description": "Active and historical cases initiated by users in this company.",
+      "descriptionLegal": "Active and historical cases assigned to lawyers in this company.",
+      "empty": "No legal matters associated with this company yet.",
+      "table": {
+        "title": "Title",
+        "status": "Status",
+        "created": "Created",
+        "updated": "Updated",
+        "conversation": "Conversation"
+      },
+      "view": "View conversation",
+      "unknownOwner": "Unknown owner",
+      "noEmail": "No email provided",
+      "statusTitle": "Update status",
+      "caseDetailsTitle": "Case details",
+      "updateCaseProperties": {
+        "title": "Update case properties",
+        "description": "You can update properties of the case here."
+      },
+      "readyForClaim": {
+        "title": "Publish for legal partners",
+        "label": "Select legal companies",
+        "hint": "Choose one or more approved legal companies that may claim this case.",
+        "emptyCompanies": "No whitelisted legal companies available.",
+        "save": "Save selection",
+        "saving": "Saving…",
+        "saveSuccessTitle": "Selection saved",
+        "saveSuccessDescription": "Claimable companies updated.",
+        "saveError": "Unable to update the company selection.",
+        "currentLabel": "Allowed companies",
+        "emptySelection": "No companies selected yet.",
+        "unsaved": "Save the company selection before publishing the case.",
+        "deadlineLabel": "Claim deadline",
+        "deadlineHint": "Set an optional deadline for lawyers to claim this case. Email notifications will be sent to eligible lawyers.",
+        "statusWarningTitle": "Are you sure?",
+        "statusWarningDescription": "The case is currently in \"{status}\" status, not \"Proposal\".",
+        "lawyerWarningDescription": "A lawyer is already assigned to this case: {lawyer}.",
+        "statusWarningCancel": "Cancel",
+        "statusWarningConfirm": "Save anyway"
+      },
+      "draftDocuments": {
+        "title": "Draft documents ({count})",
+        "empty": "No draft documents uploaded yet.",
+        "upload": "Upload draft",
+        "uploadError": "Failed to upload draft document. Please try again."
+      },
+      "draftTextDocuments": {
+        "title": "Text drafts ({count})",
+        "empty": "No text drafts yet.",
+        "lastUpdatedPrefix": "Updated",
+        "createdPrefix": "Created",
+        "status": {
+          "template": "Template",
+          "draft": "Draft",
+          "lawyer_review": "Waiting for lawyer review",
+          "client_review": "Waiting for client review",
+          "approved": "Approved",
+          "sent": "Sent",
+          "archived": "Archived"
+        },
+        "delete": "Delete draft",
+        "deleteConfirm": "Are you sure you want to delete this text draft? This action cannot be undone.",
+        "deleteSuccess": "Text draft deleted.",
+        "deleteError": "Unable to delete the text draft."
+      },
+      "firstMessageDraft": {
+        "title": "First message draft",
+        "description": "Write the first message a lawyer can send to the client once they pick up the case.",
+        "label": "Draft message",
+        "placeholder": "Hi there, thanks for sharing the details...",
+        "edit": "Edit draft",
+        "cancel": "Cancel",
+        "empty": "No draft saved yet.",
+        "copy": "Copy draft",
+        "copySuccess": "Draft copied to clipboard.",
+        "copyError": "Unable to copy the draft.",
+        "save": "Save draft",
+        "saving": "Saving...",
+        "success": "First message draft saved.",
+        "error": "Unable to save the first message draft.",
+        "unsaved": "You have unsaved changes."
+      },
+      "descriptionDialog": {
+        "trigger": "Edit description",
+        "title": "Edit case description",
+        "description": "Update the description of this legal case.",
+        "fieldLabel": "Description",
+        "placeholder": "Describe the legal matter...",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "success": "Description updated successfully."
+      },
+      "anonDescriptionDialog": {
+        "trigger": "Edit anonymous description",
+        "title": "Edit anonymous description",
+        "description": "Update the anonymized description shown to legal partners before they claim the case.",
+        "fieldLabel": "Anonymous description",
+        "placeholder": "Describe the legal matter without identifying details...",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "success": "Anonymous description updated successfully."
+      },
+      "billing": {
+        "title": "Billing",
+        "currency": "Currency",
+        "lineItems": "Line items",
+        "addLine": "Add line",
+        "loadFromQuote": "Load from quote",
+        "description": "Description",
+        "descriptionPlaceholder": "Service or item description",
+        "quantity": "Qty",
+        "unit": "Unit amount",
+        "tax": "Tax",
+        "remove": "Remove",
+        "total": "Total",
+        "notes": "Quote notes (optional)",
+        "notesPlaceholder": "Internal notes or scope details",
+        "notesForClient": "Notes for client (optional)",
+        "notesForClientPlaceholder": "Information to be included in invoice",
+        "createQuote": "Create draft quote",
+        "creatingQuote": "Creating...",
+        "quoteCreated": "Quote created",
+        "deleteQuote": "Delete quote",
+        "deleting": "Deleting...",
+        "quoteDeleted": "Quote deleted",
+        "newInvoice": "New invoice",
+        "createInvoice": "Create Invoice",
+        "creatingInvoice": "Creating...",
+        "invoiceCreated": "Invoice created",
+        "deleteInvoice": "Delete",
+        "deleteInvoiceConfirm": "Delete invoice?",
+        "deleteInvoiceConfirmDescription": "This action cannot be undone. The invoice will be permanently removed.",
+        "cancel": "Cancel",
+        "invoiceDeleted": "Invoice deleted",
+        "invoiceSent": "Invoice finalized",
+        "invoiceDescription": "Invoice description",
+        "invoiceDescriptionPlaceholder": "Shown on the invoice",
+        "dueDate": "Due date",
+        "convertToInvoice": "Convert quote to invoice",
+        "converting": "Converting...",
+        "latestQuote": "Latest quote",
+        "noQuote": "No quotes yet.",
+        "lastUpdated": "Updated {date}",
+        "invoices": "Invoices",
+        "noInvoice": "No invoices yet.",
+        "status": "Status",
+        "created": "Created",
+        "viewPdf": "View PDF",
+        "sendEmail": "Send email via Stripe",
+        "send": "Finalize and send",
+        "sending": "Sending...",
+        "lineItemValidation": "Please add at least one line item with valid amounts.",
+        "amountValidation": "Please enter a valid positive amount.",
+        "billingDetails": "Billing details",
+        "amount": "Amount",
+        "taxExclNotice": "Taxes not included, will be added automatically later",
+        "error": "Something went wrong. Please try again.",
+        "missingQuote": "Create a quote before invoicing.",
+        "missingInvoice": "No invoice available to send."
+      },
+      "allCases": "All Cases",
+      "cancelCase": "Cancel the Case",
+      "overview": {
+        "title": "Overview",
+        "client": "Client",
+        "assignedLawyer": "Assigned lawyer",
+        "allowedCompanies": "Allowed companies",
+        "noCompaniesSelected": "No companies selected yet.",
+        "forClient": "For Client",
+        "forLawyer": "For Lawyer"
+      },
+      "assignLawyerDialog": {
+        "trigger": "Edit assigned lawyer",
+        "title": "Assign Lawyer",
+        "description": "Select a lawyer from a legal company to assign to this case.",
+        "selectPlaceholder": "Select a lawyer...",
+        "unassigned": "Unassigned",
+        "cancel": "Cancel",
+        "save": "Assign",
+        "saving": "Assigning...",
+        "success": "Lawyer assigned successfully"
+      },
+      "publishProposal": "Publish proposal for legal partners",
+      "quoteRound": "Quote Round",
+      "populateFirstDraft": "Populate First Draft",
+      "agentDraftingStatus": "Agent drafting status:",
+      "generateDraft": "Generate Draft",
+      "generatingDraft": "Generating...",
+      "draftGenerationStarted": "Draft generation started",
+      "billingHistory": {
+        "title": "Billing History",
+        "invoice": "Invoice",
+        "receipt": "Receipt",
+        "quote": "Quote",
+        "amount": "Amount",
+        "description": "Description",
+        "details": "Details",
+        "note": "Note",
+        "status": "Status",
+        "transaction": "Transaction",
+        "seeMore": "See More",
+        "pending": "Pending",
+        "paid": "Paid"
+      }
+    },
+    "caseTypes": {
+      "title": "Case types",
+      "description": "Create, update, or remove the case types available to internal teams.",
+      "form": {
+        "name": {
+          "label": "Name",
+          "placeholder": "Name of the case type"
+        },
+        "description": {
+          "label": "Description for classification",
+          "placeholder": "Description of the case type",
+          "hint": "This description is used to guide the classifier agent when classifying a case."
+        },
+        "requiredInformation": {
+          "label": "Collected information",
+          "placeholder": "- Information item 1 \n- Information item 2 \n- Information item 3",
+          "hint": "A list of information that the information gathering agent will collect from the user. Write each item on a new line. Start each item with a dash. '-'"
+        }
+      },
+      "create": {
+        "success": "Case type created successfully.",
+        "submit": "Create case type",
+        "submitPending": "Creating..."
+      },
+      "list": {
+        "title": "Existing case types",
+        "description": "These case types are available when triaging and updating matters.",
+        "empty": "No case types yet.",
+        "noDescription": "No description provided",
+        "noRequiredInformation": "No collected information specified",
+        "columns": {
+          "name": "Name",
+          "description": "Description",
+          "requiredInformation": "Collected information",
+          "updated": "Updated",
+          "templates": "Templates",
+          "actions": "Actions"
+        },
+        "actions": {
+          "edit": "Edit"
+        }
+      },
+      "edit": {
+        "heading": "Edit {name}",
+        "subheading": "Update names or descriptions so teams pick the right option.",
+        "back": "Back to case types",
+        "sectionTitle": "Case type details",
+        "meta": "Created <created></created> (updated <updated></updated>)",
+        "submit": "Save changes",
+        "submitPending": "Saving...",
+        "success": "Case type updated successfully."
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Create reusable drafts that guide assistants and lawyers when handling this case type.",
+        "create": {
+          "title": "Add template",
+          "subtitle": "Define the structure, description, and required data before publishing to the team.",
+          "submit": "Create template",
+          "submitPending": "Creating...",
+          "success": "Template created successfully.",
+          "heading": "Add template for {caseType}",
+          "subheading": "Capture the guidance your team needs before using this case type template.",
+          "formTitle": "Template details",
+          "formDescription": "Fill out the title, description, required data, and body of the template."
+        },
+        "manage": {
+          "title": "Existing templates",
+          "actions": {
+            "open": "Open"
+          },
+          "description": "Description",
+          "noDescription": "No description provided.",
+          "dataRequirements": "Data requirements",
+          "templatePreview": "Template preview"
+        },
+        "empty": "No templates for this case type yet.",
+        "itemTitle": "{name}",
+        "itemMeta": "Last updated <updated></updated>",
+        "edit": {
+          "cardTitle": "Update template",
+          "cardDescription": "Change the template content and guidance below.",
+          "submit": "Save template",
+          "submitPending": "Saving...",
+          "success": "Template updated successfully.",
+          "confirmNavigation": "You have unsaved changes. Are you sure you want to leave this page?"
+        },
+        "delete": {
+          "title": "Delete template",
+          "description": "Deleting a template removes it from all future suggestions immediately.",
+          "helper": "Assistants will no longer see \"{name}\" when triaging cases once deleted.",
+          "submit": "Delete template",
+          "submitPending": "Deleting...",
+          "confirm": "Delete template \"{name}\"?",
+          "success": "Deleted template \"{name}\"."
+        },
+        "form": {
+          "title": {
+            "label": "Template name",
+            "placeholder": "Give the document a clear name so teammates know when to use it."
+          },
+          "template": {
+            "label": "Template body",
+            "placeholder": "Provide the template content used when drafting responses."
+          },
+          "description": {
+            "label": "Template description",
+            "placeholder": "Explain when to apply this template or key guidance to follow.",
+            "hint": "This description is shown next to the template in the case type overview."
+          },
+          "dataRequirements": {
+            "label": "Data requirements",
+            "placeholder": "List the facts or documents required to fill this template.",
+            "hint": "Help assistants gather the right collateral before applying this template."
+          }
+        },
+        "errors": {
+          "TITLE_REQUIRED": "Enter a name for the template.",
+          "TEMPLATE_REQUIRED": "Enter the template content.",
+          "DESCRIPTION_REQUIRED": "Add a description so teammates can identify this template.",
+          "DATA_REQUIREMENTS_REQUIRED": "Describe the data required to use this template.",
+          "TEMPLATE_NOT_FOUND": "This template could not be found.",
+          "CASE_TYPE_NOT_FOUND": "The parent case type could not be found.",
+          "UNKNOWN": "Something went wrong. Please try again.",
+          "INVALID_ID": "The template identifier was invalid."
+        },
+        "detail": {
+          "heading": "Edit {name}",
+          "subheading": "Update template guidance for {caseType}.",
+          "back": "Back to {caseType}",
+          "sectionTitle": "Template editor",
+          "meta": "Created <created></created> (updated <updated></updated>)"
+        }
+      },
+      "delete": {
+        "title": "Delete case type",
+        "description": "Deleting a case type removes it from future assignments.",
+        "helper": "Cases already linked to \"{name}\" keep their current type, but it cannot be assigned again after deletion.",
+        "confirm": "Are you sure you want to delete \"{name}\"?",
+        "submit": "Delete case type",
+        "submitPending": "Deleting...",
+        "success": "Deleted \"{name}\"."
+      },
+      "errors": {
+        "NAME_REQUIRED": "Enter a name for the case type.",
+        "NAME_TAKEN": "A case type with this name already exists.",
+        "NOT_FOUND": "This case type could not be found.",
+        "INVALID_ID": "This case type could not be found.",
+        "IN_USE": "This case type is still linked to one or more cases. Remove those links before deleting.",
+        "UNKNOWN": "Something went wrong. Please try again."
+      }
+    },
+    "countries": {
+      "title": "Countries",
+      "description": "Configure per-country waitlist behavior and Stripe market mapping.",
+      "explanation": "These settings control who skips the waitlist during onboarding. When enabled, new companies from that country are approved automatically instead of being placed on the waitlist. Legal companies still require manual whitelisting even when their waitlist is skipped — this only controls whether they enter the waitlist in the first place.",
+      "loading": "Loading countries...",
+      "searchPlaceholder": "Search by country name or code...",
+      "table": {
+        "code": "Code",
+        "name": "Name",
+        "timezone": "Timezone",
+        "stripeMarket": "Stripe Market",
+        "legalAutoApprove": "Skip waitlist (legal)",
+        "nonLegalAutoApprove": "Skip waitlist (client)",
+        "empty": "No countries match your search."
+      },
+      "feedback": {
+        "success": "Country config updated",
+        "error": "Failed to update: {message}"
+      }
+    },
+    "waitlist": {
+      "title": "Waitlist",
+      "convert": {
+        "title": "Convert Waitlist Entries",
+        "description": "Mark pending waitlist entries as converted for countries that are now supported. Users will be able to complete onboarding on their next visit.",
+        "convertUk": "Convert UK entries",
+        "convertAustralia": "Convert Australia entries",
+        "converting": "Converting...",
+        "success": "Converted {convertedCount} entries, updated {companiesUpdated} companies",
+        "error": "Error: {message}"
+      },
+      "approve": {
+        "approve": "Approve",
+        "approving": "Approving...",
+        "success": "Entry approved and company whitelisted",
+        "notFound": "Could not find a user/company for this entry",
+        "error": "Error: {message}"
+      },
+      "table": {
+        "email": "Email",
+        "country": "Country",
+        "company": "Company",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions",
+        "empty": "No waitlist entries yet.",
+        "unknownCountry": "Unknown",
+        "noCompany": "N/A"
+      }
+    }
+  },
+  "emails": {
+    "verification": {
+      "preheader": "Verify your email to finish setting up your account.",
+      "heading": "Verify your email",
+      "intro": "Thanks for signing up. Please confirm this email address to continue.",
+      "button": "Verify email",
+      "expires": "This link expires in 24 hours.",
+      "footer": "Didn't request this? Ignore this email. Need help? Contact support.",
+      "subject": "Moritz email verification",
+      "contactSupport": "Contact support"
+    },
+    "invitation": {
+      "preheader": "Join {company} on Moritz.",
+      "heading": "You're invited",
+      "intro": "{inviter} invited you to join {company} on {appName}.",
+      "button": "Accept invitation",
+      "linkFallback": "If the button doesn't work, copy and paste this link:",
+      "footer": "Have questions or didn't expect this invite? Contact support.",
+      "contactSupport": "Contact support",
+      "subject": "{inviter} invited you to {company}",
+      "defaultCompany": "their company",
+      "defaultInviter": "A teammate"
+    },
+    "magicLink": {
+      "preheader": "Sign in to {appName}",
+      "heading": "Sign in to {appName}",
+      "intro": "Click the button below to securely sign in to your account.",
+      "button": "Sign in",
+      "expires": "This link expires in 24 hours.",
+      "footer": "If you didn't request this email, you can safely ignore it.",
+      "linkFallback": "If the button doesn't work, copy and paste this link:",
+      "contactSupport": "Contact support",
+      "subject": "Sign in to Moritz"
+    },
+    "otpCode": {
+      "preheader": "Your sign-in code for {appName}",
+      "heading": "Your sign-in code",
+      "intro": "Enter this code to sign in to your account.",
+      "expires": "This code expires in 10 minutes.",
+      "footer": "If you didn't request this email, you can safely ignore it.",
+      "contactSupport": "Contact support",
+      "subject": "Your Moritz sign-in code"
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "404 - Page Not Found",
+      "description": "The page you're looking for doesn't exist or you don't have permission to access it.",
+      "actions": {
+        "goHome": "Go to Home",
+        "signIn": "Sign In"
+      }
+    },
+    "caseUnavailable": {
+      "title": "Case No Longer Available",
+      "description": "This case is no longer available. It may have been claimed by another lawyer or its status has changed.",
+      "actions": {
+        "backToCases": "Back to cases"
+      }
+    }
+  },
+  "emailVerificationBanner": {
+    "description": "Your email address hasn't been verified. You won't receive email notifications until you verify it.",
+    "linkText": "Verify now",
+    "dismiss": "Dismiss"
+  },
+  "companiesPage": {
+    "filters": {
+      "all": "All",
+      "allWithCount": "All ({count})",
+      "typeWithCount": "{type} ({count})",
+      "active": "Active",
+      "whitelisted": "Whitelisted",
+      "archived": "Archived",
+      "searchLabel": "Search companies",
+      "searchPlaceholder": "Search by name or org number..."
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "orgNumber": "Org number",
+      "members": "Members",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "whitelisted": "Whitelisted",
+      "archived": "Archived"
+    },
+    "pagination": {
+      "empty": "No companies found",
+      "showing": "Showing {start} - {end}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "empty": "No companies found."
+  },
+  "settings": {
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize how the app looks.",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose between light and dark mode.",
+        "light": "Light",
+        "dark": "Dark"
+      }
+    },
+    "security": {
+      "title": "Security",
+      "navLabel": "Security",
+      "passkeys": {
+        "title": "Passkeys",
+        "description": "Passkeys let you sign in with your fingerprint, face, or security key.",
+        "register": "Add a passkey",
+        "registerError": "Failed to register passkey. Please try again.",
+        "delete": "Remove",
+        "empty": "No passkeys registered yet.",
+        "syncedPasskey": "Synced passkey",
+        "deviceBoundPasskey": "Device-bound passkey",
+        "registered": "Registered"
+      },
+      "twoFactor": {
+        "title": "Two-factor authentication",
+        "description": "Add a one-time code from an authenticator app to protect your sign-ins.",
+        "enable": "Enable two-factor",
+        "disable": "Disable",
+        "disabling": "Disabling…",
+        "enabled": "Two-factor authentication is on.",
+        "enabledOn": "Enabled",
+        "scanInstructions": "Scan this QR code with an authenticator app (1Password, Authy, Google Authenticator), or copy the secret in manually.",
+        "qrAlt": "QR code for setting up two-factor authentication in an authenticator app",
+        "secretLabel": "Secret",
+        "codePromptTitle": "Enter the 6-digit code",
+        "codePrompt": "Type the current code from your authenticator app to finish setup.",
+        "codeForDisable": "Enter your current 6-digit code to confirm.",
+        "verify": "Verify and enable",
+        "cancel": "Cancel",
+        "incorrectCode": "That code is incorrect or expired. Try again.",
+        "genericError": "Something went wrong. Try again."
+      }
+    },
+    "activity": {
+      "navLabel": "Activity",
+      "auditLogNavLabel": "Audit log"
+    }
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "type": "Type",
+      "allTypes": "All types",
+      "outcome": "Outcome",
+      "allOutcomes": "All outcomes",
+      "clearFilters": "Clear filters"
+    },
+    "table": {
+      "timestamp": "Timestamp",
+      "action": "Action",
+      "actor": "Actor",
+      "target": "Target",
+      "type": "Type",
+      "outcome": "Outcome",
+      "source": "Source",
+      "empty": "No audit log entries found."
+    },
+    "pagination": {
+      "totalEntries": "{count} total entries",
+      "page": "Page {page} of {total}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "export": {
+      "exporting": "Exporting..."
+    },
+    "devTools": {
+      "title": "Dev Tools (non-production only)",
+      "seeding": "Seeding...",
+      "seedButton": "Seed {times} × {count} expired entries",
+      "startingPurge": "Starting...",
+      "triggerPurge": "Trigger purge workflow",
+      "seededResult": "Seeded {inserted} entries (backdated before {date})",
+      "purgeStarted": "Started purge workflow {workflowId} (retention: {days}d)"
+    },
+    "timeline": {
+      "loadMore": "Load more",
+      "empty": "No activity found."
+    },
+    "caseActivity": {
+      "title": "Activity Log",
+      "empty": "No activity recorded for this case."
+    },
+    "companyActivity": {
+      "title": "Company Activity",
+      "description": "Activity by your team and actions on your data by other parties.",
+      "empty": "No company activity recorded yet.",
+      "unavailable": "Activity log is not available."
+    },
+    "exportSection": {
+      "title": "Audit log export",
+      "description": "Export your company's audit log as a downloadable file."
+    },
+    "exportDialog": {
+      "trigger": "Export audit logs",
+      "title": "Export audit logs",
+      "description": "Export all audit log entries for your company as a JSON file. The download link will be sent to the email address below and will expire after 24 hours.",
+      "emailLabel": "Email",
+      "submit": "Export logs",
+      "submitting": "Starting export...",
+      "success": "Export started. You will receive an email with the download link.",
+      "alreadyRunning": "An export is already in progress. You will receive an email when it completes.",
+      "error": "Failed to start export."
+    }
+  },
+  "lawyerReview": {
+    "status": {
+      "ready": "Ready for lawyer review",
+      "reviewing": "Lawyer review in progress",
+      "readyToSubmit": "Ready for submission eval",
+      "evaluating": "Submission eval running",
+      "blocked": "Changes required",
+      "passed": "Ready to deliver",
+      "delivered": "Delivered to client"
+    },
+    "intro": "Review the AI draft in Word, upload your completed version, then pass the submission eval before delivery.",
+    "progress": {
+      "title": "Review progress",
+      "preEval": "AI draft quality checked",
+      "preEvalDetail": "Pre-review eval passed",
+      "lawyer": "Lawyer review",
+      "lawyerDetail": "Download or open the DOCX in Word",
+      "submission": "Submission eval",
+      "submissionDetail": "Checks legal quality, language, and DOCX fidelity",
+      "delivery": "Client delivery",
+      "deliveryDetail": "Only the approved final version becomes client-visible"
+    },
+    "draft": {
+      "title": "AI-generated first draft",
+      "internal": "Internal work product · not visible to the client",
+      "meta": "AI draft · v{version} · Pre-review eval passed",
+      "openWord": "Open in Word",
+      "download": "Download DOCX",
+      "missingTitle": "First draft not ready yet",
+      "missingDescription": "Moritz will place the AI-generated work product here after the pre-review quality gate passes."
+    },
+    "upload": {
+      "title": "Upload your review",
+      "revisedTitle": "Upload a revised version",
+      "description": "Upload your completed Word document to create the lawyer-reviewed version.",
+      "replaceDescription": "Replace the current lawyer version with a revised DOCX. Version history is preserved.",
+      "blockedDescription": "Upload the corrected DOCX. It becomes the next version and can be evaluated again.",
+      "note": "Internal note (optional)",
+      "noteDescription": "Add context for other Moritz reviewers. This is not shown to the client.",
+      "notePlaceholder": "Summarize key changes, open questions, or accepted risks…",
+      "meta": "Lawyer review · v{version}",
+      "invalid": "Upload a Word document",
+      "invalidDescription": "The reviewed work product must be a DOC or DOCX file."
+    },
+    "eval": {
+      "runningTitle": "Checking the lawyer-reviewed document",
+      "runningDescription": "Reviewing legal positions, language, tracked changes, numbering, and formatting. This usually completes within 15 minutes.",
+      "blockedTitle": "One red finding blocks delivery",
+      "blockedFinding": "Liability cap excludes data breach exposure in Section 11.3. The approved playbook requires this carve-out to remain uncapped.",
+      "blockedAction": "Correct the Word document and upload a revised version before running the eval again.",
+      "override": "Record authorized override",
+      "passed": "Submission eval passed",
+      "passedDescription": "No blocking findings remain. This exact version is approved for client delivery.",
+      "run": "Run submission eval",
+      "runAgain": "Run eval again",
+      "running": "Running submission eval…"
+    },
+    "delivery": {
+      "button": "Deliver to client",
+      "title": "Deliver this final document?",
+      "description": "Version {version} passed the submission eval. It will become visible to the client and marked as delivered.",
+      "confirm": "Deliver document",
+      "delivered": "Final document delivered",
+      "deliveredDescription": "The lawyer-approved version is now visible to the client.",
+      "download": "Download delivered version"
+    },
+    "override": {
+      "title": "Override the blocking finding?",
+      "description": "Only an authorized reviewer should override a red finding. The justification remains attached to this document version.",
+      "label": "Justification",
+      "help": "Name the approving authority and explain why delivery is acceptable.",
+      "placeholder": "Approved by General Counsel because…",
+      "confirm": "Record override"
+    },
+    "cancel": "Cancel"
+  }
+}

@@ -1,0 +1,226 @@
+import type { Document } from '@/lib/types';
+
+const DOCX =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const XLSX =
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const PDF = 'application/pdf';
+
+/**
+ * Mock case documents. Ordering of the first entries is kept stable because
+ * `cases.ts` / `quotes.ts` reference documents by index. Multiple versions of
+ * the same logical document share a `familyId` and a normalised `name`; the
+ * Documents tab groups them into a single, expandable family.
+ */
+export const MOCK_DOCUMENTS: Document[] = [
+  // 0 — case_001: client's employment agreement under review
+  {
+    id: 'doc_001',
+    familyId: 'fam_emp_agreement',
+    version: 1,
+    name: 'Employment Agreement.docx',
+    size: 184_320,
+    mimeType: DOCX,
+    uploadedAt: '2026-05-10T09:00:00.000Z',
+    uploadedBy: 'Alex Morgan',
+    uploaderActor: 'client',
+    docType: 'agreement',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 1 — case_001: signed termination notice
+  {
+    id: 'doc_002',
+    familyId: 'fam_termination_notice',
+    version: 1,
+    name: 'Termination Notice (signed).pdf',
+    size: 62_988,
+    mimeType: PDF,
+    uploadedAt: '2026-05-12T13:14:00.000Z',
+    uploadedBy: 'Alex Morgan',
+    uploaderActor: 'client',
+    docType: 'signed',
+    status: 'final',
+    isDraft: false,
+  },
+  // 2 — case_002 + quote round: client's redacted HR memo
+  {
+    id: 'doc_003',
+    familyId: 'fam_hr_memo',
+    version: 1,
+    name: 'Internal HR memo - redacted.pdf',
+    size: 121_004,
+    mimeType: PDF,
+    uploadedAt: '2026-05-15T08:32:00.000Z',
+    uploadedBy: 'Reena Patel',
+    uploaderActor: 'client',
+    docType: 'memo',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 3 — case_001: AI first-draft response
+  {
+    id: 'doc_004',
+    familyId: 'fam_draft_response',
+    version: 1,
+    name: 'Notice of Dispute - AI draft.docx',
+    size: 48_640,
+    mimeType: DOCX,
+    uploadedAt: '2026-05-18T11:02:00.000Z',
+    uploadedBy: 'Moritz drafting service',
+    uploaderActor: 'ai',
+    docType: 'agreement',
+    status: 'draft',
+    isDraft: true,
+  },
+  // 4 — case_003: supplier exhibit
+  {
+    id: 'doc_005',
+    familyId: 'fam_supplier_exhibit',
+    version: 1,
+    name: 'Supplier exhibit - Schedule A.xlsx',
+    size: 88_104,
+    mimeType: XLSX,
+    uploadedAt: '2026-04-22T15:48:00.000Z',
+    uploadedBy: 'Reena Patel',
+    uploaderActor: 'client',
+    docType: 'exhibit',
+    status: 'final',
+    isDraft: false,
+  },
+  // 5 — case_007: Northstar MSA & DPA family, v1 (client's incoming paper)
+  {
+    id: 'doc_006',
+    familyId: 'fam_northstar_msa',
+    version: 1,
+    name: 'Northstar MSA & DPA.docx',
+    size: 236_544,
+    mimeType: DOCX,
+    uploadedAt: '2026-06-01T09:12:00.000Z',
+    uploadedBy: 'Devon Carter',
+    uploaderActor: 'client',
+    docType: 'agreement',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 6 — case_007: Northstar MSA & DPA family, v2 (counsel redline draft)
+  {
+    id: 'doc_007',
+    familyId: 'fam_northstar_msa',
+    version: 2,
+    name: 'Northstar MSA & DPA.docx',
+    size: 251_996,
+    mimeType: DOCX,
+    uploadedAt: '2026-06-03T14:40:00.000Z',
+    uploadedBy: 'Catarina Milagre',
+    uploaderActor: 'legal',
+    docType: 'redline',
+    status: 'draft',
+    isDraft: true,
+  },
+  // 7 — case_008: FleetLink renewal family, v1 (client's incoming renewal)
+  {
+    id: 'doc_008',
+    familyId: 'fam_fleetlink_renewal',
+    version: 1,
+    name: 'FleetLink renewal agreement.docx',
+    size: 198_720,
+    mimeType: DOCX,
+    uploadedAt: '2026-05-30T10:05:00.000Z',
+    uploadedBy: 'Devon Carter',
+    uploaderActor: 'client',
+    docType: 'agreement',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 8 — case_008: FleetLink renewal family, v2 (counsel redline draft)
+  {
+    id: 'doc_009',
+    familyId: 'fam_fleetlink_renewal',
+    version: 2,
+    name: 'FleetLink renewal agreement.docx',
+    size: 214_268,
+    mimeType: DOCX,
+    uploadedAt: '2026-06-02T16:20:00.000Z',
+    uploadedBy: 'Aélita Jacob',
+    uploaderActor: 'legal',
+    docType: 'redline',
+    status: 'draft',
+    isDraft: true,
+  },
+  // 9 — case_007: Northstar MSA & DPA family, v3 (final delivered)
+  {
+    id: 'doc_010',
+    familyId: 'fam_northstar_msa',
+    version: 3,
+    name: 'Northstar MSA & DPA.docx',
+    size: 258_112,
+    mimeType: DOCX,
+    uploadedAt: '2026-06-05T11:20:00.000Z',
+    uploadedBy: 'Catarina Milagre',
+    uploaderActor: 'legal',
+    docType: 'agreement',
+    status: 'delivered',
+    isDraft: false,
+  },
+  // 10 — case_007: supporting DPA exhibit (client)
+  {
+    id: 'doc_011',
+    familyId: 'fam_northstar_dpa_exhibit',
+    version: 1,
+    name: 'DPA - data flows exhibit.xlsx',
+    size: 46_920,
+    mimeType: XLSX,
+    uploadedAt: '2026-06-01T09:14:00.000Z',
+    uploadedBy: 'Devon Carter',
+    uploaderActor: 'client',
+    docType: 'exhibit',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 11 — case_007: supporting vendor security questionnaire (client)
+  {
+    id: 'doc_012',
+    familyId: 'fam_northstar_security',
+    version: 1,
+    name: 'Vendor security questionnaire.pdf',
+    size: 132_480,
+    mimeType: PDF,
+    uploadedAt: '2026-06-01T09:16:00.000Z',
+    uploadedBy: 'Devon Carter',
+    uploaderActor: 'client',
+    docType: 'other',
+    status: 'in_review',
+    isDraft: false,
+  },
+  // 12 — case_007: counsel risk summary memo (delivered alongside the redline)
+  {
+    id: 'doc_013',
+    familyId: 'fam_northstar_risk',
+    version: 1,
+    name: 'Northstar review - risk summary.pdf',
+    size: 78_640,
+    mimeType: PDF,
+    uploadedAt: '2026-06-04T17:05:00.000Z',
+    uploadedBy: 'Catarina Milagre',
+    uploaderActor: 'legal',
+    docType: 'memo',
+    status: 'delivered',
+    isDraft: false,
+  },
+  // 13 — case_008: client's original executed agreement, for comparison
+  {
+    id: 'doc_014',
+    familyId: 'fam_fleetlink_original',
+    version: 1,
+    name: 'FleetLink original agreement (executed).pdf',
+    size: 176_284,
+    mimeType: PDF,
+    uploadedAt: '2026-05-30T10:07:00.000Z',
+    uploadedBy: 'Devon Carter',
+    uploaderActor: 'client',
+    docType: 'signed',
+    status: 'final',
+    isDraft: false,
+  },
+];

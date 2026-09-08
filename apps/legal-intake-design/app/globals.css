@@ -1,0 +1,535 @@
+/*
+ * Design playground styles.
+ *
+ * The design playground intentionally uses its own typography (Inter,
+ * Cormorant Garamond, IBM Plex Mono) so that experimental design work does not
+ * have to track the production app's font decisions. We inherit all colours,
+ * radii, shadows and other tokens from `@repo/ui/globals.css`, then override
+ * the bits that are specific to the playground's font stack.
+ */
+
+@import '@repo/ui/globals.css';
+@import '../components/design/tabular-playbook/tabular-playbook-theme.css';
+
+:root {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif:
+    var(--font-cormorant-garamond), 'EB Garamond', Georgia, 'Times New Roman',
+    serif;
+  --font-mono:
+    var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  /*
+   * Moritz brand grayscale ramp (light -> dark; higher number = darker), kept as
+   * exact brand-sheet hex. Namespaced as `mz-gray` so it doesn't collide with
+   * Tailwind's built-in `gray` scale. See the Colors foundation page for the
+   * visual reference. Scoped to the playground for now; promote to
+   * `@repo/ui/globals.css` when ready for the production app.
+   */
+  --mz-gray-10: #f1f2f2;
+  --mz-gray-20: #e6e7e8;
+  --mz-gray-30: #dcddde;
+  --mz-gray-40: #d1d3d4;
+  --mz-gray-50: #c7c8ca;
+  --mz-gray-60: #bcbec0;
+  --mz-gray-70: #b1b3b6;
+  --mz-gray-80: #a7a9ac;
+  --mz-gray-90: #9d9fa2;
+  --mz-gray-100: #939598;
+  --mz-gray-110: #8a8c8e;
+  --mz-gray-120: #808285;
+  --mz-gray-130: #77787b;
+  --mz-gray-140: #6d6e71;
+  --mz-gray-150: #636466;
+  --mz-gray-160: #58595b;
+  --mz-gray-170: #4d4d4f;
+  --mz-gray-180: #414042;
+  --mz-gray-190: #282829;
+  --mz-gray-200: #141414;
+
+  /* Core */
+  --mz-black: #000000;
+  --mz-white: #ffffff;
+
+  /* Tints */
+  --mz-gold: #fbf6ed;
+  --mz-sky: #ecf8fe;
+
+  /*
+   * Brand gradients (top -> bottom), transcribed from the brand sheet. Grey is
+   * the neutral default; Gold and Sky carry the client / lawyer onboarding
+   * paths. See the Colors foundation page for the visual reference.
+   */
+  --mz-gradient-grey: linear-gradient(
+    180deg,
+    #f1f2f2 0%,
+    #e6e7e8 50%,
+    #d1d3d4 100%
+  );
+  --mz-gradient-gold: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fbf6ed 50%,
+    #f1f0dd 100%
+  );
+  --mz-gradient-sky: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ecf8fe 50%,
+    #dcf2fd 100%
+  );
+
+  /* Status */
+  --mz-green: #5eae8b;
+  --mz-yellow: #e8a952;
+  --mz-red: #eb5444;
+
+  /*
+   * Re-anchor the shared semantic tokens (imported from `@repo/ui/globals.css`)
+   * to the Moritz brand swatches above, so every component renders in the
+   * Foundation palette instead of the standalone oklch() defaults. These
+   * overrides win by cascade: this `:root` is declared after the `@import`, and
+   * `@repo/ui`'s `@theme inline` resolves each color utility via `var(--token)`,
+   * so changing the value here repaints every component. Scoped to the
+   * playground for now.
+   *
+   * TODO(@repo/ui): promote this brand-anchored token mapping (and the
+   * field/field-strong/error tokens in `@theme inline` below) into
+   * `@repo/ui/globals.css` when ready for the production app.
+   */
+
+  /* Surfaces / neutrals — direct brand equivalents. */
+  --background: var(--mz-white);
+  --foreground: var(--mz-gray-190);
+  --card: var(--mz-white);
+  --card-foreground: var(--mz-gray-190);
+  --popover: var(--mz-white);
+  --popover-foreground: var(--mz-gray-190);
+  --primary: var(--mz-gray-200);
+  --primary-foreground: var(--mz-white);
+  --muted: var(--mz-gray-10);
+  --muted-foreground: var(--mz-gray-160);
+  /* Default resting border — Gray 40 reads a touch darker than the faint Gray 20. */
+  --border: var(--mz-gray-40);
+  --input: var(--mz-gray-40);
+
+  /* Status — direct brand equivalents. */
+  --destructive: var(--mz-red);
+  --destructive-foreground: var(--mz-white);
+  --success: var(--mz-green);
+  --success-foreground: var(--mz-gray-190);
+  --warning: var(--mz-yellow);
+  --warning-foreground: var(--mz-gray-190);
+
+  /*
+   * Cool-blue family approximated to the nearest brand swatch (the Foundation
+   * palette has no saturated blue). Secondary stays a solid with white text, so
+   * it maps to a mid brand gray rather than the pale Sky tint.
+   */
+  --secondary: var(--mz-gray-140);
+  --secondary-foreground: var(--mz-white);
+  --accent: var(--mz-sky);
+  --accent-foreground: var(--mz-gray-190);
+  --ring: var(--mz-gray-130);
+  /* Keep the relative-color formula so the own-message tint tracks --secondary. */
+  --message-own: oklch(from var(--secondary) 0.96 0.02 h);
+
+  /*
+   * Informational, data-viz, and actor accents approximated to brand swatches
+   * for completeness (not consumed by the foundation components themselves).
+   */
+  --info: var(--mz-sky);
+  --info-foreground: var(--mz-gray-190);
+  --chart-1: var(--mz-gray-10);
+  --chart-2: var(--mz-gray-40);
+  --chart-3: var(--mz-gray-70);
+  --chart-4: var(--mz-gray-100);
+  --chart-5: var(--mz-gray-130);
+  --actor-client: var(--mz-green);
+  --actor-opposing: var(--mz-sky);
+  --actor-legal: var(--mz-gray-150);
+  --actor-admin: var(--mz-yellow);
+  --actor-ai: var(--mz-gray-100);
+
+  /* Sidebar — brand neutrals. */
+  --sidebar: var(--mz-white);
+  --sidebar-foreground: var(--mz-gray-190);
+  --sidebar-primary: var(--mz-gray-200);
+  --sidebar-primary-foreground: var(--mz-white);
+  --sidebar-accent: var(--mz-gray-10);
+  --sidebar-accent-foreground: var(--mz-gray-190);
+  --sidebar-border: var(--mz-gray-30);
+  --sidebar-ring: var(--mz-gray-130);
+}
+
+@theme inline {
+  /*
+   * Restore Tailwind's default font-weight scale. The shared `globals.css`
+   * clamps weights to 400/500 because the production app only ships those two
+   * Helvetica Now Pro faces, but the playground fonts (Inter, Cormorant
+   * Garamond, IBM Plex Mono) support the broader range used here.
+   */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Map the brand grayscale to Tailwind color utilities (bg-mz-gray-130, etc.). */
+  --color-mz-gray-10: var(--mz-gray-10);
+  --color-mz-gray-20: var(--mz-gray-20);
+  --color-mz-gray-30: var(--mz-gray-30);
+  --color-mz-gray-40: var(--mz-gray-40);
+  --color-mz-gray-50: var(--mz-gray-50);
+  --color-mz-gray-60: var(--mz-gray-60);
+  --color-mz-gray-70: var(--mz-gray-70);
+  --color-mz-gray-80: var(--mz-gray-80);
+  --color-mz-gray-90: var(--mz-gray-90);
+  --color-mz-gray-100: var(--mz-gray-100);
+  --color-mz-gray-110: var(--mz-gray-110);
+  --color-mz-gray-120: var(--mz-gray-120);
+  --color-mz-gray-130: var(--mz-gray-130);
+  --color-mz-gray-140: var(--mz-gray-140);
+  --color-mz-gray-150: var(--mz-gray-150);
+  --color-mz-gray-160: var(--mz-gray-160);
+  --color-mz-gray-170: var(--mz-gray-170);
+  --color-mz-gray-180: var(--mz-gray-180);
+  --color-mz-gray-190: var(--mz-gray-190);
+  --color-mz-gray-200: var(--mz-gray-200);
+  --color-mz-black: var(--mz-black);
+  --color-mz-white: var(--mz-white);
+  --color-mz-gold: var(--mz-gold);
+  --color-mz-sky: var(--mz-sky);
+  --color-mz-green: var(--mz-green);
+  --color-mz-yellow: var(--mz-yellow);
+  --color-mz-red: var(--mz-red);
+
+  /*
+   * Field stroke tokens — expose the field border colours under stable semantic
+   * names so fields can read `border-field` / `border-field-strong` /
+   * `border-error` (plus the matching `bg-*` / `ring-*` variants) instead of
+   * raw `border-input` / `border-foreground/20` / `border-destructive`. Same
+   * underlying brand swatches, just named: rest = Gray 40 (matches `--input`),
+   * the hover/emphasis stroke = Gray 190 at 35%. The hover is intentionally
+   * deeper than the old `foreground/20`: at 20% over white it landed around
+   * Gray 40 — i.e. the same as the new darker resting border — so it no longer
+   * read as a hover. Gray 190 @ 35% sits a clear step darker (~Gray 70).
+   * error = brand red.
+   *
+   * TODO(@repo/ui): promote these alongside the semantic remap above.
+   */
+  --color-field: var(--mz-gray-40);
+  --color-field-strong: color-mix(
+    in oklab,
+    var(--mz-gray-190) 35%,
+    transparent
+  );
+  --color-error: var(--mz-red);
+  /*
+   * Placeholder text — a lighter brand gray than `muted-foreground` (Gray 160)
+   * so placeholders read as a softer hint and sit clearly below the entered
+   * value (foreground / Gray 190).
+   */
+  --color-field-placeholder: var(--mz-gray-130);
+}
+
+@layer base {
+  body {
+    /* Allow the browser to synthesize missing weights/styles in the playground. */
+    font-synthesis-weight: auto;
+  }
+
+  b,
+  strong {
+    font-weight: 700;
+  }
+}
+
+/*
+ * Put the full heading scale on the serif display face (Cormorant Garamond).
+ * The shared scale keeps heading-3/heading-4 on the sans face, but in the
+ * playground Section titles render with heading-4, so this brings them — and
+ * heading-3 — onto Cormorant Garamond too. Both this rule and the shared
+ * `.heading-*` rules are unlayered, so this wins by later source order.
+ */
+.heading-3,
+.heading-4 {
+  font-family: var(--font-serif);
+}
+
+/*
+ * Heading weights, retuned for the playground. The shared scale ships the serif
+ * display steps at 300, but with the grayscale antialiasing we apply, Cormorant
+ * Garamond reads too thin — especially at the small "UI" sizes these headings
+ * are actually used at. So: keep the large display steps (heading-0/1, 36–48px)
+ * at a lighter 500 for elegance, and push the smaller in-use headings
+ * (heading-2/3/4, 20–30px) to 600 for legibility. Unlayered and after the shared
+ * `.heading-*` rules, so they win by source order (a Tailwind `font-*` utility
+ * would not, since utilities live in a lower-priority layer). Playground-only:
+ * the production app keeps the shared weights.
+ */
+.heading-0,
+.heading-1 {
+  font-weight: 500;
+}
+
+.heading-2,
+.heading-3,
+.heading-4 {
+  font-weight: 600;
+}
+
+/*
+ * Typeface variant for the Heading/Subheading primitives. They default to the
+ * serif display face via the `.heading-*` scale; `variant="sans"` sets
+ * `data-font="sans"` to swap onto the Inter body face. Inter has a larger
+ * x-height and heavier strokes than Cormorant Garamond, so matching the serif's
+ * nominal size/weight makes the sans version read noticeably bigger and bolder.
+ * We optically rebalance it: lighter weight (500) and a slightly smaller size per
+ * step so the sans variant sits next to the serif as a peer. The two-attribute
+ * selectors (specificity 0,2,0) outrank the unlayered `.heading-*` rules (0,1,0)
+ * regardless of source order.
+ */
+[data-slot='heading'][data-font='sans'],
+[data-slot='subheading'][data-font='sans'] {
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+/* heading-2 is 30px serif; the sans peer reads right a touch smaller. */
+[data-slot='heading'][data-font='sans'] {
+  font-size: 1.625rem;
+  letter-spacing: -0.025em;
+}
+
+/* heading-4 is 20px serif; the sans peer reads right a touch smaller. */
+[data-slot='subheading'][data-font='sans'] {
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Brand gradient fills, registered as Tailwind v4 utilities so they paint the
+ * onboarding panel and the Colors page swatches. The gradient literals are
+ * inlined (rather than referencing the `--mz-gradient-*` custom properties)
+ * because Tailwind v4 / Lightning CSS prunes those vars when they're only
+ * consumed by a utility, which collapsed `background-image` to `none`. The
+ * `--mz-gradient-*` values in `:root` above are kept as the documented brand
+ * reference (mirrored on the Colors foundation page) and must stay in sync.
+ */
+@utility bg-mz-gradient-grey {
+  background-image: linear-gradient(
+    180deg,
+    #f1f2f2 0%,
+    #e6e7e8 50%,
+    #d1d3d4 100%
+  );
+}
+@utility bg-mz-gradient-gold {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fbf6ed 50%,
+    #f1f0dd 100%
+  );
+}
+@utility bg-mz-gradient-sky {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ecf8fe 50%,
+    #dcf2fd 100%
+  );
+}
+/*
+ * Onboarding completion: draw the success check on mount. The lucide Check path
+ * is ~23 user units long in its 24-unit viewBox, so a 26-unit dash covers it.
+ * stroke-dasharray / stroke-dashoffset are inherited SVG properties, so setting
+ * them on the <svg> animates the child <path>. (Rebuild marker.)
+ */
+@keyframes mz-check-draw {
+  from {
+    stroke-dashoffset: -26;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mz-animate-check {
+  stroke-dasharray: 26;
+  animation: mz-check-draw 0.7s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Generic stroke "draw" for the other hairline status glyphs (Ban, BadgeCheck,
+ * …). Unlike the Check above, these icons have longer or multi-segment paths, so
+ * the dash length can't be a single constant — each call site sets `--mz-draw`
+ * to roughly its glyph's stroke length (in the 24px viewBox) so it draws over
+ * the full duration rather than snapping. Same easing/timing as the check, so
+ * the marks feel like one family. stroke-dasharray/offset are inherited, so
+ * setting them on the <svg> animates the child <path>(s).
+ */
+@keyframes mz-draw {
+  from {
+    stroke-dashoffset: var(--mz-draw, 48);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mz-animate-draw {
+  stroke-dasharray: var(--mz-draw, 48);
+  animation: mz-draw 0.7s 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Calm, Scandinavian reveal for the completion ring: a gentle fade with a barely
+ * perceptible scale-up and a smooth ease-out (no bounce or overshoot).
+ */
+@keyframes mz-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.mz-animate-reveal {
+  animation: mz-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Step-to-step transition: each onboarding step gently fades and rises into
+ * place on mount (the walkthrough keys the container by step so this replays
+ * on every navigation). Same calm ease-out as the completion reveal.
+ */
+@keyframes mz-step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.mz-animate-step {
+  animation: mz-step-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/*
+ * Streaming word reveal: in StreamingText only the newest word is wrapped in
+ * this span and softly fades in, so the reply streams smoothly at the leading
+ * edge while everything already revealed stays put as a plain text node. Plain
+ * `opacity` (no blur/transform) on an inline word keeps it layout-safe and free
+ * of compositing artifacts.
+ */
+@keyframes mz-word-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.mz-word-in {
+  animation: mz-word-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Voice-recording waveform: bars pulse vertically (scaleY around their center)
+ * on a loop. Pair with staggered `animation-delay`s per bar so the row reads as
+ * a live audio meter.
+ */
+@keyframes mz-waveform {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(var(--mz-wave-peak, 1));
+  }
+}
+.mz-animate-waveform {
+  animation: mz-waveform 1s ease-in-out infinite;
+}
+
+/*
+ * Streaming-text shimmer (shadcn `shimmer` utility). Sweeps a brighter band
+ * across muted text to signal in-progress/streaming status — used by the Marker
+ * (`<MarkerContent className="shimmer">`) and by the Attachment title while a
+ * file is `uploading`/`processing`. The gradient is clipped to the glyphs
+ * (`background-clip: text` + transparent fill), then the background position is
+ * animated to slide the highlight. Colors come from the foundation tokens so it
+ * tracks the theme.
+ */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 35%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 65%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+/*
+ * The dashboard centres page content in a `max-w-7xl` reading column, which is
+ * right for a conversation but not for a document: the first draft puts a
+ * document list, an 816px page and the docked rail side by side, and on a wide
+ * screen the capped column squeezes the page while leaving a dead band between
+ * the content and the rail (the rail is docked to the frame, not the column).
+ * The draft opts out and spans the frame, as the playbook workspace does. The
+ * cap has to be released at the ancestor <main>, which owns it.
+ */
+main:has(> .case-workspace-wide) {
+  max-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mz-animate-check,
+  .mz-animate-draw {
+    animation: none;
+    stroke-dasharray: none;
+  }
+  .mz-animate-reveal {
+    animation: none;
+  }
+  .mz-animate-step {
+    animation: none;
+  }
+  .mz-word-in {
+    animation: none;
+  }
+  .mz-animate-waveform {
+    animation: none;
+  }
+  .shimmer {
+    animation: none;
+    background-image: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    color: var(--muted-foreground);
+  }
+}
