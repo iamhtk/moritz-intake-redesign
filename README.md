@@ -57,6 +57,32 @@ Any recent version.
 
 You do **not** need Docker, a database, or any cloud credentials.
 
+## Getting started
+
+1. Copy `.env.example` to `.env.local` and add an Anthropic API key:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and set `ANTHROPIC_API_KEY` to your key. Then copy it into the Next.js app folder (Next loads env from there):
+
+```bash
+cp .env.local apps/legal-intake-design/.env.local
+```
+
+2. Install dependencies with pnpm:
+
+```bash
+pnpm install
+```
+
+3. Run the dev server:
+
+```bash
+pnpm dev
+```
+
 ## Install
 
 From the repository root:
@@ -105,15 +131,9 @@ everything the UI needs:
 | `PLAYGROUND_PASSWORD`    | Password for the gate screen (`123`).       |
 | `PLAYGROUND_GATE_SECRET` | HMAC secret used to sign the unlock cookie. |
 
-One feature needs an extra variable that is **not** in the file: the "AI powered
-case intake" design flag calls the Anthropic API through the `/api/ai-intake`
-route and requires `ANTHROPIC_API_KEY`. Every other screen works without it. If
-you want to try that flow, export your own key before starting the server;
-dotenvx never overrides a variable that is already set in your shell:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-... pnpm dev
-```
+AI intake and extraction routes also need `ANTHROPIC_API_KEY` in
+`apps/legal-intake-design/.env.local` (see Getting started). Optional overrides:
+`ANTHROPIC_TURN_MODEL`, `ANTHROPIC_RECAP_MODEL`.
 
 The dev script also references a `.env.keys` file at the repo root. It is
 optional and gitignored; the `--ignore=MISSING_ENV_FILE` flag lets the server

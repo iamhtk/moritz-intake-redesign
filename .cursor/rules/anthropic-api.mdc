@@ -1,0 +1,44 @@
+---
+description: Anthropic API facts for this project
+alwaysApply: true
+---
+
+# Anthropic API rules for this project
+
+## Model IDs. Use these exact strings.
+- claude-sonnet-5 for the conversational intake agent
+- claude-haiku-4-5-20251001 for cheap mechanical calls
+- claude-opus-5 exists but is not needed in this project
+
+Never replace these with claude-3-5-sonnet, claude-3-opus, claude-sonnet-4, or any other
+older identifier. If a model string looks unfamiliar to you, it is still correct. Leave it.
+
+## Hard constraints on claude-sonnet-5
+- Never set temperature, top_p, or top_k. Any non-default value returns a 400 error.
+- Adaptive thinking is on by default. Do not try to enable it.
+- There is no manual thinking budget parameter. To turn thinking off for a fast call,
+  pass thinking: { type: "disabled" }.
+- Always set an explicit max_tokens on every request.
+
+## API basics
+- REST endpoint: https://api.anthropic.com/v1/messages
+- Required headers for raw curl: x-api-key, anthropic-version: 2023-06-01, content-type: application/json
+- TypeScript SDK package: @anthropic-ai/sdk
+- The SDK reads the key from the ANTHROPIC_API_KEY environment variable automatically.
+  Never pass the key as a string literal in code.
+
+## Structured outputs
+Constrained JSON uses a top level output_config parameter on messages.create:
+
+output_config: { format: { type: "json_schema", schema: { ... } } }
+
+Rules for the schema:
+- Every object must set additionalProperties: false
+- Keep optional fields to a minimum. Each optional field grows the compiled grammar.
+- This is not the same as tool use and it is not response_format. Do not convert it to either.
+
+## Security rules, no exceptions
+- The Anthropic key is server side only.
+- Never prefix it with NEXT_PUBLIC_.
+- Never call the Anthropic API from a client component or from browser code.
+- Never write the key into any committed file.

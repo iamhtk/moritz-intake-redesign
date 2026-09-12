@@ -26,19 +26,31 @@ import type {
   AiTurnRequest,
   AiTurnResult,
 } from './types';
+import { logAnthropicUsage } from '@/lib/intake/log-usage';
+import {
+  CONVERSATION_MODEL,
+  EXTRACTION_MODEL,
+} from '@/lib/intake/models';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
-// Current model IDs (July 2026). Overridable via env for the playground.
-const TURN_MODEL = process.env.ANTHROPIC_TURN_MODEL ?? 'claude-haiku-4-5';
-const RECAP_MODEL = process.env.ANTHROPIC_RECAP_MODEL ?? 'claude-sonnet-5';
+// Overridable via env for the playground; defaults come from lib/intake/models.
+const TURN_MODEL = process.env.ANTHROPIC_TURN_MODEL ?? EXTRACTION_MODEL;
+const RECAP_MODEL = process.env.ANTHROPIC_RECAP_MODEL ?? CONVERSATION_MODEL;
 
 function isMatterId(value: string): value is MatterId {
   return value in MATTER_FLOWS;
 }
 
 type AnthropicContentBlock = { type: string; text?: string };
-type AnthropicResponse = { content?: AnthropicContentBlock[] };
+type AnthropicResponse = {
+  content?: AnthropicContentBlock[];
+  usage?: {
+    input_tokens?: number | null;
+    output_tokens?: number | null;
+    cache_read_input_tokens?: number | null;
+  };
+};
 
 /**
  * Single-shot Messages call. Returns the concatenated text blocks, or `null` on
@@ -48,7 +60,12 @@ type AnthropicResponse = { content?: AnthropicContentBlock[] };
 async function callAnthropic(
   system: string,
   user: string,
-  opts: { model: string; maxTokens: number; disableThinking?: boolean },
+  opts: {
+    model: string;
+    maxTokens: number;
+    disableThinking?: boolean;
+    label: string;
+  },
 ): Promise<string | null> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return null;
@@ -56,7 +73,13 @@ async function callAnthropic(
   const body: Record<string, unknown> = {
     model: opts.model,
     max_tokens: opts.maxTokens,
-    system,
+    system: [
+      {
+        type: 'text',
+        text: system,
+        cache_control: { type: 'ephemeral' },
+      },
+    ],
     messages: [{ role: 'user', content: user }],
   };
   if (opts.disableThinking) body.thinking = { type: 'disabled' };
@@ -83,6 +106,9 @@ async function callAnthropic(
   } catch {
     return null;
   }
+
+  logAnthropicUsage(opts.label, data.usage);
+
   const blocks = data.content;
   if (!Array.isArray(blocks)) return null;
   const text = blocks
@@ -230,6 +256,7 @@ export async function runTurn(
   const raw = await callAnthropic(system, user, {
     model: TURN_MODEL,
     maxTokens: 400,
+    label: 'ai-intake-turn',
   });
   if (!raw) return null;
   const parsed = parseJsonObject(raw);
@@ -313,6 +340,7 @@ export async function runRecap(
     model: RECAP_MODEL,
     maxTokens: 400,
     disableThinking: true,
+    label: 'ai-intake-recap',
   });
   if (!raw) return null;
   const parsed = parseJsonObject(raw);
