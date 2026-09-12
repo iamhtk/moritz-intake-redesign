@@ -23,3 +23,5 @@ apps/*/AGENTS.md
 apps/*/CLAUDE.md
 
 .claude/settings.local.json
+
+local_docs/
