@@ -1,2 +1,7 @@
 pnpm-lock.yaml
 **/next-env.d.ts
+
+# Prose documents — prettier reflows markdown paragraphs, which buries real
+# edits in whitespace churn and makes review harder.
+notes/
+local_docs/

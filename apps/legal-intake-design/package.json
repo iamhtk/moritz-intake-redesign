@@ -11,6 +11,7 @@
     "build": "NODE_OPTIONS='--max-old-space-size=4096' dotenvx run -fk ../../.env.keys -f .env.development --ignore=MISSING_ENV_FILE -- next build",
     "start": "dotenvx run -fk ../../.env.keys -f .env.development --ignore=MISSING_ENV_FILE -- next start --port 3080",
     "lint": "eslint --max-warnings 0 .",
+    "test": "vitest run",
     "fmt": "prettier --write .",
     "check-types": "tsc --noEmit"
   },
@@ -57,6 +58,7 @@
     "recharts": "catalog:",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
+    "unpdf": "^1.8.1",
     "uuid": "catalog:",
     "vaul": "catalog:",
     "zod": "catalog:"
@@ -71,6 +73,7 @@
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
     "globals": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -3,6 +3,8 @@
 import type * as React from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { usePathname } from 'next/navigation';
+import { cn } from '@repo/ui/lib/utils';
 import { useDesignFlags } from '@/components/design/feature-flags/design-flags-context';
 import { IntakeProgressPanelProvider } from '@/components/design/intake/intake-progress-panel-context';
 import { NavigationGuardProvider } from '@/components/navigation/navigation-guard-context';
@@ -31,6 +33,8 @@ export function DashboardShell({
   children,
 }: DashboardShellProps) {
   const { flags } = useDesignFlags();
+  const pathname = usePathname();
+  const isIntakeRoute = /\/client\/new(\/|$)/.test(pathname ?? '');
   const companyType = user.company.type;
   // The top nav covers the client, lawyer, and admin areas. The admin app's
   // larger set of sections is absorbed by the center nav's pinned + "More"
@@ -54,7 +58,19 @@ export function DashboardShell({
         <IntakeProgressPanelProvider>
           <NavigationGuardProvider>
             <TopNav user={user} />
-            <main className="mx-auto w-full max-w-7xl flex-1 overflow-y-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+            {/*
+             * The intake owns its own container so its two columns can run the
+             * full height and line up with the header above them. Every other
+             * route keeps the shell's width and padding.
+             */}
+            <main
+              className={cn(
+                'mx-auto w-full flex-1 overflow-y-auto',
+                isIntakeRoute
+                  ? 'flex min-h-0 flex-col'
+                  : 'max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8',
+              )}
+            >
               {children}
             </main>
           </NavigationGuardProvider>
@@ -79,7 +95,17 @@ export function DashboardShell({
         <IntakeProgressPanelProvider>
           <NavigationGuardProvider>
             <SiteHeader user={user} />
-            <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+            {/*
+             * The intake owns its own container so its columns can run full
+             * height and line up with the header. Every other route keeps the
+             * shell's padding.
+             */}
+            <div
+              className={cn(
+                'flex min-h-0 flex-1 flex-col overflow-y-auto',
+                !isIntakeRoute && 'px-4 pb-10 pt-6 sm:px-6 lg:px-8',
+              )}
+            >
               {children}
             </div>
           </NavigationGuardProvider>
@@ -103,7 +129,12 @@ export function DashboardShell({
           {useTopNav ? topNavChrome : sidebarChrome}
           <SettingsV2Modal registration={registration} />
           <NotificationsPanel />
-          {flags.useSupportChat && <SupportChatLauncher />}
+          {/*
+           * The intake is a single focused task with its own primary action in
+           * the brief column; a floating launcher parked over it competes with
+           * that and reads as leftover chrome.
+           */}
+          {flags.useSupportChat && !isIntakeRoute && <SupportChatLauncher />}
         </SupportChatProvider>
       </NotificationsPanelProvider>
     </SettingsV2Provider>

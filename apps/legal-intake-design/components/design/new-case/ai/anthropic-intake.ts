@@ -27,10 +27,7 @@ import type {
   AiTurnResult,
 } from './types';
 import { logAnthropicUsage } from '@/lib/intake/log-usage';
-import {
-  CONVERSATION_MODEL,
-  EXTRACTION_MODEL,
-} from '@/lib/intake/models';
+import { CONVERSATION_MODEL, EXTRACTION_MODEL } from '@/lib/intake/models';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';

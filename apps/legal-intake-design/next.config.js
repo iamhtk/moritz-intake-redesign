@@ -10,6 +10,9 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // The dev-only indicator parks a floating button in the bottom-left corner,
+  // over the intake's own content. Reviewers should not have to look past it.
+  devIndicators: false,
   transpilePackages: ['@repo/ui'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {

@@ -1,6 +1,6 @@
 /**
  * Canonical Anthropic model IDs for this project.
- * See `.cursor/rules/anthropic-api.mdc` — do not substitute older model strings.
+ * See `.cursor/rules/anthropic-api.mdc`, do not substitute older model strings.
  */
 
 /** Conversational intake agent (streaming chat). */

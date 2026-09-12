@@ -1,28 +1,31 @@
 /**
- * JSON Schema for constrained intake extraction via Anthropic `output_config`.
- * Every object sets `additionalProperties: false` as required by the API.
+ * What the model returns when it reads an uploaded document.
+ *
+ * It reports the value and where it read it, a human-readable note and the
+ * exact words. It does NOT report a source type or a confidence: those are
+ * decided by the server after checking the quote against the real document
+ * text (see `verify-source.ts`). Leaving them out of the schema means the model
+ * cannot assert provenance it has not earned.
  */
 
-export type IntakeFieldStatus = 'found' | 'missing' | 'unclear';
-
-export type IntakeExtractionField = {
+export type ExtractedField = {
   key: string;
   value: string;
-  source: string;
-  status: IntakeFieldStatus;
+  /** Human readable, e.g. "Notice period clause, page 3". */
+  sourceNote: string;
+  /** The exact words the value was read from. Checked before it is believed. */
+  sourceQuote: string;
 };
 
-export type IntakeExtraction = {
+export type Extraction = {
   matterType: string;
-  fields: IntakeExtractionField[];
+  fields: ExtractedField[];
 };
 
 export const INTAKE_EXTRACTION_SCHEMA = {
   type: 'object',
   properties: {
-    matterType: {
-      type: 'string',
-    },
+    matterType: { type: 'string' },
     fields: {
       type: 'array',
       items: {
@@ -30,13 +33,10 @@ export const INTAKE_EXTRACTION_SCHEMA = {
         properties: {
           key: { type: 'string' },
           value: { type: 'string' },
-          source: { type: 'string' },
-          status: {
-            type: 'string',
-            enum: ['found', 'missing', 'unclear'],
-          },
+          sourceNote: { type: 'string' },
+          sourceQuote: { type: 'string' },
         },
-        required: ['key', 'value', 'source', 'status'],
+        required: ['key', 'value', 'sourceNote', 'sourceQuote'],
         additionalProperties: false,
       },
     },
@@ -44,3 +44,30 @@ export const INTAKE_EXTRACTION_SCHEMA = {
   required: ['matterType', 'fields'],
   additionalProperties: false,
 } as const;
+
+export function parseExtraction(value: unknown): Extraction | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const { matterType, fields } = value as Record<string, unknown>;
+  if (typeof matterType !== 'string' || !Array.isArray(fields)) return null;
+
+  const parsed: ExtractedField[] = [];
+  for (const candidate of fields) {
+    if (typeof candidate !== 'object' || candidate === null) continue;
+    const {
+      key,
+      value: fieldValue,
+      sourceNote,
+      sourceQuote,
+    } = candidate as Record<string, unknown>;
+    if (typeof key !== 'string' || key.trim() === '') continue;
+    if (typeof fieldValue !== 'string' || fieldValue.trim() === '') continue;
+    parsed.push({
+      key,
+      value: fieldValue,
+      sourceNote: typeof sourceNote === 'string' ? sourceNote : '',
+      sourceQuote: typeof sourceQuote === 'string' ? sourceQuote : '',
+    });
+  }
+
+  return { matterType, fields: parsed };
+}

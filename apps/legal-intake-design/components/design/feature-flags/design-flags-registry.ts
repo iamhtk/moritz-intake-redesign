@@ -23,13 +23,6 @@ export type DesignFlagDefinition = {
 
 export const DESIGN_FLAGS: readonly DesignFlagDefinition[] = [
   {
-    key: 'useSimplifiedMatterIntake',
-    label: 'Case intake',
-    description:
-      'Moritz-style conversational case intake (chat + suggestion chips + live case brief). Off falls back to the form-based case intake.',
-    defaultValue: true,
-  },
-  {
     key: 'useSidebar',
     label: 'New sidebar layout',
     description: 'Dashboard-01 sidebar chrome.',

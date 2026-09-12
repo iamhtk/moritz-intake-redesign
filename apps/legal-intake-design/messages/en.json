@@ -215,7 +215,7 @@
       "consent": "I agree to Moritz's <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>."
     },
     "registration": {
-      "heading": "Welcome — Complete your registration",
+      "heading": "Welcome, Complete your registration",
       "steps": {
         "progress": "Screen {current} of {total}",
         "personalDescription": "We need to verify the mail address to continue",
@@ -507,7 +507,7 @@
       "savePreferredLegalCompanies": "Save Preferences"
     },
     "guard": {
-      "complete": "All set — you'll be redirected or shown a review message once approved.",
+      "complete": "All set, you'll be redirected or shown a review message once approved.",
       "incomplete": "Complete both: verify email and fill company details.",
       "companyIncomplete": "Please complete company details to continue."
     },
@@ -534,7 +534,7 @@
     "emailVerification": {
       "verifiedAt": "Email verified {date}",
       "verified": "Email verified",
-      "sent": "Verification email sent — check your inbox.",
+      "sent": "Verification email sent, check your inbox.",
       "notVerified": "Email not verified.",
       "missingEmailTooltip": "Add and save an email first",
       "resendTooltip": "Resend verification email",
@@ -706,7 +706,7 @@
         "emailCtaTooltip": "Send an email to this address to start a case automatically.",
         "emailDialogTitle": "Submit new case through email",
         "emailDialogDescription": "Copy the address below and send your case details to it.",
-        "emailDialogHintUnique": "This address is personal to you — do not share it.",
+        "emailDialogHintUnique": "This address is personal to you, do not share it.",
         "emailDialogHintSender": "Send from the email address you signed up with.",
         "emailDialogHintSave": "Save it to your contacts for easy access later.",
         "emailCopyButton": "Copy address",
@@ -882,7 +882,7 @@
     },
     "confirmation": {
       "successTitle": "Case Successfully Submitted",
-      "successDescription": "Thanks — we've received your case and started reviewing it. Here's what to expect next.",
+      "successDescription": "Thanks, we've received your case and started reviewing it. Here's what to expect next.",
       "seeDetails": "See Case Details",
       "goToCases": "Go to my cases",
       "whatHappensNext": "What happens next?",
@@ -2165,7 +2165,7 @@
     "countries": {
       "title": "Countries",
       "description": "Configure per-country waitlist behavior and Stripe market mapping.",
-      "explanation": "These settings control who skips the waitlist during onboarding. When enabled, new companies from that country are approved automatically instead of being placed on the waitlist. Legal companies still require manual whitelisting even when their waitlist is skipped — this only controls whether they enter the waitlist in the first place.",
+      "explanation": "These settings control who skips the waitlist during onboarding. When enabled, new companies from that country are approved automatically instead of being placed on the waitlist. Legal companies still require manual whitelisting even when their waitlist is skipped, this only controls whether they enter the waitlist in the first place.",
       "loading": "Loading countries...",
       "searchPlaceholder": "Search by country name or code...",
       "table": {
@@ -2504,5 +2504,63 @@
       "confirm": "Record override"
     },
     "cancel": "Cancel"
+  },
+  "intake": {
+    "start": {
+      "heading": "Tell us what you need",
+      "subheading": "Describe your matter in your own words, or drop in a document. Your case brief fills in as you go, you can correct anything at any point.",
+      "orStartWith": "Not sure where to begin? Start with"
+    },
+    "brief": {
+      "title": "Your case brief",
+      "progressLabel": "Fields you have confirmed",
+      "editLabel": "Edit {field}",
+      "label": "Case brief",
+      "stateWord": {
+        "missing": "not yet"
+      },
+      "sourceFromDocument": "From {where}",
+      "sourceFromConversation": "From what you said",
+      "optional": "(optional)",
+      "confidence": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Check this"
+      },
+      "looksRight": "Looks right"
+    },
+    "chat": {
+      "placeholderFirst": "Describe your matter, or attach a document…",
+      "placeholder": "Reply to Moritz…"
+    },
+    "upload": {
+      "found": "I read {name}. I have filled in {count} things, {verified} traced back to a line in the document. Have a look on the right and correct anything I got wrong.",
+      "nothingFound": "I read {name}, but I could not pull anything useful out of it. Tell me about the matter and I will fill the brief in as we go.",
+      "wrongType": "I can read PDFs, Word documents and images. Try one of those, or just tell me about it.",
+      "failed": "I could not read that file. Try again, or tell me about the matter instead."
+    },
+    "leave": {
+      "savedTitle": "Saved as draft",
+      "savedDescription": "Your in-progress case stays here on this device.",
+      "deletedTitle": "Case deleted",
+      "deletedDescription": "Your in-progress intake has been cleared."
+    },
+    "quote": {
+      "explanation": "When you send this, a lawyer prices the work and you get a fixed quote for it, usually within one business day. It arrives in this chat, and nothing is charged until you accept it.",
+      "action": "Review and send"
+    },
+    "howItWorks": {
+      "title": "How this works",
+      "one": "Tell Moritz about your matter, or drop in a document.",
+      "two": "Your brief fills in as you talk. Check anything Moritz worked out.",
+      "three": "Send it, and a fixed quote comes back in this chat."
+    },
+    "outline": {
+      "title": "What we'll need",
+      "optionalNote": "{fields} is optional."
+    },
+    "demo": {
+      "seeded": "Here is the brief part-way through, with one value I am not confident about. Have a look on the right and correct anything I got wrong."
+    }
   }
 }

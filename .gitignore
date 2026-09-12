@@ -25,3 +25,4 @@ apps/*/CLAUDE.md
 .claude/settings.local.json
 
 local_docs/
+notes/
