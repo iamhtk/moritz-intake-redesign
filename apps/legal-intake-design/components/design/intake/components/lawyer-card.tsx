@@ -36,9 +36,7 @@ export function LawyerCard({
         ) : null}
         <div className="flex items-start gap-3">
           <Avatar className={cn(compact ? 'h-10 w-10' : 'h-12 w-12')}>
-            {lawyer.imageUrl ? (
-              <AvatarImage src={lawyer.imageUrl} alt={lawyer.name} />
-            ) : null}
+            <AvatarImage src={lawyer.imageUrl} alt={lawyer.name} />
             <AvatarFallback>{lawyer.initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 space-y-0.5">

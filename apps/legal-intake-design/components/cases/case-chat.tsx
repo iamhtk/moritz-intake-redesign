@@ -30,6 +30,7 @@ import {
 } from '@/components/design/intake/chat/chat-composer';
 import { CollapsibleMessageText } from '@/components/design/intake/chat/collapsible-message-text';
 import { PaymentEventCard } from '@/components/design/chat-events/payment-event-card';
+import { HandoffCard } from '@/components/design/chat-events/handoff-card';
 import { LawyerAssignedCard } from '@/components/design/chat-events/lawyer-assigned-card';
 import { describeFile, newId } from '@/components/design/new-case/file-utils';
 import { FormattedDate, useIsMounted } from '@/components/formatted-date';
@@ -80,7 +81,7 @@ type MessageGroupData = {
   dayKey: string;
   phase: 'intake' | 'counsel';
   messages: Message[];
-  /** Payment / lawyer-assigned milestone rendered as a centered card, never grouped. */
+  /** Payment / lawyer-assigned / handoff milestone rendered as a centered card, never grouped. */
   isEvent: boolean;
 };
 
@@ -118,7 +119,9 @@ function groupMessages(
     const dayKey = dayKeyOf(message);
     const phase = phaseOf(message);
     const isEvent = Boolean(
-      message.paymentEvent || message.lawyerAssignedEvent,
+      message.paymentEvent ||
+        message.lawyerAssignedEvent ||
+        message.handoffEvent,
     );
     const last = groups.at(-1);
     if (
@@ -341,6 +344,17 @@ export function CaseChat({
                     ) : eventMessage?.lawyerAssignedEvent ? (
                       <LawyerAssignedCard
                         lawyer={eventMessage.lawyerAssignedEvent.lawyer}
+                      />
+                    ) : eventMessage?.handoffEvent ? (
+                      /*
+                       * The client's own words, so `body` is passed through
+                       * rather than dropped the way `paymentEvent`'s is. See
+                       * `handoff-card.tsx` for why this is not two bubbles.
+                       */
+                      <HandoffCard
+                        body={eventMessage.body}
+                        createdAt={eventMessage.createdAt}
+                        lawyerId={eventMessage.handoffEvent.lawyerId}
                       />
                     ) : (
                       <MessageGroup

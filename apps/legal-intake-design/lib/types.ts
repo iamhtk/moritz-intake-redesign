@@ -39,6 +39,8 @@ export type CompanyInvitationStatus =
 export type NotificationType =
   | 'NEW_MESSAGE'
   | 'COMPANY_CREATED'
+  // Proposed by Decision 23, see InboxNotificationType below.
+  | 'CASE_RECEIVED'
   | 'CASE_READY_FOR_CLAIM'
   | 'CASE_COLLABORATOR_ADDED'
   | 'QUOTE_CREATED'
@@ -242,6 +244,30 @@ export type Message = {
   lawyerAssignedEvent?: {
     lawyer: ParticipantRef;
   } | null;
+  /**
+   * When set, this entry renders as a centered "handed to a person" card
+   * instead of a chat bubble. Unlike `paymentEvent`, `body` is **not** ignored:
+   * it is the client's own words, and the card quotes them.
+   *
+   * Why this is an event and not an ordinary message. What happened at that
+   * moment is categorically different from the rest of the thread — the
+   * client's words left the conversation with the software and were put in
+   * front of a human, with a promise attached. Rendered as two ordinary
+   * bubbles, the acknowledgement sits in an AI bubble, so the exit reads as
+   * more software; the promise scrolls away; and on the case page the whole
+   * exchange is indistinguishable from the intake transcript around it. The
+   * card is what makes it legible as the one turn where a person got involved.
+   */
+  handoffEvent?: {
+    /**
+     * Who it was put in front of, by roster id, so the card can show the same
+     * face the intake showed. Absent when the matter was still unknown, which
+     * is the case the copy has to survive rather than invent a name for.
+     */
+    lawyerId?: string;
+    /** What the client was told would happen, in the words they were told it in. */
+    acknowledgement?: string;
+  } | null;
 };
 
 export type CaseType = {
@@ -266,9 +292,18 @@ export type CaseTemplate = {
 // Deliverable in-app notification types — the ones production actually creates
 // as rows in the notifications inbox (mirrors the `notification_type` pg enum in
 // packages/db-legal-intake). Excludes email-only / unwired enum members
-// (COMPANY_CREATED, QUOTE_CREATED, QUOTE_ACCEPTED) that never surface here.
+// (COMPANY_CREATED, QUOTE_ACCEPTED) that never surface here.
+//
+// Two of these are additions rather than a mirror (Decision 23). The inbox has
+// rows for a lawyer being assigned and a payment being requested, and nothing
+// for the two moments a client actually cares about: the case arriving and the
+// quote landing. CASE_RECEIVED is new to the enum; QUOTE_CREATED was already in
+// the pg enum but was never created in-app, which is why nobody was told their
+// quote was ready. That is a data gap, not a UI gap, so it is fixed here.
 export type InboxNotificationType =
   | 'NEW_MESSAGE'
+  | 'CASE_RECEIVED'
+  | 'QUOTE_CREATED'
   | 'CASE_READY_FOR_CLAIM'
   | 'CASE_COLLABORATOR_ADDED'
   | 'CASE_COLLABORATOR_REMOVED'

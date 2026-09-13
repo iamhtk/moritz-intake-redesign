@@ -147,6 +147,20 @@ export const DESIGN_FLAGS: readonly DesignFlagDefinition[] = [
     defaultValue: false,
   },
   {
+    key: 'useCommandPalette',
+    label: 'Command palette (⌘K)',
+    description:
+      'One keyboard entry point to everything the current role can reach: jump to any section, find a case, company, user or quote round by name, and run the same actions the rows themselves offer. Destinations are generated from the navigation, so they cannot drift from the sidebar.',
+    defaultValue: false,
+  },
+  {
+    key: 'useAskNora',
+    label: 'Ask Nora (⌘J)',
+    description:
+      'A question box in the top nav that answers a client from their own cases and documents, scoped server-side. Client-only for now: the lawyer, admin and assistant projections are built and tested but switched off in lib/ask/availability.ts, so the panel, the ⌘J chord, the palette’s Ask row and the API all decline for those roles. Gives information rather than advice, proposes actions that already exist elsewhere in the UI, and never acts on its own. Replaces the floating support launcher wherever it appears, so one screen never carries two chat surfaces.',
+    defaultValue: false,
+  },
+  {
     key: 'useLawyerQa',
     label: 'Submit work and QA review',
     description:

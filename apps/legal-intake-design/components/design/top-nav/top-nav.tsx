@@ -4,21 +4,22 @@ import { Fragment } from 'react';
 import Logo from '@/components/logo';
 import { Button } from '@/components/design/design-system/button';
 import { useIntakeProgressPanel } from '@/components/design/intake/intake-progress-panel-context';
+import { AskTrigger } from '@/components/design/ask/ask-trigger';
+import { isAskAvailableFor } from '@/lib/ask/availability';
+import { CommandPaletteTrigger } from '@/components/design/command-palette/command-palette-trigger';
 import { NotificationMenu } from '@/components/design/top-nav/notification-menu';
 import { TopNavMobileNav } from '@/components/design/top-nav/top-nav-mobile-nav';
 import { TopNavSegmented } from '@/components/design/top-nav/top-nav-segmented';
 import { TopNavUser } from '@/components/design/top-nav/top-nav-user';
 import {
-  buildNavMain,
   findActiveNavItem,
   homePathByCompanyType,
-  type NavItem,
 } from '@/components/navigation/sidebar-nav-items';
 import { useNavigationGuard } from '@/components/navigation/navigation-guard-context';
 import { useDesignFlags } from '@/components/design/feature-flags/design-flags-context';
-import { IconBook2 } from '@tabler/icons-react';
 import {
   buildNavBadges,
+  buildNavForRole,
   getBackTarget,
 } from '@/components/design/top-nav/top-nav-shared';
 import { useTabularPlaybooksByArchiveState } from '@/components/design/tabular-playbook/tabular-playbook-archive';
@@ -53,30 +54,6 @@ type TopNavProps = {
 };
 
 /**
- * Inserts the flag-gated "Playbooks" destination immediately after "Cases" when
- * the `usePlaybooks` design flag is on, leaving the nav untouched otherwise.
- */
-function withPlaybooks(
-  items: NavItem[],
-  homePath: string,
-  enabled: boolean,
-): NavItem[] {
-  if (!enabled) return items;
-  const playbooks: NavItem = {
-    title: 'Playbooks',
-    url: `${homePath}/playbooks`,
-    icon: IconBook2,
-  };
-  const casesIndex = items.findIndex((item) => item.title === 'Cases');
-  if (casesIndex === -1) return [...items, playbooks];
-  return [
-    ...items.slice(0, casesIndex + 1),
-    playbooks,
-    ...items.slice(casesIndex + 1),
-  ];
-}
-
-/**
  * Top navigation bar for the client and lawyer areas. A single calm, balanced
  * row with three zones: the brand (plus a contextual back affordance) on the
  * left, a centered segmented control of section destinations in the middle, and
@@ -91,20 +68,9 @@ export function TopNav({ user }: TopNavProps) {
   const companyType = user.company.type;
   const homePath = homePathByCompanyType[companyType];
   const { flags } = useDesignFlags();
-  // Playbooks is a client/lawyer destination only; the admin app never surfaces
-  // it even when the flag is on.
-  const playbooksEnabled =
-    Boolean(flags.usePlaybooks) &&
-    (companyType === 'NON_LEGAL' || companyType === 'LEGAL');
-  const navMain = withPlaybooks(
-    buildNavMain(companyType, homePath, {
-      adminPlaybooks: Boolean(flags.usePlaybooksAdmin),
-      adminAiEvals: Boolean(flags.useAiEvalsAdmin),
-      adminTabularPlaybooks: Boolean(flags.useTabularPlaybooksAdmin),
-    }),
-    homePath,
-    playbooksEnabled,
-  );
+  // One shared builder, so the command palette's generated "Jump to" cannot
+  // drift from this list. See `buildNavForRole`.
+  const navMain = buildNavForRole(companyType, homePath, flags);
   const { active: activeTabularPlaybooks } =
     useTabularPlaybooksByArchiveState();
   const navBadges = buildNavBadges(companyType, activeTabularPlaybooks.length);
@@ -348,6 +314,23 @@ export function TopNav({ user }: TopNavProps) {
               toggle is mobile-only — on md+ the progress panel is docked open at
               all times, so the button is hidden there. */}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+            {/*
+             * K6 — the palette's discoverability affordance, first in the right
+             * cluster so it reads as a search field rather than as one more
+             * icon button. Ask's own entry point (N9) sits beside it.
+             */}
+            {flags.useCommandPalette ? <CommandPaletteTrigger /> : null}
+            {/*
+             * N9 / decision 2 — Ask beside the bell, not a floating bubble.
+             *
+             * Client-only (`isAskAvailableFor`). The ⌘J chord is bound inside
+             * the trigger, so not mounting it is also what unbinds the
+             * shortcut: a lawyer pressing ⌘J gets nothing rather than a panel
+             * with no entry point.
+             */}
+            {flags.useAskNora && isAskAvailableFor(companyType) ? (
+              <AskTrigger />
+            ) : null}
             <NotificationMenu />
             {intakePanel?.isAvailable ? (
               <Tooltip>

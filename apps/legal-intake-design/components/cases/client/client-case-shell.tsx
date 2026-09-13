@@ -23,7 +23,22 @@ import { ClientCaseDetailsPanel } from '@/components/cases/client/client-case-de
 import { ClientPaymentsList } from '@/components/cases/client/billing/client-payments-list';
 import { CaseDocumentsTab } from '@/components/cases/case-documents-tab';
 import { getInvoicesForCase } from '@/lib/mocks/billing';
+import {
+  useCaseWithSubmission,
+  useMessagesWithSubmission,
+} from '@/lib/mocks/submitted-cases';
 import type { Document, LegalCase, Message } from '@/lib/types';
+
+/**
+ * What the client is allowed to see on their own case: their own uploads, and
+ * the work product that has actually been delivered to them.
+ */
+function visibleDocuments(legalCase: LegalCase): Document[] {
+  return legalCase.documents.filter(
+    (document) =>
+      document.uploaderActor === 'client' || document.status === 'delivered',
+  );
+}
 
 type ClientCaseShellProps = {
   legalCase: LegalCase;
@@ -38,10 +53,27 @@ type ClientCaseShellProps = {
  * a modal, dimmed sheet on mobile — mirroring the intake progress panel.
  */
 export function ClientCaseShell({
-  legalCase,
-  messages,
+  legalCase: caseFromFixtures,
+  messages: messagesFromFixtures,
   currentUserId,
 }: ClientCaseShellProps) {
+  /*
+   * If this is the case the intake submitted, it says what the client sent.
+   *
+   * Applied here rather than on the page because the submission is in
+   * localStorage and the page is a server component. It arrives one render
+   * after hydration, which is what the documents effect below exists for.
+   */
+  const legalCase = useCaseWithSubmission(caseFromFixtures);
+
+  /*
+   * And the conversation that produced it, in front of the counsel thread.
+   *
+   * Reads the overlaid case rather than the fixture, so a document mentioned in
+   * a turn is the same record the Documents tab lists.
+   */
+  const messages = useMessagesWithSubmission(legalCase, messagesFromFixtures);
+
   // Land on the Payments tab when there's an outstanding payment the client
   // needs to act on (an open/draft request), so a requested payment isn't
   // buried behind Overview.
@@ -54,13 +86,26 @@ export function ClientCaseShell({
   // in the Documents tab. A ref mirrors the state so the upload handler can
   // version against the latest list and return the created records synchronously.
   const [documents, setDocuments] = useState<Document[]>(() =>
-    legalCase.documents.filter(
-      (document) =>
-        document.uploaderActor === 'client' || document.status === 'delivered',
-    ),
+    visibleDocuments(legalCase),
   );
   const documentsRef = useRef(documents);
   documentsRef.current = documents;
+
+  /*
+   * The case's own documents can arrive after the first render — the submitted
+   * intake's are read from client storage, which is a render behind hydration —
+   * and the initialiser above only runs once. Merged by id rather than
+   * replaced, so files uploaded in the chat since then survive.
+   */
+  useEffect(() => {
+    setDocuments((current) => {
+      const known = new Set(current.map((document) => document.id));
+      const arriving = visibleDocuments(legalCase).filter(
+        (document) => !known.has(document.id),
+      );
+      return arriving.length > 0 ? [...current, ...arriving] : current;
+    });
+  }, [legalCase]);
 
   const handleUploadDocuments = useCallback(
     (fileNames: string[]): Document[] => {

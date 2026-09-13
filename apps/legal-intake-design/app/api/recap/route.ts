@@ -6,6 +6,12 @@ import {
 } from '@/lib/intake/brief';
 import { logAnthropicUsage } from '@/lib/intake/log-usage';
 import { NO_DASH_RULE, stripDashes } from '@/lib/intake/text';
+import {
+  failureKind,
+  failureResponse,
+  missingKeyResponse,
+  stopReasonFailure,
+} from '@/lib/intake/failure-server';
 import { EXTRACTION_MODEL } from '@/lib/intake/models';
 
 export const runtime = 'nodejs';
@@ -28,9 +34,22 @@ title
  something the client typed.
 
 description
- Two or three sentences for the lawyer picking this up cold: what the client
- needs, who it involves, and how urgent it is. Plain English, no preamble, no
- greeting, and no advice about the merits.
+ Two or three sentences: what is needed, who it involves, and how urgent it
+ is. Plain English, no preamble, no greeting, and no advice about the merits.
+
+ Written TO the client, in the second person. The client reads this paragraph
+ on their own confirmation screen and in their confirmation email, and they
+ are the one who has to spot it if it is wrong.
+
+   "You accepted an offer from IBM, and they withdrew it before your start
+    date. You want to know where you stand and you need an answer this week."
+   NOT "The applicant accepted an offer from IBM which was subsequently
+    withdrawn prior to the agreed start date."
+
+ So "you" and "your", never "the client", "the applicant" or their own name.
+ A lawyer picking this up cold reads it perfectly well in the second person,
+ and the client can actually check it. Name the other side rather than calling
+ them "the counterparty".
 
 Where the client's answer differs from the uploaded document, say so plainly in
 the description. That disagreement is a fact about the matter, not a mistake to
@@ -88,6 +107,14 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
+  /*
+   * No key, no model. Answered as `unauthorized` before anything is read or
+   * spent, rather than letting `new Anthropic()` throw. See
+   * `missingKeyResponse`.
+   */
+  const noKey = missingKeyResponse('recap');
+  if (noKey) return noKey;
+
   const brief = (json as { brief?: unknown })?.brief;
   if (!isBrief(brief)) {
     return Response.json(
@@ -110,23 +137,42 @@ export async function POST(request: Request): Promise<Response> {
 
     logAnthropicUsage('recap', message.usage);
 
+    // Same reason as the other two routes: a refusal or a truncation is a
+    // successful call with nothing usable in it, and `JSON.parse` below would
+    // throw inside the outer `catch` and report it as an unknown failure.
+    const stopped = stopReasonFailure(message);
+    if (stopped) {
+      return failureResponse('recap', stopped);
+    }
+
     const raw = message.content
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
       .join('')
       .trim();
 
-    const parsed = JSON.parse(raw) as {
-      title?: unknown;
-      description?: unknown;
-    };
+    let parsed: { title?: unknown; description?: unknown };
+    try {
+      parsed = JSON.parse(raw) as { title?: unknown; description?: unknown };
+    } catch {
+      // Was falling through to the outer `catch`, which classified a schema
+      // miss as an unknown provider failure. It is a re-roll, and the kind
+      // says so.
+      return failureResponse(
+        'recap',
+        'unreadable',
+        new Error(`not JSON: ${raw.slice(0, 200)}`),
+      );
+    }
+
     if (
       typeof parsed.title !== 'string' ||
       typeof parsed.description !== 'string'
     ) {
-      return Response.json(
-        { error: 'Model JSON did not match the recap shape' },
-        { status: 500 },
+      return failureResponse(
+        'recap',
+        'unreadable',
+        new Error('JSON did not match the recap shape'),
       );
     }
 
@@ -135,9 +181,6 @@ export async function POST(request: Request): Promise<Response> {
       description: stripDashes(parsed.description),
     });
   } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    );
+    return failureResponse('recap', failureKind(err), err);
   }
 }

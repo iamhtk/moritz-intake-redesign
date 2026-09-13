@@ -1,58 +1,43 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { BriefField } from '@/lib/intake/brief';
 
 /**
- * The empty brief, before a word has been typed.
+ * How the next few minutes go, before a word has been typed.
  *
- * Decision 18 asks for "a faint outline of the empty brief listing what this
- * matter needs", and an outline is what this is. The working panel, with a row
- * per field carrying a value, a confidence reading, a source line and a state,
- * says a great deal about nothing at all while the brief is still empty, and it
- * pushed the whole opening screen off a 14in laptop.
+ * This used to be two blocks in a card: a list of the fields the matter needs
+ * ("What we'll need"), and these three steps. The field list is gone. It was
+ * prose restating the brief panel, which lists every field with its own row the
+ * moment the conversation starts, and a screen that describes its own layout in
+ * words is paying twice for one idea.
  *
- * So: the names of the things Moritz will ask for, and how the next few minutes
- * go. The full panel takes over the moment there is something to put in it.
+ * What is left is the only block on the opening screen answering a question the
+ * client actually has, which is what happens after they press send. So it keeps
+ * its place and loses its voice: no card, no rule, muted throughout. It is
+ * reference material, not an argument.
+ *
+ * The name is now wider than the thing. Kept as `BriefOutline` because renaming
+ * it was not part of the ask, and a file move is a worse diff to read than this
+ * comment. Worth doing next time this file is opened.
  */
-export function BriefOutline({ fields }: { fields: BriefField[] }) {
+export function BriefOutline() {
   const t = useTranslations('intake');
-  const required = fields.filter((field) => field.required);
-  const optional = fields.filter((field) => !field.required);
 
   return (
-    <div className="border-border flex flex-col gap-5 rounded-lg border p-6">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-foreground/80 text-xs font-medium">
-          {t('outline.title')}
-        </h2>
-        <p className="text-foreground text-sm leading-relaxed">
-          {required.map((field) => field.label).join(' · ')}
-        </p>
-        {optional.length > 0 ? (
-          <p className="text-muted-foreground text-xs">
-            {t('outline.optionalNote', {
-              fields: optional.map((field) => field.label).join(', '),
-            })}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="border-border flex flex-col gap-2 border-t pt-5">
-        <span className="text-foreground/80 text-xs font-medium">
-          {t('howItWorks.title')}
-        </span>
-        <ol className="text-muted-foreground flex flex-col gap-1.5 text-xs leading-relaxed">
-          {['one', 'two', 'three'].map((step, index) => (
-            <li key={step} className="flex gap-2">
-              <span className="text-muted-foreground/60 font-mono text-[11px]">
-                {index + 1}
-              </span>
-              {t(`howItWorks.${step}`)}
-            </li>
-          ))}
-        </ol>
-      </div>
+    <div className="flex flex-col gap-2">
+      <span className="text-muted-foreground text-xs font-medium">
+        {t('howItWorks.title')}
+      </span>
+      <ol className="text-muted-foreground flex flex-col gap-1.5 text-xs leading-relaxed">
+        {['one', 'two', 'three'].map((step, index) => (
+          <li key={step} className="flex gap-2">
+            <span className="text-muted-foreground/60 font-mono text-[11px]">
+              {index + 1}
+            </span>
+            {t(`howItWorks.${step}`)}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

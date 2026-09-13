@@ -30,6 +30,7 @@
     "@tanstack/react-table": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "cmdk": "catalog:",
     "date-fns": "catalog:",
     "docx": "catalog:",
     "input-otp": "catalog:",
@@ -73,6 +74,7 @@
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
     "globals": "catalog:",
+    "jsdom": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

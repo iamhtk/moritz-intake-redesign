@@ -16,6 +16,31 @@ export type MatterId =
   | 'ma'
   | 'other';
 
+/** Every matter id, as values, so a guard can check one without a second list. */
+export const MATTER_IDS = [
+  'contract',
+  'employment',
+  'procurement',
+  'corporate',
+  'ma',
+  'other',
+] as const satisfies readonly MatterId[];
+
+/**
+ * Whether an unknown string is a matter id.
+ *
+ * For `?matter=` on the *Talk to a person* screen, which is a value a reader
+ * can type. A cast would let `?matter=nonsense` reach `leadForMatter` and come
+ * back with the default lead as though the matter were known; `undefined` is
+ * what "not known yet" already means everywhere in this flow, and it is the
+ * honest reading of a value we do not recognise.
+ */
+export function isMatterId(value: string | undefined): value is MatterId {
+  return (
+    value !== undefined && (MATTER_IDS as readonly string[]).includes(value)
+  );
+}
+
 /** Every answer is stored as a string: a chip `value`, free text, or '' (skipped). */
 export type AnswerValue = string;
 

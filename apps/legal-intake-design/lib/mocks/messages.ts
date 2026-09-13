@@ -1,3 +1,4 @@
+import { MORITZ_AI } from '@/lib/intake/case-transcript';
 import type { Message } from '@/lib/types';
 
 const CLIENT_ALEX = {
@@ -56,15 +57,6 @@ const LEGAL_AELITA = {
   actor: 'legal' as const,
   companyName: 'Moritz',
 };
-const MORITZ_AI = {
-  id: 'usr_ai_moritz',
-  name: 'Moritz',
-  email: '',
-  image: null,
-  actor: 'ai' as const,
-  companyName: 'Moritz',
-};
-
 /**
  * Per-case intake transcripts — the original AI chatbot conversation each client
  * had with Moritz during intake, before the matter was routed to counsel. These

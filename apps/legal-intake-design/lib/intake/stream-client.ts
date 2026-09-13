@@ -7,12 +7,22 @@
  * the brief. Only `done` may do that.
  */
 
+import { isFailureKind, type FailureKind } from './failure';
 import type { IntakeTurn } from './turn-schema';
 
 export type IntakeStreamEvent =
   | { type: 'delta'; text: string }
   | { type: 'done'; turn: IntakeTurn }
-  | { type: 'error'; message: string };
+  /**
+   * A named failure, never a message.
+   *
+   * The route used to put `err.message` in here and the chat rendered it, so a
+   * missing key on the deployment showed the client an SDK sentence about
+   * `apiKey` and `authToken`. The kind resolves to copy in `en.json`
+   * (`lib/intake/failure.ts`), which is where a sentence a client reads
+   * belongs.
+   */
+  | { type: 'error'; kind: FailureKind };
 
 function toEvent(payload: string): IntakeStreamEvent | null {
   try {
@@ -24,10 +34,12 @@ function toEvent(payload: string): IntakeStreamEvent | null {
       return { type: 'done', turn: parsed.turn as IntakeTurn };
     }
     if (parsed.type === 'error') {
+      // An unrecognised kind becomes `unknown` rather than being passed
+      // through: the client resolves it to copy, and a kind with no copy
+      // renders as its own key on screen.
       return {
         type: 'error',
-        message:
-          typeof parsed.message === 'string' ? parsed.message : 'Unknown error',
+        kind: isFailureKind(parsed.kind) ? parsed.kind : 'unknown',
       };
     }
   } catch {
@@ -47,7 +59,9 @@ export async function* readEventStream(
 ): AsyncGenerator<IntakeStreamEvent> {
   const body = response.body;
   if (!body) {
-    yield { type: 'error', message: 'The server sent an empty response.' };
+    // No body at all is not a model failure; something between here and the
+    // route dropped it, which is the same thing to the client as being offline.
+    yield { type: 'error', kind: 'offline' };
     return;
   }
 

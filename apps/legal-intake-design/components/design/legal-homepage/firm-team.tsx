@@ -42,9 +42,8 @@ export function FirmTeam({
             className="flex flex-col items-center gap-3 text-center"
           >
             <Avatar size="2xl" className="border-border/60 border shadow-sm">
-              {member.image ? (
-                <AvatarImage src={member.image} alt={member.name} />
-              ) : null}
+              {/* Unconditional even without a photograph; see `AvatarImage`. */}
+              <AvatarImage src={member.image} alt={member.name} />
               <AvatarFallback className="text-foreground font-medium">
                 {initialsFor(member.name)}
               </AvatarFallback>

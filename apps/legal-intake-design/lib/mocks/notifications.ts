@@ -9,8 +9,15 @@ import type { Notification, Role } from '@/lib/types';
 // clients, lawyers, and internal admins each receive a different set.
 //
 // Excluded on purpose (never surface as in-app rows in production):
-// COMPANY_CREATED (email-only), QUOTE_CREATED and QUOTE_ACCEPTED (typed in the
-// pg enum but not created in-app).
+// COMPANY_CREATED (email-only) and QUOTE_ACCEPTED (typed in the pg enum but not
+// created in-app).
+//
+// Two additions (Decision 23). The feed had lawyer-assigned and payment events
+// and nothing for the two moments a client waits on, so QUOTE_CREATED is now
+// created rather than merely typed, and CASE_RECEIVED is raised by the intake
+// itself at submission (see lib/intake/intake-notifications.ts). The seeded
+// quote row below sits on M-2026-0121 between the quote being written and the
+// payment being requested for it, which is where it would really have landed.
 
 // Actor images reuse the participant avatars from ./cases.ts.
 const DANIEL = {
@@ -59,6 +66,19 @@ const CLIENT_NOTIFICATIONS: Notification[] = [
     caseTitle: 'Supplier renewal clause: California',
     triggeredBy: DANIEL,
     href: '/client/cases/M-2026-0114?tab=messages',
+  },
+  {
+    id: 'ntf_client_014',
+    type: 'QUOTE_CREATED',
+    title: 'Your quote is ready',
+    content:
+      'A fixed quote of $1,000 is ready for your case. Nothing is charged until you accept it.',
+    read: true,
+    createdAt: '2026-06-02T09:40:00.000Z',
+    caseNumber: 'M-2026-0121',
+    caseTitle: 'NDA review: manufacturing partner',
+    triggeredBy: DANIEL,
+    href: '/client/cases/M-2026-0121',
   },
   {
     id: 'ntf_client_003',

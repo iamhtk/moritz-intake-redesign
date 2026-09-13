@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Check, GraduationCap } from '@repo/ui/icons';
+import { ArrowRight, Check } from '@repo/ui/icons';
 import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@/components/design/design-system/button';
 import {
@@ -15,37 +14,31 @@ import {
   DescriptionList,
   DescriptionTerm,
 } from '@/components/design/foundations/components/description-list';
-import { Heading } from '@/components/design/foundations/components/heading';
-import { Text } from '@/components/design/foundations/components/text';
-import { AVATAR_FRAMING } from '@/components/design/homepage-v2/legal-team';
-import { ADDITIONAL_TEAM_LAWYERS } from '@/components/design/onboarding/onboarding-lawyers';
 import { Link } from '@/i18n/navigation';
 import { useDesignFlags } from '@/components/design/feature-flags/design-flags-context';
 import { useSlackConnection } from '@/components/design/slack/slack-connection-context';
 import { OpenInSlackButton } from '@/components/design/slack/open-in-slack-button';
 import { SLACK_CHANNEL } from '@/components/design/slack/slack-config';
-import { getCasesForCompany } from '@/lib/mocks/cases';
-import { MOCK_CLIENT_USER } from '@/lib/mocks/users';
+import { SUBMITTED_CASE_ID } from '@/lib/mocks/cases';
 import { estimateTurnaround } from './extract';
 import { type AnswersMap, type MatterId } from './intake-types';
 
 /**
- * Playground stand-in for the freshly created case. Submission is stubbed here
- * (no backend), so there's no server-routable case to open. Deep-link to the
- * mock client's most recent case so "Go to case" lands on a real detail page.
+ * Where "Go to case" lands (Decision 8).
+ *
+ * It used to deep-link to the mock client's most recent *existing* case, an
+ * in-progress matter with a cancelled invoice — so a reviewer who clicked it
+ * read the prototype as broken. There is now one mock case standing for the
+ * case just submitted, awaiting quote and created today, and both this card and
+ * the v2 confirmation point at it.
  */
-const NEW_CASE_HREF = (() => {
-  const cases = getCasesForCompany(MOCK_CLIENT_USER.company?.id ?? '');
-  const latest = [...cases].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  )[0];
-  return latest ? `/client/cases/${latest.id}` : '/client/cases';
-})();
+const NEW_CASE_HREF = `/client/cases/${SUBMITTED_CASE_ID}`;
+import { ENTERPRISE_POD } from './lawyers';
 import {
-  ENTERPRISE_POD,
-  showcaseForMatter,
-  type OnboardingLawyer,
-} from './lawyers';
+  LawyerProfile,
+  LawyerShowcase,
+  SectionEyebrow,
+} from './lawyer-showcase';
 
 /**
  * Inline confirmation shown as the final Moritz turn once a case is submitted.
@@ -86,7 +79,7 @@ export function CaseSubmittedCard({
         {enterprise ? (
           <EnterprisePod turnaround={turnaround} />
         ) : (
-          <StandardShowcase matterId={matterId} />
+          <LawyerShowcase matterId={matterId} />
         )}
 
         <DescriptionList>
@@ -129,50 +122,6 @@ export function CaseSubmittedCard({
             <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Link>
         </Button>
-      </div>
-    </div>
-  );
-}
-
-/** Eyebrow label above a lawyer section. */
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-muted-foreground text-center text-[11px] font-medium uppercase tracking-[0.14em]">
-      {children}
-    </div>
-  );
-}
-
-/**
- * Elegant lawyer profile matching the onboarding brand panel / homepage social
- * proof: a bordered headshot, serif name, muted role, a quoted tagline, and an
- * education line.
- */
-function LawyerProfile({ lawyer }: { lawyer: OnboardingLawyer }) {
-  return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <Avatar className="border-border/60 size-20 border shadow-sm">
-        <AvatarImage
-          src={lawyer.imageUrl}
-          alt={lawyer.name}
-          className="object-cover"
-        />
-        <AvatarFallback className="text-foreground font-medium">
-          {lawyer.initials}
-        </AvatarFallback>
-      </Avatar>
-      <div className="space-y-0.5">
-        <Heading level={3} className="text-lg" style={{ fontWeight: 600 }}>
-          {lawyer.name}
-        </Heading>
-        <Text className="text-muted-foreground text-sm">{lawyer.title}</Text>
-      </div>
-      <Text className="text-foreground text-balance text-sm">
-        &ldquo;{lawyer.tagline}&rdquo;
-      </Text>
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        <GraduationCap aria-hidden="true" className="size-4 shrink-0" />
-        <span>{lawyer.education}</span>
       </div>
     </div>
   );
@@ -226,144 +175,5 @@ function EnterprisePod({ turnaround }: { turnaround: string }) {
         </div>
       ) : null}
     </div>
-  );
-}
-
-const SHOWCASE_CELL_COUNT = 3;
-const SHOWCASE_ROTATE_MS = 5000;
-const SHOWCASE_FADE_MS = 700;
-/** Per-cell start delay so the row cross-fades in a gentle wave, not in unison. */
-const SHOWCASE_STAGGER_MS = 700;
-
-/**
- * Split the roster round-robin across the grid cells so each cell owns a distinct
- * rotating subset (cell `i` cycles lawyers `i`, `i + cellCount`, ...). Keeps the
- * matter-relevant lead as the opening frame while surfacing every lawyer.
- */
-function splitRosterIntoCells(
-  roster: OnboardingLawyer[],
-  cellCount: number,
-): OnboardingLawyer[][] {
-  return Array.from({ length: cellCount }, (_, cell) =>
-    roster.filter((_, index) => index % cellCount === cell),
-  ).filter((cell) => cell.length > 0);
-}
-
-function StandardShowcase({ matterId }: { matterId?: MatterId }) {
-  const cellRosters = useMemo(
-    () =>
-      splitRosterIntoCells(
-        [...showcaseForMatter(matterId), ...ADDITIONAL_TEAM_LAWYERS],
-        SHOWCASE_CELL_COUNT,
-      ),
-    [matterId],
-  );
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReducedMotion(query.matches);
-    update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
-  }, []);
-
-  if (cellRosters.length === 0) return null;
-
-  return (
-    <div className="space-y-4">
-      <SectionEyebrow>Lawyers who could take this on</SectionEyebrow>
-      <ul className="grid grid-cols-3 gap-x-4 gap-y-6">
-        {cellRosters.map((roster, cell) => (
-          <ShowcaseCell
-            key={cell}
-            roster={roster}
-            delayMs={cell * SHOWCASE_STAGGER_MS}
-            reducedMotion={reducedMotion}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function ShowcaseCell({
-  roster,
-  delayMs,
-  reducedMotion,
-}: {
-  roster: OnboardingLawyer[];
-  delayMs: number;
-  reducedMotion: boolean;
-}) {
-  const [index, setIndex] = useState(0);
-
-  // Reduced-motion users always land on the curated opening frame.
-  useEffect(() => {
-    if (reducedMotion) setIndex(0);
-  }, [reducedMotion]);
-
-  useEffect(() => {
-    if (reducedMotion || roster.length <= 1) return;
-
-    let interval: number | undefined;
-    const start = window.setTimeout(() => {
-      setIndex((current) => (current + 1) % roster.length);
-      interval = window.setInterval(() => {
-        setIndex((current) => (current + 1) % roster.length);
-      }, SHOWCASE_ROTATE_MS);
-    }, delayMs);
-
-    return () => {
-      window.clearTimeout(start);
-      if (interval !== undefined) window.clearInterval(interval);
-    };
-  }, [roster.length, delayMs, reducedMotion]);
-
-  return (
-    <li>
-      {/* All lawyers in this cell share one grid area so the row never reflows as
-          we cross-fade between them. */}
-      <div className="grid" style={{ gridTemplateAreas: '"stack"' }}>
-        {roster.map((lawyer, lawyerIndex) => (
-          <div
-            key={lawyer.id}
-            aria-hidden={lawyerIndex !== index}
-            className={cn(
-              'flex flex-col items-center gap-3 text-center transition-opacity ease-in-out',
-              lawyerIndex === index
-                ? 'opacity-100'
-                : 'pointer-events-none opacity-0',
-            )}
-            style={{
-              gridArea: 'stack',
-              transitionDuration: `${SHOWCASE_FADE_MS}ms`,
-            }}
-          >
-            <Avatar
-              size="2xl"
-              className="border-border/60 overflow-hidden border shadow-sm"
-            >
-              <AvatarImage
-                src={lawyer.imageUrl}
-                alt={lawyer.name}
-                className={AVATAR_FRAMING[lawyer.id] ?? 'object-cover'}
-              />
-              <AvatarFallback className="text-foreground font-medium">
-                {lawyer.initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 space-y-0.5">
-              <p className="truncate text-sm font-medium">
-                {lawyer.name.split(' ')[0]}
-              </p>
-              <p className="text-muted-foreground text-balance text-xs leading-snug">
-                {lawyer.tagline}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </li>
   );
 }

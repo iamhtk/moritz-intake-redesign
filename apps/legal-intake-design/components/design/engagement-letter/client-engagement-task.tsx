@@ -1,17 +1,32 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { Button } from '@repo/ui/components/button';
 import { Card, CardContent } from '@repo/ui/components/card';
 import { ArrowRight } from '@repo/ui/icons';
 import { useClientEngagement } from './engagement-letter-context';
 
-export function ClientEngagementTask() {
+export function ClientEngagementTask({
+  className,
+  style,
+}: {
+  /**
+   * For the page's entrance animation; see `lib/entrance.ts`.
+   *
+   * Taken on this component's own `section` rather than by wrapping it at the
+   * call site, because the early return below is load-bearing: a wrapper would
+   * still be a flex item when this renders nothing, and the homepage column
+   * would carry its gap around an empty box.
+   */
+  className?: string;
+  style?: CSSProperties;
+} = {}) {
   const { enabled, isPending, openSigning } = useClientEngagement();
 
   if (!enabled || !isPending) return null;
 
   return (
-    <section aria-label="Account setup">
+    <section aria-label="Account setup" className={className} style={style}>
       <Card className="overflow-hidden py-0 shadow-sm">
         <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:p-6">
           <SignatureMark />

@@ -11,6 +11,18 @@ interface FileDropzoneProps {
   multiple?: boolean;
   disabled?: boolean;
   id: string;
+  /**
+   * Extra classes on the outer target. Additive, so every existing caller keeps
+   * the shape it had; the intake uses it to sit this under a composer at full
+   * column width, which wants less vertical padding than a form field does.
+   */
+  className?: string;
+  /** Overrides the "Drag and drop or" lead. */
+  label?: string;
+  /** Overrides the supported-types line below it. */
+  hint?: string;
+  /** Overrides the "Attach a File" link. */
+  buttonLabel?: string;
 }
 
 export function FileDropzone({
@@ -19,6 +31,10 @@ export function FileDropzone({
   multiple = true,
   disabled = false,
   id,
+  className,
+  label,
+  hint,
+  buttonLabel,
 }: FileDropzoneProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const dragCounter = useRef(0);
@@ -94,14 +110,6 @@ export function FileDropzone({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (disabled) return;
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInputRef.current?.click();
-    }
-  };
-
   return (
     <div
       className={cn(
@@ -111,13 +119,18 @@ export function FileDropzone({
           : 'border-border bg-muted/30 hover:border-foreground/30 hover:bg-muted/50',
         disabled && 'cursor-not-allowed opacity-50',
         !disabled && 'cursor-pointer',
-        'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        className,
       )}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      aria-label="Upload files by dragging and dropping or clicking to browse"
+      /*
+       * Not a tab stop, and not `role="button"` (T34).
+       *
+       * It was both, with the real `<button>` inside it also focusable, so one
+       * action had two keyboard stops and the outer one wrapped a button in a
+       * button. The click and drop targets are unchanged: the whole area still
+       * opens the picker on a click and still takes a drop. What the keyboard
+       * gets is the control that says what it does, which is the link below.
+       */
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -133,6 +146,16 @@ export function FileDropzone({
         className="sr-only"
         onChange={handleFileInputChange}
         aria-hidden="true"
+        /*
+         * Out of the tab order (T34).
+         *
+         * `sr-only` hides it visually and `aria-hidden` hides it from the
+         * accessibility tree, but neither takes it off the tab ring, so it was
+         * a focus stop with no name, no visible position on screen and no ring
+         * -- measured on the confirmation, between the dropzone's own link and
+         * the source link below it. The labelled button beside it is the way in.
+         */
+        tabIndex={-1}
       />
 
       <span className="border-border bg-background text-muted-foreground group-hover:text-foreground flex size-11 items-center justify-center rounded-full border transition-colors">
@@ -141,22 +164,37 @@ export function FileDropzone({
 
       <div className="flex flex-col items-center gap-1.5">
         <p className="text-sm">
-          <span className="text-muted-foreground">{t('dropzoneText')} </span>
+          <span className="text-muted-foreground">
+            {label ?? t('dropzoneText')}{' '}
+          </span>
+          {/*
+           * The one keyboard stop for this zone, so it needs a ring and a name
+           * that stands on its own (T34).
+           *
+           * It had `focus-visible:outline-none` and nothing in its place, which
+           * made it an invisible stop: tabbing onto it showed no change at all
+           * and the only way to find it was to guess. The label is also its own
+           * accessible name now, since the words beside it ("Drop your
+           * contracts or letters here, or") are not part of the control.
+           */}
           <button
             type="button"
             disabled={disabled}
+            aria-label={t('dropzoneLabel')}
             onClick={(e) => {
               e.stopPropagation();
               if (!disabled) {
                 fileInputRef.current?.click();
               }
             }}
-            className="text-foreground rounded-sm font-medium underline-offset-4 hover:underline focus-visible:outline-none"
+            className="text-foreground focus-visible:outline-ring focus-visible:outline-solid rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
           >
-            {t('dropzoneButton')}
+            {buttonLabel ?? t('dropzoneButton')}
           </button>
         </p>
-        <p className="text-muted-foreground text-xs">{t('attachmentHint')}</p>
+        <p className="text-muted-foreground text-xs">
+          {hint ?? t('attachmentHint')}
+        </p>
       </div>
     </div>
   );

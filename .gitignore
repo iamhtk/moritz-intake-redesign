@@ -26,3 +26,6 @@ apps/*/CLAUDE.md
 
 local_docs/
 notes/
+
+# graphify knowledge graph artifacts (regenerate with `/graphify .`)
+.graphify/

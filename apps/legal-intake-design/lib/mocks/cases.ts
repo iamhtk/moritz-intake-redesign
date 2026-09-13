@@ -104,7 +104,78 @@ const baseDescription = `Northwind Ltd. is a renewable-energy operator headquart
 Specifically, we're looking for a second-opinion review of the renewal clause and the surrounding terms, a drafted notice of dispute we can serve on the supplier, and — if you think it's warranted — a short strategy memo weighing litigation against arbitration.
 To support the review we've provided the signed Master Services Agreement from April 2024, the renewal notice we received on 19 April 2026, and an internal memo describing the operational impact if the clause is enforced.`;
 
+const OPPOSING_ACME: ParticipantRef = {
+  id: 'opp_003',
+  name: 'Acme Technologies Ltd.',
+  email: 'contracts@acmetech.example',
+  image: null,
+  actor: 'opposing',
+  companyName: 'Acme Technologies Ltd.',
+};
+
+/**
+ * The case the intake flow just created (Decision 8).
+ *
+ * "Go to case" on the submission confirmation used to deep-link to the mock
+ * client's most recent *existing* matter — an in-progress case with a cancelled
+ * invoice — so a reviewer who clicked it concluded the prototype was broken.
+ * This is the case the confirmation is actually talking about: submitted today,
+ * no quote yet, no lawyer assigned, which puts their five-step client timeline
+ * at step one and lets it do the "where am I" work for free.
+ */
+export const SUBMITTED_CASE_ID = 'case_009';
+
+/**
+ * Today, at a fixed time of day.
+ *
+ * "Created today" has to be relative or the case reads as stale the day after
+ * anyone looks at it, but a literal `new Date()` would differ between the
+ * server render and the client bundle. Pinning to a UTC date and a fixed hour
+ * makes both evaluate to the same string for the whole of a UTC day.
+ */
+function todayAt(hour: number): string {
+  const now = new Date();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  const at = String(hour).padStart(2, '0');
+  return `${now.getUTCFullYear()}-${month}-${day}T${at}:00:00.000Z`;
+}
+
 export const MOCK_CASES: LegalCase[] = [
+  {
+    id: SUBMITTED_CASE_ID,
+    caseNumber: 'M-2026-0126',
+    title: 'MSA review and early exit: Acme Technologies',
+    description: `We signed a master services agreement with Acme Technologies for warehousing and last-mile distribution, and we now want to understand what it would take to get out of it early.
+Service levels have been missed repeatedly and we would like a practical read on the termination and notice provisions — whether we have grounds to exit for cause, what notice we owe, and what the exposure looks like if we simply give notice.
+We have attached the signed agreement. A short list of the clauses that actually matter here would be more useful to us than a full review.`,
+    anonDescription:
+      'A non-legal company wants advice on exiting a warehousing and distribution MSA early after repeated service-level failures.',
+    status: 'READY_FOR_SUBMISSION_REVIEW',
+    unreadCount: 0,
+    quoteAmount: null,
+    currency: 'USD',
+    caseTypeId: 'ct_contract_review',
+    country: 'US',
+    client: CLIENT_ALEX,
+    opposingParty: OPPOSING_ACME,
+    assignedLawyer: null,
+    ownerCompanyId: 'cmp_client_001',
+    ownerCompanyName: 'Northwind Ltd.',
+    legalCompanyId: null,
+    legalCompanyName: null,
+    claimableCompanyIds: [],
+    participants: [CLIENT_ALEX],
+    documents: [],
+    draftDocuments: [],
+    draftResponseMarkdown: null,
+    claimDeadline: null,
+    receivedAt: todayAt(9),
+    sentToFirmsAt: null,
+    lawyerAssignedAt: null,
+    createdAt: todayAt(9),
+    updatedAt: todayAt(9),
+  },
   {
     id: 'case_007',
     caseNumber: 'M-2026-0125',
@@ -384,6 +455,24 @@ export function getCaseById(id: string): LegalCase | undefined {
   return MOCK_CASES.find((c) => c.id === id || c.caseNumber === id);
 }
 
+/**
+ * Cases for a role's *list view*. Not a privacy boundary — see below.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DO NOT USE THIS FOR ASK OR FOR THE COMMAND PALETTE. Use
+ * `buildAskScope()` in `lib/ask/scope.ts`.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The `NON_LEGAL` branch returns every mock case on purpose, so the client
+ * table can demonstrate all five statuses rather than only Northwind's two.
+ * That is right for a table whose job is to show the range of states, and
+ * wrong for anything that reads a case *back* to someone: a grounded answer
+ * built on this would name other companies' matters, which in a legal product
+ * reads as a confidentiality breach rather than as generous seed data.
+ *
+ * `lib/ask/scope.ts` is the strict version and carries the matching comment.
+ * The two look similar enough to invite merging; they must not be merged.
+ */
 export function getCasesForRole(role: Role): LegalCase[] {
   switch (role) {
     case 'NON_LEGAL':

@@ -21,7 +21,7 @@ function turn(over: Record<string, unknown> = {}) {
         key: 'otherSide',
         value: 'Acme Holdings Ltd',
         source: 'client',
-        confidence: 'sure',
+        confidence: 9,
       },
     ],
     askingAbout: 'situation',
@@ -33,6 +33,15 @@ function turn(over: Record<string, unknown> = {}) {
 describe('INTAKE_TURN_SCHEMA', () => {
   it('puts reply first so it streams before the field updates', () => {
     expect(Object.keys(INTAKE_TURN_SCHEMA.properties)[0]).toBe('reply');
+  });
+
+  it('constrains the rating with an enum, since ranges are not supported', () => {
+    // `minimum`/`maximum` are stripped from a structured-output schema before
+    // it is compiled, so a range here would let a 47 through the grammar.
+    const confidence =
+      INTAKE_TURN_SCHEMA.properties.fieldUpdates.items.properties.confidence;
+    expect(confidence.type).toBe('integer');
+    expect(confidence.enum).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
   it('does not let a conversational turn claim a document source', () => {
@@ -72,13 +81,13 @@ describe('parseIntakeTurn', () => {
             key: 'otherSide',
             value: 'Acme',
             source: 'client',
-            confidence: 'sure',
+            confidence: 9,
           },
           {
             key: 'situation',
             value: 'Review',
             source: 'document',
-            confidence: 'sure',
+            confidence: 9,
           },
           { key: '', value: 'x', source: 'client', confidence: 'sure' },
           'nonsense',
@@ -150,18 +159,31 @@ describe('renderBriefState', () => {
     expect(rendered).toContain('outcome (Desired outcome) [optional]: MISSING');
   });
 
-  it('shows the value, its origin and its confidence', () => {
+  it('shows the value, its origin and its rating', () => {
     const brief = applyFieldUpdates(createBrief('contract', DEFS), [
       {
         key: 'otherSide',
         value: 'Acme Holdings Ltd',
         source: 'inferred',
-        confidence: 'unsure',
+        confidence: 3,
       },
     ]);
     expect(renderBriefState(brief)).toContain(
-      'otherSide (Other side): Acme Holdings Ltd [from inferred, unsure]',
+      'otherSide (Other side): Acme Holdings Ltd [from inferred, confidence 3/10]',
     );
+  });
+
+  it('shows a rating it never got as unrated rather than as a number', () => {
+    const brief = createBrief('contract', DEFS);
+    const legacy = {
+      ...brief,
+      fields: brief.fields.map((f) =>
+        f.key === 'otherSide'
+          ? { ...f, value: 'Acme Holdings Ltd', source: 'client' as const }
+          : f,
+      ),
+    };
+    expect(renderBriefState(legacy)).toContain('[from client, unrated]');
   });
 
   it('tells the model plainly not to touch a confirmed field', () => {
@@ -171,13 +193,75 @@ describe('renderBriefState', () => {
           key: 'otherSide',
           value: 'Acme',
           source: 'client',
-          confidence: 'sure',
+          confidence: 9,
         },
       ]),
       'otherSide',
     );
-    expect(renderBriefState(brief)).toContain(
-      'CONFIRMED BY CLIENT, do not change',
-    );
+    const rendered = renderBriefState(brief);
+    expect(rendered).toContain('CONFIRMED BY CLIENT, do not change');
+    /*
+     * And no rating beside it. The number on a confirmed row is the one the
+     * model gave before the client settled the value, so showing it invites
+     * the model to reopen a line on the strength of its own earlier doubt.
+     */
+    expect(rendered).not.toContain('confidence 10/10');
+  });
+});
+
+/**
+ * L4: the reason arrives, and a missing one never costs a field.
+ *
+ * The second of those is the one worth a test. A reason is the only property on
+ * an update whose absence leaves the value entirely usable, so dropping the
+ * whole update over it would trade a field the client can check for a sentence
+ * they can read.
+ */
+describe('the reasoning on a turn update', () => {
+  function turn(update: Record<string, unknown>) {
+    return parseIntakeTurn({
+      reply: 'Got it.',
+      fieldUpdates: [update],
+      askingAbout: '',
+      nothingRequiredMissing: false,
+      observation: '',
+    });
+  }
+
+  const base = {
+    key: 'otherSide',
+    value: 'Acme Holdings Ltd',
+    source: 'inferred',
+    confidence: 3,
+  };
+
+  it('comes through trimmed', () => {
+    expect(
+      turn({ ...base, reasoning: '  You said their HR team wrote to you.  ' })
+        ?.fieldUpdates[0]?.reasoning,
+    ).toBe('You said their HR team wrote to you.');
+  });
+
+  it.each([
+    ['missing', {}],
+    ['null', { reasoning: null }],
+    ['a number', { reasoning: 7 }],
+    ['an object', { reasoning: { why: 'because' } }],
+  ])('keeps the update when the reason is %s', (_name, over) => {
+    const parsed = turn({ ...base, ...over });
+    expect(parsed?.fieldUpdates).toHaveLength(1);
+    expect(parsed?.fieldUpdates[0]?.value).toBe('Acme Holdings Ltd');
+    expect(parsed?.fieldUpdates[0]?.reasoning).toBe('');
+  });
+
+  /*
+   * The schema has to ask for it, or constrained decoding will never emit it
+   * and the property would be dead weight in the type. Asserted against the
+   * shipped schema object rather than a copy of it.
+   */
+  it('is required by the schema the model is given', () => {
+    const item = INTAKE_TURN_SCHEMA.properties.fieldUpdates.items;
+    expect(item.properties).toHaveProperty('reasoning');
+    expect(item.required).toContain('reasoning');
   });
 });

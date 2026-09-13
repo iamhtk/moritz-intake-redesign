@@ -43,6 +43,39 @@ export const MATTER_TYPE_FIELD: FieldDef = {
 };
 
 /**
+ * The matter type as the chip that means it, where the model sent the same
+ * thing in a different case.
+ *
+ * Found by using the flow rather than by reading it. Asked about exiting an
+ * MSA, the model returned `contract` — correct, resolved correctly by
+ * `matterOf`, and rendered as the word "contract" in lower case on the review
+ * screen, one row above "Acme Holdings" and two above "Renewal is roughly six
+ * weeks away." A brief that is supposed to read like a document a firm would
+ * put its name on had a stray lower-case token in the first row of it.
+ *
+ * Deliberately the narrowest possible rewrite. It fires only when the whole
+ * trimmed value *is* a matter id or a matter label, differing at most in case
+ * and surrounding space, and it replaces it with that matter's own label. A
+ * value that is a sentence — "Employment dispute, offer withdrawn", which the
+ * model also produces — is left exactly as it arrived, because those are the
+ * client's circumstances described, and tidying them into one word would throw
+ * away the only part a lawyer would read twice.
+ *
+ * Not a synonym table and must not become one. `matter-of.ts` already owns the
+ * tolerant matching, and it has its own note about what a wrong guess costs.
+ * This is casing, nothing else.
+ */
+export function canonicalMatterType(value: string): string {
+  const candidate = value.trim().toLowerCase();
+  for (const flow of Object.values(MATTER_FLOWS)) {
+    if (candidate === flow.id || candidate === flow.label.toLowerCase()) {
+      return flow.label;
+    }
+  }
+  return value;
+}
+
+/**
  * Every field a brief for this matter needs, in the order the empty outline
  * shows them at the start of the flow.
  */

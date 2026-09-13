@@ -1,5 +1,113 @@
 import * as React from 'react';
 
+interface EmailBodyProps {
+  children: React.ReactNode;
+  footer: React.ReactNode;
+  /** Translated app name for the header */
+  appName: string;
+  /** Translated copyright text (e.g., "© 2026 Moritz. All rights reserved.") */
+  copyright: string;
+}
+
+/**
+ * The visible part of a transactional email: the card, its header, the content,
+ * the footer rule and the copyright line.
+ *
+ * Split out of {@link EmailLayout} so a surface that cannot host `<html>` can
+ * still show the real email rather than an imitation of it. The intake renders
+ * a preview of the confirmation email inside the prototype, and a hand-built
+ * lookalike there would drift from what actually gets sent the first time
+ * either is touched. Everything the recipient sees lives here; `EmailLayout`
+ * adds only the document, the background and the hidden preheader.
+ */
+export function EmailBody({
+  children,
+  footer,
+  appName,
+  copyright,
+}: EmailBodyProps) {
+  return (
+    <table
+      role="presentation"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      style={{ background: '#f6f9fc', padding: '24px 0' }}
+    >
+      <tbody>
+        <tr>
+          <td align="center">
+            {/* Content container */}
+            <table
+              role="presentation"
+              width="600"
+              cellPadding={0}
+              cellSpacing={0}
+              style={{ width: '100%', maxWidth: 600 }}
+            >
+              <tbody>
+                {/* Main content card */}
+                <tr>
+                  <td
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: 12,
+                      padding: 28,
+                      border: '1px solid #e5e7eb',
+                    }}
+                  >
+                    {/* App name header */}
+                    <div
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 700,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {appName}
+                    </div>
+
+                    {/* Main content */}
+                    {children}
+
+                    {/* Footer divider */}
+                    <hr
+                      style={{
+                        border: 'none',
+                        borderTop: '1px solid #e5e7eb',
+                        margin: '16px 0',
+                      }}
+                    />
+
+                    {/* Footer text */}
+                    <p style={{ margin: 0, fontSize: 12, color: '#6b7280' }}>
+                      {footer}
+                    </p>
+                  </td>
+                </tr>
+
+                {/* Copyright row */}
+                <tr>
+                  <td
+                    style={{
+                      textAlign: 'center',
+                      padding: '12px 0',
+                      color: '#9ca3af',
+                      fontSize: 12,
+                    }}
+                  >
+                    {copyright}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
 interface EmailLayoutProps {
   locale: string;
   preheader: string;
@@ -39,86 +147,9 @@ export function EmailLayout({
         </div>
 
         {/* Main email table */}
-        <table
-          role="presentation"
-          width="100%"
-          cellPadding={0}
-          cellSpacing={0}
-          style={{ background: '#f6f9fc', padding: '24px 0' }}
-        >
-          <tbody>
-            <tr>
-              <td align="center">
-                {/* Content container */}
-                <table
-                  role="presentation"
-                  width="600"
-                  cellPadding={0}
-                  cellSpacing={0}
-                  style={{ width: '100%', maxWidth: 600 }}
-                >
-                  <tbody>
-                    {/* Main content card */}
-                    <tr>
-                      <td
-                        style={{
-                          background: '#ffffff',
-                          borderRadius: 12,
-                          padding: 28,
-                          border: '1px solid #e5e7eb',
-                        }}
-                      >
-                        {/* App name header */}
-                        <div
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 700,
-                            marginBottom: 8,
-                          }}
-                        >
-                          {appName}
-                        </div>
-
-                        {/* Main content */}
-                        {children}
-
-                        {/* Footer divider */}
-                        <hr
-                          style={{
-                            border: 'none',
-                            borderTop: '1px solid #e5e7eb',
-                            margin: '16px 0',
-                          }}
-                        />
-
-                        {/* Footer text */}
-                        <p
-                          style={{ margin: 0, fontSize: 12, color: '#6b7280' }}
-                        >
-                          {footer}
-                        </p>
-                      </td>
-                    </tr>
-
-                    {/* Copyright row */}
-                    <tr>
-                      <td
-                        style={{
-                          textAlign: 'center',
-                          padding: '12px 0',
-                          color: '#9ca3af',
-                          fontSize: 12,
-                        }}
-                      >
-                        {copyright}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <EmailBody appName={appName} copyright={copyright} footer={footer}>
+          {children}
+        </EmailBody>
       </body>
     </html>
   );

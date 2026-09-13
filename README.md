@@ -59,7 +59,10 @@ You do **not** need Docker, a database, or any cloud credentials.
 
 ## Getting started
 
-1. Copy `.env.example` to `.env.local` and add an Anthropic API key:
+1. Copy `.env.example` to `.env.local` and add an Anthropic API key. **Do not
+   skip this** if you are here to review the client intake — the redesign is
+   built around the model, and a keyless run shows the shell rather than the
+   thing. See [AI mode](#ai-mode--strongly-recommended).
 
 ```bash
 cp .env.example .env.local
@@ -134,6 +137,61 @@ everything the UI needs:
 AI intake and extraction routes also need `ANTHROPIC_API_KEY` in
 `apps/legal-intake-design/.env.local` (see Getting started). Optional overrides:
 `ANTHROPIC_TURN_MODEL`, `ANTHROPIC_RECAP_MODEL`.
+
+### AI mode — strongly recommended
+
+**Set `ANTHROPIC_API_KEY` before reviewing the client intake at
+`/en/client/new`.** The app runs without it and will not crash, but the
+redesign is _built around_ the model, so a keyless run shows the shell of the
+thing rather than the thing.
+
+That is the substance of what changed. The original intake ran a scripted state
+machine — `useAiCaseIntake` defaulted **off**, free-text descriptions were
+rejected in favour of six matter-type buttons, the opening "Thinking…" was a
+fixed 650ms delay, and the brief panel listed question _labels_ and never the
+answers. The rebuild inverts it: the brief is the product and the conversation
+is how you fill it in. With a key, these are live:
+
+| Surface        | What the model does                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------- |
+| `/api/intake`  | Reads what you type and writes values into the brief as you go, one field at a time, streaming. |
+| `/api/extract` | Reads an attached PDF and fills the brief from it, returning a verbatim quote for every value.  |
+| `/api/recap`   | Names the case and writes the one-paragraph description a lawyer reads first.                   |
+| `/api/ask`     | Ask Nora (⌘J), grounded server-side in the client's own cases.                                  |
+
+Two mechanics are the point of the rebuild and only exist with a key: every
+value shows **where it came from** — the file, the place in it, and the exact
+sentence, with a confidence reading banded by provenance rather than by the
+model's self-belief — and clicking that citation opens the document with the
+quoted passage highlighted in place.
+
+#### Without a key
+
+The **demo links work fully and need no key**, because they seed the brief
+client-side. They are the intended way to review the flow keyless, and they can
+be opened in one tab in any order:
+
+| URL                           | What it shows                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `/en/client/new?demo=1`       | The four field states: confirmed, from a document, worked out, not yet asked. |
+| `/en/client/new?demo=review`  | The review step, with a sendable brief.                                       |
+| `/en/client/new?demo=sent`    | The confirmation, the pipeline rail and the receipt.                          |
+| `/en/client/new?demo=sentgap` | A sent case with a gap worth asking about.                                    |
+| `/en/client/new?demo=quote`   | A quote the client can disagree with.                                         |
+| `/en/client/new?demo=noquote` | A matter we cannot put a fixed price on.                                      |
+
+Everything outside the intake — the case pages, documents, quotes, payments,
+notifications, the command palette, all four roles — is driven by in-memory
+mock data and never calls a model, so it is unaffected either way.
+
+What you cannot do keyless is _drive_ the flow: typing a message, attaching a
+document, or submitting a case each need a model call. Those now fail honestly
+rather than obscurely. Each route checks for the key before constructing the
+client and answers with the named `unauthorized` failure, so the UI shows one
+sentence and — deliberately — **no "Try again" button**, since retrying cannot
+succeed until the variable is set. The server log names the variable and points
+back here. A recap that cannot run is non-fatal: the case still submits, with
+the brief's own values instead of a written description.
 
 The dev script also references a `.env.keys` file at the repo root. It is
 optional and gitignored; the `--ignore=MISSING_ENV_FILE` flag lets the server

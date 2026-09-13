@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
 import {
@@ -63,7 +63,14 @@ function splitRosterIntoCells(
   );
 }
 
-export function LegalTeam() {
+export function LegalTeam({
+  className,
+  style,
+}: {
+  /** For the page's entrance animation; see `lib/entrance.ts`. */
+  className?: string;
+  style?: CSSProperties;
+} = {}) {
   const t = useTranslations('dashboard.client.homepageV2.team');
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -91,7 +98,7 @@ export function LegalTeam() {
   );
 
   return (
-    <section className="flex flex-col gap-8">
+    <section className={cn('flex flex-col gap-8', className)} style={style}>
       <h2 className="text-muted-foreground text-center text-xs font-medium uppercase tracking-[0.16em]">
         {t('title')}
       </h2>

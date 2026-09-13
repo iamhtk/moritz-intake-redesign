@@ -966,7 +966,7 @@ function renderTranscript(
           key={item.id}
           messageId={item.id}
           role="user"
-          attachment={item.attachment}
+          attachments={item.attachment ? [item.attachment] : []}
         >
           {item.text}
         </ChatMessage>,

@@ -58,13 +58,37 @@ function Avatar({
   );
 }
 
+/**
+ * Renders nothing until the image has loaded, and reports its status to the
+ * root so the fallback knows whether to show.
+ *
+ * **Render it unconditionally, even when there is no image.** The root holds the
+ * loading status in state and nothing resets it when this unmounts, so a caller
+ * that swaps `<AvatarImage>` out for `null` when a person has no photograph
+ * leaves the root still believing an image is loaded — and `AvatarFallback`
+ * renders nothing at all, giving a blank circle where the initials should be.
+ * It only shows up when the avatar had *already* displayed a photograph in the
+ * same position, which is why it reads as intermittent: the intake's lead
+ * lawyer follows the matter type, so a matter that resolved to the one partner
+ * with no headshot lost her monogram, but only if a photographed colleague had
+ * been on screen first.
+ *
+ * An absent `src` is passed through as `''`, which the primitive resolves to
+ * `error` — synchronously, with no request issued — and that is what tells the
+ * root to show the fallback.
+ */
 function AvatarImage({
   className,
+  src,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+}: Omit<React.ComponentProps<typeof AvatarPrimitive.Image>, 'src'> & {
+  /** `null` and `''` are both "this person has no photograph". */
+  src?: string | null;
+}) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
+      src={src ?? ''}
       className={cn(
         'aspect-square size-full rounded-[inherit] object-cover',
         className,

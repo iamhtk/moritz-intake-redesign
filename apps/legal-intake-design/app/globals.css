@@ -11,6 +11,37 @@
 @import '@repo/ui/globals.css';
 @import '../components/design/tabular-playbook/tabular-playbook-theme.css';
 
+/*
+ * Viewport-*height* variants.
+ *
+ * Every breakpoint in this app is a width, which is the right default: almost
+ * everything here is a column of content that gets wider or narrower. The
+ * client homepage is the exception. It is meant to fit the window with no
+ * vertical scroll, so its spacing has to answer "how tall is the screen", and a
+ * 13in MacBook and a 27in monitor are the same `lg` while differing by 700px of
+ * height.
+ *
+ * Registered rather than written inline as `[@media(min-height:800px)]:`.
+ * Tailwind v4 does not pick that up from a class attribute, so the first
+ * version of this compiled to nothing at all and quietly left the page at its
+ * tightest spacing on every screen. Naming them also makes the intent legible
+ * at the call site: `tall:gap-10` says what it is for, an arbitrary media blob
+ * does not.
+ *
+ * Cutoffs are the two that matter in practice. Below 800px is a laptop with
+ * browser chrome and a dock; above 950px there is room to be generous.
+ */
+@custom-variant tall (@media (min-height: 800px));
+@custom-variant taller (@media (min-height: 950px));
+/*
+ * One more step, for a layout choice rather than a spacing one: the intake's
+ * "How this works" panel lies down into three columns until there is genuinely
+ * room to read it as a list. That switch needs more headroom than `taller`,
+ * because the vertical arrangement costs about 140px more than the horizontal
+ * one and `taller` is already spending its extra height on padding.
+ */
+@custom-variant tallest (@media (min-height: 1020px));
+
 :root {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
@@ -123,6 +154,31 @@
   --success-foreground: var(--mz-gray-190);
   --warning: var(--mz-yellow);
   --warning-foreground: var(--mz-gray-190);
+  /*
+   * The brand amber as readable text: darker, and still orange.
+   *
+   * `--mz-yellow` (#e8a952) is a fill colour. Against white it is 2.05:1, the
+   * lowest-contrast text on the brief panel, which is the one place the reading
+   * actually has to be read.
+   *
+   * The first attempt at this mixed it straight toward black, and that was
+   * wrong in a way worth recording: mixing toward black in oklab scales `a` and
+   * `b` along with `L`, so it loses **chroma as fast as lightness** and lands
+   * on #a17436 — a brown. Contrast was fine and the colour was no longer the
+   * amber it was supposed to be, which on a green/amber/red ramp reads as a
+   * missing middle rather than a darker one.
+   *
+   * So the hue is pulled toward the brand red first — the ramp's own next stop,
+   * so the middle sits between its neighbours rather than off to one side —
+   * and only then darkened. That lands near #c0703d: 3.73:1 against white,
+   * unmistakably orange, and still nothing but two brand accents and black, so
+   * `notes/check-colours.sh` has no new hex to object to.
+   */
+  --warning-strong: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--mz-yellow) 60%, var(--mz-red)) 86%,
+    black
+  );
 
   /*
    * Cool-blue family approximated to the nearest brand swatch (the Foundation
@@ -166,6 +222,9 @@
 }
 
 @theme inline {
+  /* Text-weight amber, so `text-warning-strong` resolves. See above. */
+  --color-warning-strong: var(--warning-strong);
+
   /*
    * Restore Tailwind's default font-weight scale. The shared `globals.css`
    * clamps weights to 400/500 because the production app only ships those two
@@ -507,7 +566,83 @@ main:has(> .case-workspace-wide) {
   max-width: none;
 }
 
+/*
+ * Autosave acknowledgement: fades up, holds long enough to be read, then fades
+ * out and stays gone (`both` parks it at the final frame).
+ *
+ * A self-clearing animation rather than a timer that unmounts the element. The
+ * intake's brief saves on every value that lands, which mid-conversation is
+ * every few seconds, and a line that removes itself from the document on a
+ * `setTimeout` reflows the panel underneath the rows the client is reading. This
+ * keeps the space reserved and only changes opacity, so nothing moves.
+ *
+ * The hold is the point of the 0/15/70/100 stops: an indicator that fades
+ * straight back out is a flicker, and a client who looks up a second late sees
+ * nothing and has no reason to believe their work was saved.
+ */
+@keyframes mz-saved {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.mz-animate-saved {
+  animation: mz-saved 3.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * The testimonial slideshow: one continuous right-to-left travel, looping
+ * forever (see `homepage-v2/testimonials.tsx`).
+ *
+ * `-50%` rather than `-100%` because the track renders its items twice. Half a
+ * track is exactly one full set, so when the animation restarts the second copy
+ * is sitting where the first one began and the seam is invisible. Translating
+ * the whole width would snap back to an empty rail once per cycle.
+ *
+ * `translate3d` keeps it on the compositor: this is the only thing in the app
+ * that animates continuously rather than for half a second, so a layout-bound
+ * transform here would be paid for on every frame for as long as the page is
+ * open. Duration comes from `--mz-marquee-duration` so the component sets the
+ * speed from the number of items rather than hardcoding a guess here.
+ */
+@keyframes mz-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.mz-animate-marquee {
+  animation: mz-marquee var(--mz-marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+/*
+ * Stopping is a feature, not a nicety: a quote that slides away mid-sentence is
+ * the specific way a testimonial rail loses the trust it was built to earn.
+ */
+.mz-marquee-host:hover .mz-animate-marquee,
+.mz-marquee-host:focus-within .mz-animate-marquee {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /*
+   * No travel at all. The rail becomes a plain scrollable row, so the
+   * testimonials past the fold are reachable by drag, wheel or keyboard rather
+   * than lost with the animation.
+   */
+  .mz-animate-marquee {
+    animation: none;
+  }
   .mz-animate-check,
   .mz-animate-draw {
     animation: none;
@@ -518,6 +653,15 @@ main:has(> .case-workspace-wide) {
   }
   .mz-animate-step {
     animation: none;
+  }
+  /*
+   * No fade, and no lingering line: `opacity: 0` keeps the acknowledgement out
+   * of a reduced-motion client's way entirely. They are not left without the
+   * information, the status region still announces it (see `brief-column`).
+   */
+  .mz-animate-saved {
+    animation: none;
+    opacity: 0;
   }
   .mz-word-in {
     animation: none;
@@ -531,5 +675,177 @@ main:has(> .case-workspace-wide) {
     background-clip: border-box;
     -webkit-background-clip: border-box;
     color: var(--muted-foreground);
+  }
+}
+
+/*
+ * Toasts: white, with the status in a bar down the left edge.
+ *
+ * The brief was to stop colouring the whole notification and say what kind it
+ * is in one stripe instead — green for done, red for failed, amber for a
+ * caution — and it is the right instinct for this app. A toast is an
+ * interruption, it appears over a legal brief the client is in the middle of
+ * reading, and a full red or green panel spends the loudest colour on screen on
+ * a sentence that is about to disappear. A white card with a coloured edge is
+ * still read at a glance, because the eye finds the stripe before it reads the
+ * words, and it belongs to the same family as everything else on the page.
+ *
+ * **The stripe is an inset `box-shadow`, not a border and not a pseudo-element,
+ * and both of those were tried first.** A 3px left border makes the whole card
+ * 2px wider than its siblings and, at this radius, bends the stripe into a
+ * wedge at the corners. `::before` is not ours to use: sonner puts its own
+ * content in `::before` and `::after` while a toast is being swiped away or
+ * expanded, so a decorative one here disappears at exactly the moment a client
+ * touches it. An inset shadow is clipped by the card's own radius, costs no
+ * layout, and cannot collide with either.
+ *
+ * **Specificity is deliberate, not accidental.** Sonner injects its stylesheet
+ * into `<head>` at runtime, which puts it *after* this file, so an override at
+ * sonner's own `[data-sonner-toast][data-styled='true']` weight would lose on
+ * source order for no visible reason. Qualifying with the toaster element adds
+ * the third attribute selector that makes these win wherever they are loaded.
+ *
+ * **A toast with no type still gets a stripe**, in neutral grey. `toast()` with
+ * no variant is a real call in this app (a deleted draft is neither a success
+ * nor a failure), and the alternative is a card with a gap where every other
+ * card has an edge, which reads as a broken one.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  --mz-toast-accent: var(--mz-gray-60);
+  background: var(--mz-white);
+  border-color: var(--mz-gray-30);
+  color: var(--foreground);
+  /* 16px of padding plus the 3px the stripe takes, so the icon keeps its gap. */
+  padding-left: 19px;
+  box-shadow:
+    inset 3px 0 0 0 var(--mz-toast-accent),
+    0 10px 24px -12px rgb(0 0 0 / 0.25);
+}
+
+/*
+ * The focus ring, restated rather than inherited.
+ *
+ * Sonner draws its own by putting a third layer on `box-shadow`, and the rule
+ * above replaces `box-shadow` outright to hang the stripe on it — so without
+ * this a keyboard user tabbing to a toast gets no focus indication at all.
+ * Same two layers as the resting state plus the ring, in the app's own token.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']:focus-visible {
+  box-shadow:
+    inset 3px 0 0 0 var(--mz-toast-accent),
+    0 10px 24px -12px rgb(0 0 0 / 0.25),
+    0 0 0 2px var(--ring);
+}
+
+/*
+ * The icon carries the same colour as the stripe, and nothing else does.
+ *
+ * Two marks in one colour at two scales is the cheapest way to make the status
+ * legible without tinting the card: the stripe is found peripherally, the icon
+ * confirms it once the eye lands. The title and description stay in the text
+ * colours they have everywhere else, because coloured body copy on white is
+ * where "quiet card with a coloured edge" turns back into a coloured toast.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] {
+  color: var(--mz-toast-accent);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='success'] {
+  --mz-toast-accent: var(--mz-green);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='error'] {
+  --mz-toast-accent: var(--mz-red);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='warning'] {
+  --mz-toast-accent: var(--mz-yellow);
+}
+
+/*
+ * Info and loading are told apart from a plain toast, but only just: both are
+ * "something is happening", neither is an outcome, and the brand has no fourth
+ * status colour that would not read as one of the three above.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-type='info'],
+[data-sonner-toaster] [data-sonner-toast][data-type='loading'] {
+  --mz-toast-accent: var(--mz-gray-130);
+}
+
+@layer components {
+  /*
+   * The invisible, selectable copy of a rendered PDF page.
+   *
+   * `PdfPage` draws the page to a canvas and then lays one span per pdf.js text
+   * run over the top of it, positioned in page points and scaled as a whole, so
+   * a client can select and copy a clause out of a document that is really a
+   * bitmap. Two things make that work and both live here rather than inline:
+   * the text has to be invisible while its selection is not (`color:
+   * transparent` leaves ::selection drawing the browser's own highlight), and
+   * every span has to scale from its own top-left corner, because the widths
+   * are calibrated with `scaleX` against what the embedded font actually
+   * measured.
+   *
+   * `white-space: pre` keeps a run's own spacing; without it a run of leading
+   * spaces collapses and every glyph after it sits left of the ink it belongs
+   * to. `pointer-events: none` on the layer with `text` back on the spans keeps
+   * the cursor over words and out of the margins, where a drag should scroll
+   * the document rather than start a selection.
+   */
+  .mz-pdf-text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    pointer-events: none;
+    line-height: 1;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+  }
+
+  .mz-pdf-text-layer span {
+    position: absolute;
+    white-space: pre;
+    transform-origin: 0 0;
+    color: transparent;
+    cursor: text;
+    pointer-events: auto;
+  }
+
+  /*
+   * A highlight on a page: a wash of the brand's palest blue, multiplied so the
+   * words stay on top of it rather than behind a film.
+   *
+   * `mix-blend-multiply` is the whole trick. A translucent overlay of the
+   * primary ink greys out the very sentence it is pointing at, which on a
+   * document somebody is checking is the one thing a highlight must not do.
+   * Multiplying a light tint darkens the paper and leaves the type alone — the
+   * same thing a highlighter pen does to a printed page.
+   *
+   * The current match is the same colour with a hairline around it rather than
+   * a second hue. "Which of these six is the one I am on" is a question about
+   * position, not about severity, and a warning colour would answer a question
+   * nobody asked on a page full of contractual language.
+   */
+  .mz-pdf-highlight {
+    position: absolute;
+    /*
+     * The same corner the brief's own `<mark>` uses on the same quotation
+     * (`brief-field-row.tsx`), because they are two views of one highlight and
+     * L13 allows three radii in the whole intake, not three plus one for this.
+     */
+    border-radius: 0.5rem;
+    background-color: var(--mz-sky);
+    mix-blend-mode: multiply;
+    transition: box-shadow 150ms ease-out;
+  }
+
+  .mz-pdf-highlight-active {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+
+  .mz-pdf-text-layer ::selection {
+    background: color-mix(in oklab, var(--color-primary) 30%, transparent);
   }
 }
