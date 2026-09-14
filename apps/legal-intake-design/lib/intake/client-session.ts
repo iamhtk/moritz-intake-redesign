@@ -18,7 +18,7 @@ import { MOCK_CLIENT_USER } from '@/lib/mocks/users';
  * The name to greet them by, or `null` when there is not one worth using.
  *
  * `null` rather than an empty string, so a caller has to decide what to do
- * about it. "Welcome back, ." is worse than no greeting at all, and a template
+ * about it. "Hello, ." is worse than no greeting at all, and a template
  * handed a blank would print exactly that.
  */
 export function clientFirstName(): string | null {

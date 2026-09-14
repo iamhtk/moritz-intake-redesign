@@ -67,6 +67,33 @@ export default [
     },
   },
   {
+    /*
+     * The docs screenshot script, which runs in two places at once.
+     *
+     * `scripts/screenshots.mjs` drives a headless browser from Node, so it
+     * reads `process` and writes files — and the callbacks it hands to
+     * `page.evaluate` are serialised, shipped to the page, and run there,
+     * where `window`, `document`, `DataTransfer` and `DragEvent` are exactly
+     * the right globals to reach for. ESLint sees one file and, with only the
+     * Next.js browser defaults in scope, reported six `no-undef` warnings
+     * that `--max-warnings 0` turns into a red build: three for the Node half
+     * and three for the browser half, none of them a real fault.
+     *
+     * Both sets rather than a per-line `/* global *\/` comment, because the
+     * two halves are genuinely interleaved throughout the file and a comment
+     * at the top would have to list every global the next screenshot happens
+     * to need. Scoped to `scripts/**` so nothing else in the app gets Node
+     * globals it has no business having.
+     */
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+  },
+  {
     // Tabular Playbook is a verbatim port of the Designwise demo. Its loose cell
     // value types and hand-tuned effect dependencies are part of the ported
     // behaviour, so tightening them here would mean rewriting the demo.

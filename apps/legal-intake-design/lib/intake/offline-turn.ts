@@ -27,20 +27,12 @@
  * matter-type row where the client can see it and correct it.
  */
 
-import {
-  MATTER_CHIPS,
-  MATTER_FLOWS,
-  URGENCY_QUESTION,
-} from '@/components/design/new-case/matters';
-import {
-  MATTER_TYPE_KEY,
-  type AnswersMap,
-  type IntakeQuestion,
-  type MatterId,
-} from '@/components/design/new-case/intake-types';
+import { MATTER_FLOWS } from '@/components/design/new-case/matters';
+import { MATTER_TYPE_KEY } from '@/components/design/new-case/intake-types';
 import type { Brief, BriefField } from './brief';
 import { matterOfText } from './matter-of';
-import { MAX_TURN_OPTIONS, type IntakeTurn } from './turn-schema';
+import { answersOf, askFor } from './next-question';
+import type { IntakeTurn } from './turn-schema';
 
 /**
  * How sure a scripted update claims to be.
@@ -53,41 +45,6 @@ import { MAX_TURN_OPTIONS, type IntakeTurn } from './turn-schema';
  * would be a claim this path cannot support.
  */
 const SCRIPTED_CONFIDENCE = 8;
-
-/** The matter-type question, which lives outside any one matter's flow. */
-const MATTER_TYPE_QUESTION: IntakeQuestion = {
-  key: MATTER_TYPE_KEY,
-  kind: 'chips',
-  reviewLabel: 'Matter type',
-  prompt: () => 'What kind of matter is this?',
-  chips: MATTER_CHIPS,
-};
-
-/**
- * Every question that describes the case, in the order the brief lists them.
- *
- * Mirrors `fieldsForMatter` exactly, and has to: the brief's rows come from
- * there, and a question list in a different order would ask about a row that
- * is already full while leaving the empty one alone.
- */
-function questionsFor(matterId: MatterId): IntakeQuestion[] {
-  return [
-    MATTER_TYPE_QUESTION,
-    ...MATTER_FLOWS[matterId].questions.filter(
-      (question) => question.kind === 'text' || question.kind === 'chips',
-    ),
-    URGENCY_QUESTION,
-  ];
-}
-
-/** The filled rows, in the shape the authored `prompt()` closures expect. */
-function answersOf(brief: Brief): AnswersMap {
-  const answers: AnswersMap = {};
-  for (const field of brief.fields) {
-    if (field.value !== null) answers[field.key] = field.value;
-  }
-  return answers;
-}
 
 /** Empty rows, required ones first, in brief order. */
 function unfilled(brief: Brief): BriefField[] {
@@ -260,29 +217,17 @@ export function offlineTurn(request: OfflineTurnRequest): IntakeTurn {
       field.value === null && field.required && field.key !== target.key,
   );
 
-  const questions = questionsFor(resolved);
-  const answers = { ...answersOf(brief), [target.key]: value };
-
-  const question = next
-    ? questions.find((candidate) => candidate.key === next.key)
-    : undefined;
-
   /*
-   * The authored copy where there is some, the row's own label where there is
-   * not. A brief row can exist without a matching question — `fieldsForMatter`
-   * and this list are kept in step, but a future matter file could add a field
-   * def without a prompt, and an intake that went silent at that point would
-   * be a dead end. See item 16 for why a dead end here is the expensive kind.
+   * The authored question for the next empty row, looked up in the shared list
+   * (`next-question.ts`) rather than in a copy of it here. The guard that
+   * repairs a model turn which asked nothing reads the same list, so the
+   * question a client is asked is the same sentence whether a model wrote the
+   * turn or not.
    */
-  const ask = question
-    ? question.prompt(answers)
-    : next
-      ? `Could you tell me about ${next.label.toLowerCase()}?`
-      : '';
-
-  const options = question?.chips
-    ? question.chips.map((chip) => chip.label).slice(0, MAX_TURN_OPTIONS)
-    : [];
+  const answers = { ...answersOf(brief), [target.key]: value };
+  const authored = next ? askFor(resolved, next, answers) : null;
+  const ask = authored?.ask ?? '';
+  const options = authored?.options ?? [];
 
   return {
     reply: next

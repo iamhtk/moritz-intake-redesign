@@ -30,8 +30,9 @@ import { JOURNEY_STEPS, type JourneyStepId } from '@/lib/intake/journey';
  *    client is actually paying for — were not on it. The brief this answers
  *    puts it plainly: *"a quote to pay, a lawyer appears, a document
  *    arrives."*
- * 3. **It said four hours.** Moritz's own figure, everywhere else in this
- *    product, is 24.
+ * 3. **It gave the wrong turnaround.** It promised a quote in a quarter of
+ *    the time the rest of the product does. Moritz's own figure is 24 hours;
+ *    the card said four, and nothing else anywhere said four.
  *
  * And it did not match the journey rail, which names the case in four words —
  * Brief, Quote, Lawyer, Document — from the first reply to delivery. Two
@@ -356,8 +357,20 @@ export function HowItWorksCard({
                  * a face in it, so the four times sit on one line down the
                  * edge instead of the Quote row dropping two pixels for its
                  * avatar.
+                 *
+                 * The width is sized for the Quote row, which is the only one
+                 * carrying a face: 22px of avatar and its gap come out of the
+                 * same track the time has to fit in, and at 8.5rem *Within 24
+                 * hours* lost by about three pixels and broke to two lines.
+                 * A two-line label in a one-line box centres itself against
+                 * the other three and lines up with none of them — the single
+                 * visible defect on this card. `whitespace-nowrap` makes the
+                 * break impossible rather than unlikely, `text-right` keeps
+                 * the ragged edge off the card's margin if a longer string
+                 * ever lands here, and the extra 1rem comes out of
+                 * descriptions that are a short sentence each.
                  */}
-                <div className="flex h-[22px] shrink-0 items-center gap-2 sm:w-[8.5rem] sm:justify-end">
+                <div className="flex h-[22px] shrink-0 items-center gap-2 sm:w-[9.5rem] sm:justify-end">
                   {face ? (
                     <LawyerFace
                       id={lawyer.id}
@@ -366,7 +379,7 @@ export function HowItWorksCard({
                       imageUrl={lawyer.imageUrl}
                     />
                   ) : null}
-                  <span className="text-muted-foreground text-xs leading-snug">
+                  <span className="text-muted-foreground whitespace-nowrap text-xs leading-snug sm:text-right">
                     {t(`howItWorks.when.${step}`)}
                   </span>
                 </div>

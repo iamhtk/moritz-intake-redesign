@@ -79,13 +79,17 @@ describe('the card says the rail’s four words', () => {
 
 describe('what the card promises', () => {
   /*
-   * ⭐ 24 hours, not four. Moritz's own figure, and the same one the rail
-   * gives in `intake.journey.note.quote`. The old card said four hours, which
-   * nothing else in the product does.
+   * ⭐ 24 hours, and the same 24 hours the rail gives in
+   * `intake.journey.note.quote`. The old card promised a quarter of that.
+   *
+   * The absence of the superseded wording is no longer asserted here — it is
+   * one line of one file, and the figure had leaked into eight copy strings,
+   * the waiting system prompt and a hardcoded card fallback. A per-component
+   * check could never have found those. `turnaround.test.ts` owns that
+   * question for the whole app now.
    */
   it('says 24 hours on the quote, and says it once', () => {
     expect(COPY.when.quote).toContain('24 hours');
-    expect(JSON.stringify(COPY)).not.toContain('four hours');
     expect(messages.intake.journey.note.quote).toContain('24 hours');
   });
 
@@ -103,6 +107,19 @@ describe('what the card promises', () => {
   it('carries the two steps the old card left off', () => {
     expect(COPY.description.lawyer).not.toBe('');
     expect(COPY.description.document).not.toBe('');
+  });
+
+  /*
+   * The document row is a handoff with three parties in it, and the middle
+   * one is the easiest to lose. An earlier cut of this card read “They write
+   * it and send you the finished document”, which is the lawyer posting work
+   * straight to the client — it drops the review the footer immediately
+   * promises (“Our agents do the first pass. Our lawyers finish it”) and the
+   * one Moritz actually runs. Whoever shortens these lines next should have
+   * to argue with a failing test rather than rediscover this.
+   */
+  it('names the check between the drafting and the delivery', () => {
+    expect(COPY.description.document.toLowerCase()).toContain('we check it');
   });
 
   /*

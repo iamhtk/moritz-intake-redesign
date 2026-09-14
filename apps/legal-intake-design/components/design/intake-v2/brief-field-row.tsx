@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowUpRight, Check, ChevronDown, Pencil } from '@repo/ui/icons';
 import { cn } from '@repo/ui/lib/utils';
@@ -10,6 +10,7 @@ import type { FieldReceipt } from './use-brief';
 import { fieldConfidence, type ConfidenceLevel } from '@/lib/intake/confidence';
 import { BriefValue } from './brief-value';
 import { describeWhen, msUntilChange } from '@/lib/intake/relative-time';
+import { useJustTurnedTrue, useValueLanded } from './use-landed';
 
 /**
  * The mark at the head of each row answers one question: is this in?
@@ -27,9 +28,19 @@ import { describeWhen, msUntilChange } from '@/lib/intake/relative-time';
 function StatusMark({
   ticked,
   needsEye,
+  landed,
 }: {
   ticked: boolean;
   needsEye: boolean;
+  /**
+   * Whether the tick arrived *just now* (#9).
+   *
+   * Passed in rather than observed here so one hook watches the row's whole
+   * confirmation rather than this mark watching its own prop: the value's
+   * arrival and the tick's draw are one event and have to be timed against
+   * each other, not raced.
+   */
+  landed: boolean;
 }) {
   /*
    * Done is green, and the panel now reads as a traffic light on purpose.
@@ -46,11 +57,12 @@ function StatusMark({
    * confirmation. Those are not three meanings, they are three views of one,
    * so the repetition reinforces rather than dilutes.
    *
-   * It applies to **marks only**. The green/amber/red ramp used to colour the
-   * reading *words* beside these marks too, and every step of it failed AA at
-   * text size — see `LEVEL_STYLE` below for the measurements and the argument.
-   * A mark is a graphic and clears 3:1 at 18px; a word has to clear 4.5:1 and
-   * does not. So the hue lives here, on the circle, and nowhere in a sentence.
+   * The mark and the reading beside it carry the same hue, from two different
+   * weights of it. A mark is a graphic and only has to clear 3:1, so it can
+   * wear the brand swatch itself at 18px; a word has to clear 4.5:1 and the
+   * swatches do not, so the reading wears the darkened `-ink` variant instead.
+   * Same colour, same meaning, two tokens because the bars are different —
+   * see `LEVEL_STYLE` below and the `-ink` block in `globals.css`.
    *
    * `text-background` rather than `text-success-foreground` for the check
    * itself: the foreground token is near-black, and a dark tick inside a
@@ -61,9 +73,27 @@ function StatusMark({
     return (
       <span
         aria-hidden="true"
-        className="bg-success text-background flex size-[18px] shrink-0 items-center justify-center rounded-full"
+        className={cn(
+          'bg-success text-background flex size-[18px] shrink-0 items-center justify-center rounded-full',
+          landed && 'mz-animate-confirm-fill',
+        )}
       >
-        <Check className="size-2.5" strokeWidth={3} />
+        {/*
+         * #9. The disc scales up from the ring it replaces and the tick draws
+         * inside it, 300ms, on the spring. The two are separate animations
+         * because the stroke needs something to be drawn *on* before it
+         * starts — see the pair of keyframes in `globals.css`.
+         *
+         * `key` on the icon so the draw replays if a client unconfirms and
+         * reconfirms a row. Without it React keeps the same element, the
+         * animation has already run to completion on it, and the second
+         * confirmation is silent.
+         */}
+        <Check
+          key={landed ? 'drawn' : 'still'}
+          className={cn('size-2.5', landed && 'mz-animate-confirm-tick')}
+          strokeWidth={3}
+        />
       </span>
     );
   }
@@ -74,7 +104,21 @@ function StatusMark({
         aria-hidden="true"
         className="border-warning bg-background ring-warning/10 flex size-[18px] shrink-0 items-center justify-center rounded-full border-2 ring-4"
       >
-        <span className="bg-warning size-1.5 rounded-full" />
+        {/*
+         * #10. The dot breathes, slowly, until the row is confirmed.
+         *
+         * On the inner dot rather than the ring, which is the difference
+         * between "this one needs you" and a panel that throbs. The ring and
+         * its halo hold still, so the row's outline is stable and only the
+         * 6px centre changes opacity — visible when you look at the row,
+         * invisible when you are reading the one above it.
+         *
+         * This is one of the three things sharing the single looping
+         * animation §6 allows (with the rail's halo and Moritz reading), and
+         * they all breathe at the same 3s so a screen with two of them on it
+         * reads as one pulse rather than two clocks.
+         */}
+        <span className="bg-warning mz-animate-breathe size-1.5 rounded-full" />
       </span>
     );
   }
@@ -88,32 +132,45 @@ function StatusMark({
 }
 
 /**
- * The three readings, in ink rather than in hue.
+ * The three readings, as the traffic light they describe.
  *
- * This was a green / amber / red traffic light, and the traffic light is the
- * right idea in the wrong channel. Measured against white at this size, all
- * three failed WCAG AA for text: `success` 2.66:1, `warning-strong` 3.73:1,
- * `destructive` 3.57:1, against the 4.5:1 a sentence has to clear. Not one
- * colour — the whole ramp. A hue scale whose every step is unreadable is not
- * an ordered scale, it is three shades of grey with extra steps.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS WAS GREY FOR ONE RELEASE, AND GREY WAS THE WRONG FIX.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
- * So the hue moves to the mark and the words stay ink. `StateMark` above is
- * already the green filled tick / amber ring / empty circle, it is 18px of
- * solid fill rather than 11px of glyph, and at that size the same tokens clear
- * 3:1 comfortably — which is the bar for a graphic, and the bar a tick
- * actually has to meet. The reading beside it says "High", "Medium" or
- * "Check this" in words, so nothing is carried by colour alone either way.
+ * The ramp started as green / amber / red, and the accessibility pass took the
+ * colour out — correctly diagnosing that as *text* on white the brand swatches
+ * all fail WCAG AA (`success` 2.66:1, `warning-strong` 3.73:1, `destructive`
+ * 3.57:1, against 4.5:1) and concluding that a hue scale whose every step is
+ * unreadable is three shades of grey with extra steps.
  *
- * Low is `foreground` and the other two are `muted-foreground`: the one the
- * client should stop at is the darkest thing in the column, which is the same
- * ordering the ramp was for, expressed in the channel that survives at 12px.
- * This is the brief's own rule — colour earns its place from the content, and
- * a tick is content where a green word is decoration.
+ * The diagnosis was right and the remedy was too blunt. It treated "this green
+ * is too light to read" as "this column should not be coloured", and those are
+ * different problems with different answers. What the column lost is the
+ * reason it existed: the reading is an **ordered three-step scale**, which is
+ * the one job a traffic light does better than words, and a panel of identical
+ * grey makes the client read all eight rows to find the one that wants them.
+ * That is the scanning cost the whole brief panel is built to remove.
+ *
+ * So the ramp is back, in a weight that can be read: `--success-ink`,
+ * `--warning-ink` and `--destructive-ink`, each darkened in oklab from the
+ * brand swatch it belongs to. Same hues, same palette, no new colour — see
+ * the block above them in `globals.css` for the recipe and the measurements.
+ * All three clear 4.5:1 on white and on the gold tint.
+ *
+ * **The words stay.** "High", "Medium" and "Check this" are still spelled out
+ * beside the percentage, so the scale is never carried by hue alone and a
+ * client who cannot separate the three sees the same information the rest do.
+ * The colour is a second channel on top of a complete first one, which is the
+ * only form of colour-coding that is not a barrier.
+ *
+ * The marks keep their own hue (see `StatusMark`), and the two agree: an amber
+ * ring beside an amber reading is one statement made twice, not two.
  */
 const LEVEL_STYLE: Record<ConfidenceLevel, string> = {
-  high: 'text-muted-foreground',
-  medium: 'text-muted-foreground',
-  low: 'text-foreground',
+  high: 'text-success-ink',
+  medium: 'text-warning-ink',
+  low: 'text-destructive-ink',
 };
 
 /** Mark (18px) plus the gap beside it, so the value lines up under the label. */
@@ -147,6 +204,8 @@ export function BriefFieldRow({
   asking = false,
   startEditing = false,
   readOnly = false,
+  cascadeIndex,
+  pointedAt = null,
   onConfirm,
   onEdit,
   onUndo,
@@ -175,6 +234,27 @@ export function BriefFieldRow({
    * part a client will come back to this screen to re-read.
    */
   readOnly?: boolean;
+  /**
+   * This row's place in a document's cascade (#11).
+   *
+   * `undefined` for a value that arrived on its own, which is the ordinary
+   * case: one answer, one arrival, no stagger. A number only when a single
+   * document answered several fields at once, and then it is the row's index
+   * *within that set* rather than within the panel — a read that fills rows
+   * 2, 5 and 9 should look like three things happening in order, not like
+   * rows 2, 5 and 9 of a longer sequence with gaps in it.
+   */
+  cascadeIndex?: number;
+  /**
+   * The press count of "Review and send" while this row was the blocker (#74).
+   *
+   * `null` for every row that is not the current target. A *number* rather
+   * than a boolean so a second press on the same row re-fires: the row
+   * scrolls itself into view, takes focus and pulses, and the button stays
+   * pressable, because a control that refuses and will not say why is the
+   * version people report as broken.
+   */
+  pointedAt?: number | null;
   onConfirm: () => void;
   onEdit: (value: string) => void;
   onUndo: () => void;
@@ -184,6 +264,58 @@ export function BriefFieldRow({
   const state = fieldState(field);
   const reading = fieldConfidence(field);
   const isEmpty = field.value === null;
+
+  /*
+   * The two moments this row animates on (#7, #9).
+   *
+   * Both are transitions rather than states, and both are deliberately blind
+   * to their own first render — see `use-landed.ts` for why a restored draft
+   * must not replay every tick it has ever drawn.
+   */
+  const valueLanded = useValueLanded(field.value ?? undefined);
+  const tickLanded = useJustTurnedTrue(field.confirmed);
+
+  /*
+   * #74. Bring the row to the client rather than leaving them to find it.
+   *
+   * Scroll, then focus. Both, because they answer different questions: the
+   * scroll is what a sighted client needs to see where the button sent them,
+   * and the focus is the only thing that moves a screen-reader or
+   * keyboard-only client at all. A scroll on its own leaves them exactly
+   * where they were with no idea anything happened.
+   *
+   * `block: 'center'` rather than `'nearest'`: a row that is technically on
+   * screen but two pixels above the fold satisfies `nearest` and is not where
+   * anybody is looking.
+   */
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [pulsing, setPulsing] = useState(false);
+  useEffect(() => {
+    if (pointedAt === null) return;
+    const row = rowRef.current;
+    if (!row) return;
+
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    row.scrollIntoView({
+      behavior: reduced ? 'auto' : 'smooth',
+      block: 'center',
+    });
+    row.focus({ preventScroll: true });
+
+    /*
+     * Off, then on next frame. Setting an already-set class is not a new
+     * animation — the browser has run it to completion on this element and
+     * will not run it again — so a second press would scroll here and then
+     * sit still. One frame with the class absent is what makes the next one
+     * a new animation rather than the same finished one.
+     */
+    if (reduced) return;
+    setPulsing(false);
+    const frame = window.requestAnimationFrame(() => setPulsing(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [pointedAt]);
 
   /** Non-null while editing, holding the uncommitted draft. */
   const [draft, setDraft] = useState<string | null>(
@@ -242,8 +374,27 @@ export function BriefFieldRow({
 
   return (
     <div
+      ref={rowRef}
+      /*
+       * Focusable only as a target, never in the tab order (#74). The row is
+       * not a control and must not become a tab stop between the value above
+       * it and the Accept button inside it; `-1` is what lets the button send
+       * focus here without adding a step to everybody's keyboard journey.
+       */
+      tabIndex={-1}
+      /*
+       * The pulse ends itself rather than being timed out from above, which
+       * is what keeps `intake-v2.tsx` free of the anonymous `setTimeout`
+       * `prototype-control.test.ts` rejects. Guarded on the target, because
+       * `animationend` bubbles and this row also contains a tick that draws
+       * and a value that arrives.
+       */
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget) setPulsing(false);
+      }}
       className={cn(
-        'border-border relative flex flex-col gap-1 border-b py-4 last:border-b-0',
+        'border-border relative flex flex-col gap-1 border-b py-4 last:border-b-0 focus-visible:outline-none',
+        pulsing && 'mz-animate-pulse-row',
         /*
          * The rule that ties the question to the row (item 4).
          *
@@ -261,7 +412,11 @@ export function BriefFieldRow({
       {/* `items-center` is what keeps the mark on the label's centre line. */}
       <div className="flex items-center justify-between gap-4">
         <span className="flex min-w-0 items-center gap-2.5">
-          <StatusMark ticked={field.confirmed} needsEye={showConfirm} />
+          <StatusMark
+            ticked={field.confirmed}
+            needsEye={showConfirm}
+            landed={tickLanded}
+          />
           {/*
            * Full foreground once there is something here, muted while the row
            * is still waiting, which is how their own panel graded its steps.
@@ -302,7 +457,7 @@ export function BriefFieldRow({
            * statement: fully confirmed, by the client, as of now. The reading
            * it replaces is still on the field for anyone who needs it.
            */
-          <span className="text-muted-foreground flex shrink-0 items-baseline gap-1.5 text-xs">
+          <span className="text-success-ink flex shrink-0 items-baseline gap-1.5 text-xs">
             {t('confidence.userConfirmed')}
             {/*
              * The score dropped its `opacity-70`. At 70% of an already-muted
@@ -412,7 +567,32 @@ export function BriefFieldRow({
            * value for its whole height — see `brief-value.tsx`.
            */
           <BriefValue
-            className={VALUE_ROW}
+            /*
+             * #7 and #11. The value slides 8px in from the left and settles
+             * on the spring — from the left because that is the side the
+             * conversation that produced it is on.
+             *
+             * `key` on the arrival so a corrected value replays it: without
+             * one, React reuses the element, the animation has already
+             * finished on it, and the second value simply swaps in. With a
+             * cascade index the same arrival is delayed by its position, so a
+             * document that answered four rows fills them in order (#11).
+             */
+            key={valueLanded ? `landed-${field.value}` : 'settled'}
+            className={cn(
+              VALUE_ROW,
+              valueLanded &&
+                (cascadeIndex === undefined
+                  ? 'mz-animate-arrive'
+                  : 'mz-animate-cascade'),
+            )}
+            {...(valueLanded && cascadeIndex !== undefined
+              ? {
+                  style: {
+                    '--mz-cascade-index': cascadeIndex,
+                  } as CSSProperties,
+                }
+              : {})}
             value={
               state === 'missing'
                 ? (hint ?? t('stateWord.missing'))

@@ -10,6 +10,7 @@ import { type MatterFlow } from '../intake-types';
 export const maFlow: MatterFlow = {
   id: 'ma',
   label: 'M&A',
+  chipHint: 'Buying or selling a business',
   transition: () =>
     'Got it \u2014 an M&A matter. Tell me a bit more and the brief will fill in on the right.',
   questions: [

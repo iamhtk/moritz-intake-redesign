@@ -119,7 +119,7 @@ describe('messages written on the Talk screen', () => {
 
   /*
    * ⭐ The reset. A reviewer opening this screen must not find cards left by
-   * whoever clicked it before them — "somebody reads this within four hours"
+   * whoever clicked it before them — "somebody reads this within 24 hours"
    * reads as a live commitment, not as stale demo state. `NOTE.md` opens by
    * promising the demo URLs work "in one tab, in any order", and this is the
    * same promise one screen along.

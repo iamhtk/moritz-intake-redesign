@@ -67,7 +67,28 @@ export function DocumentRailTrigger({
           onClick={onOpen}
           aria-label={label}
           className={cn(
-            'border-border bg-background/95 text-muted-foreground hover:text-foreground hover:bg-background fixed end-0 top-1/2 z-30 flex -translate-y-1/2 cursor-pointer flex-col items-center gap-1 rounded-s-2xl border border-e-0 px-2 py-3 shadow-sm backdrop-blur transition-colors',
+            /*
+             * Dark, and it is the whole reason this file changed.
+             *
+             * It was `bg-background/95` with a `border-border` hairline: a white
+             * tab, on the white edge of a white page, holding a grey icon. It
+             * was findable if you knew it was there and invisible if you did
+             * not, which is the wrong way round for the only control that
+             * reveals a third surface. A first-time client had no reason to
+             * believe the panel existed at all, and a panel nobody opens is a
+             * panel nobody built.
+             *
+             * `bg-foreground` is the ink this product already writes in, so
+             * nothing new joins the palette and nothing else on the screen has
+             * to change: the panel it opens stays white, like the conversation
+             * and the brief. This is the one solid mark on a white page, and it
+             * is spent on the one control that would otherwise go unnoticed.
+             *
+             * The hover goes lighter rather than darker. There is nowhere
+             * darker to go, and a control at full ink cannot signal a press by
+             * deepening.
+             */
+            'bg-foreground text-background hover:bg-foreground/85 fixed end-0 top-1/2 z-30 flex -translate-y-1/2 cursor-pointer flex-col items-center gap-1 rounded-s-2xl px-2 py-3 shadow-md transition-colors',
             className,
           )}
         >

@@ -156,7 +156,7 @@ describe('the waiting prompt', () => {
      * missing.
      */
     // How long does this take.
-    expect(WAITING_SYSTEM_PROMPT).toContain('within four hours');
+    expect(WAITING_SYSTEM_PROMPT).toContain('within 24 hours');
     // What will the quote cover.
     expect(WAITING_SYSTEM_PROMPT).toContain('Nothing is charged until');
     // Can I still send a document.

@@ -1,11 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageParam } from '@anthropic-ai/sdk/resources/messages';
 import type { Brief } from '@/lib/intake/brief';
+import { repairTurn } from '@/lib/intake/dead-end';
 import type { FailureKind } from '@/lib/intake/failure';
 import { failureKind, stopReasonFailure } from '@/lib/intake/failure-server';
 import { logAnthropicUsage } from '@/lib/intake/log-usage';
 import { CONVERSATION_MODEL } from '@/lib/intake/models';
 import { offlineTurn } from '@/lib/intake/offline-turn';
+import { TRANSCRIPT_WINDOW } from '@/lib/intake/outgoing-turn';
 import { INTAKE_SYSTEM_PROMPT } from '@/lib/intake/system-prompt';
 import { stripDashes } from '@/lib/intake/text';
 import {
@@ -21,9 +23,6 @@ import { WAITING_SYSTEM_PROMPT } from '@/lib/intake/waiting-prompt';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-/** Tone and short-term context only. The brief is the real memory. */
-const TRANSCRIPT_WINDOW = 6;
 
 type TranscriptTurn = { role: 'user' | 'assistant'; text: string };
 
@@ -69,6 +68,21 @@ const MODES: Readonly<
       schema: Record<string, unknown>;
       parse: (value: unknown) => ReturnType<typeof parseIntakeTurn>;
       renderBrief: (brief: Brief) => string;
+      /**
+       * The turn, made to hold its own contract before anybody reads it.
+       *
+       * In the lookup rather than as an `if (mode === 'intake')` at the call
+       * site, because the reason the two modes differ here is not incidental:
+       * `repairTurn` exists to keep a gap-filling conversation moving, and the
+       * waiting conversation has no gaps, no brief it may change, and nothing
+       * to ask about. Appending a question to a concierge reply would be the
+       * sealed case being interviewed again, which is the exact failure
+       * `WAITING_TURN_SCHEMA` was carved out to prevent.
+       */
+      repair: (
+        turn: IntakeTurn,
+        brief: Brief,
+      ) => { turn: IntakeTurn; changed: string | null };
     }
   >
 > = {
@@ -77,12 +91,14 @@ const MODES: Readonly<
     schema: INTAKE_TURN_SCHEMA,
     parse: parseIntakeTurn,
     renderBrief: renderBriefState,
+    repair: repairTurn,
   },
   waiting: {
     prompt: WAITING_SYSTEM_PROMPT,
     schema: WAITING_TURN_SCHEMA,
     parse: parseWaitingTurn,
     renderBrief: renderSentBrief,
+    repair: (turn) => ({ turn, changed: null }),
   },
 };
 
@@ -151,6 +167,54 @@ function buildMessages(body: TurnRequest): MessageParam[] {
 function sse(event: Record<string, unknown>): string {
   return `data: ${JSON.stringify(event)}\n\n`;
 }
+
+/**
+ * How hard the model thinks before it answers.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS WAS `low`, AND `low` IS WHERE THE WEIRDNESS CAME FROM.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * `low` is the right setting for a chat turn, and this is not a chat turn. One
+ * call has to do all of the following against a four-hundred-line prompt: read
+ * the whole brief, work out which rows are closed to it, decide what one thing
+ * to ask, write the question, decide whether that question has a small set of
+ * honest answers and name them, pull values out of the client's sentence,
+ * decide for each whether it is repeating the client or reading between the
+ * lines, and calibrate a confidence number that the client will read against
+ * every other number in the panel.
+ *
+ * At `low` the rules get skipped roughly in the order they appear, and the
+ * symptoms were exactly the ones you would predict from that: a turn that
+ * acknowledged a value and forgot to ask the next question, an `askingAbout`
+ * naming a row the reply never mentioned, and a name the model had quietly
+ * expanded ("Cross river" to "Cross River Bank") filed as the client's own
+ * words at full confidence. None of those is a hard failure. All of them make
+ * the product look like it is not paying attention, which on an intake is the
+ * one thing it cannot afford to look like.
+ *
+ * `high` is the API's own default and the documented floor for
+ * intelligence-sensitive work. Not `xhigh` or `max`: the client is watching a
+ * spinner while this runs, the reply cannot begin streaming until the thinking
+ * is done, and the top of the range earns its latency on long-horizon agentic
+ * work rather than on one well-specified turn. One constant, so a reviewer who
+ * wants to trade seconds for judgement has one line to change.
+ */
+const TURN_EFFORT = 'high' as const;
+
+/**
+ * The output ceiling for one turn, thinking included.
+ *
+ * Raised from 4096, and it had to be: adaptive thinking is billed and counted
+ * inside `max_tokens`, so the old ceiling would have been spent on reasoning
+ * and cut the JSON off mid-object. That failure arrives as a successful
+ * response with `stop_reason: 'max_tokens'`, which this route names
+ * `truncated`, and `truncated` is deliberately not retryable, so the client
+ * would have been left with a sentence and no button. Generous rather than
+ * tuned, because the turn itself is a few hundred tokens and nothing here is
+ * billed for headroom that goes unused.
+ */
+const MAX_TURN_TOKENS = 16000;
 
 /** How long the scripted path waits between chunks, in milliseconds. */
 const SCRIPTED_CHUNK_MS = 28;
@@ -278,7 +342,20 @@ export async function POST(request: Request): Promise<Response> {
       try {
         const modelStream = new Anthropic().messages.stream({
           model: CONVERSATION_MODEL,
-          max_tokens: 4096,
+          max_tokens: MAX_TURN_TOKENS,
+          /*
+           * Adaptive thinking, which on this model is the only on-mode and is
+           * not on by default. `effort` alone would have changed how much the
+           * model was willing to spend without giving it anywhere to spend it.
+           *
+           * `display` is left at its default, so the thinking blocks arrive
+           * empty and nothing reasons about them. The route streams `text`
+           * only, and the client already names this wait on the journey rail
+           * ("Checking that against the rest of your case"), which is a better
+           * account of the pause than a summary of the model's own reasoning
+           * would be.
+           */
+          thinking: { type: 'adaptive' },
           system: [
             {
               type: 'text',
@@ -299,7 +376,7 @@ export async function POST(request: Request): Promise<Response> {
           ],
           messages: buildMessages(body),
           output_config: {
-            effort: 'low',
+            effort: TURN_EFFORT,
             format: { type: 'json_schema', schema: mode.schema },
           },
         });
@@ -350,10 +427,28 @@ export async function POST(request: Request): Promise<Response> {
           return;
         }
 
-        const turn = mode.parse(parsed);
-        if (!turn) {
+        const parsedTurn = mode.parse(parsed);
+        if (!parsedTurn) {
           fail('unreadable', 'JSON did not match the turn schema');
           return;
+        }
+
+        /*
+         * The turn, held to the contract it is supposed to keep: an
+         * `askingAbout` that names an empty row or nothing, a
+         * `nothingRequiredMissing` that agrees with the brief, and a reply that
+         * asks something whenever the client still has something they must
+         * answer. See `dead-end.ts` for why this is enforced here rather than
+         * asked for in the prompt alone.
+         *
+         * Logged when it fires, because a repair is a prompt regression that
+         * has been papered over: nothing fails, the client is fine, and the
+         * only trace is this line. A log full of them means the prompt rule has
+         * stopped working and wants looking at.
+         */
+        const { turn, changed } = mode.repair(parsedTurn, body.brief);
+        if (changed) {
+          console.warn(`[intake] repaired turn (${body.mode}): ${changed}`);
         }
 
         done(turn);

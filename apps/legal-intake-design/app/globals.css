@@ -194,6 +194,53 @@
   );
 
   /*
+   * ───────────────────────────────────────────────────────────────────────────
+   * THE STATUS RAMP AS READABLE TEXT: `-ink`.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * The brand's three status swatches are fills, and as *text* on white all
+   * three fail WCAG AA: green #5eae8b is 2.66:1, yellow #e8a952 is 2.05:1, red
+   * #eb5444 is 3.57:1, against the 4.5:1 a sentence has to clear. That is why
+   * the brief panel's confidence readings were flattened to grey — the traffic
+   * light was unreadable, so it was spent nowhere.
+   *
+   * Flattening the ramp threw away the thing it was for. The reading beside a
+   * brief value is an ordered three-step scale, which is the one job a traffic
+   * light does better than words, and a column of identical grey makes the
+   * client read every row to find the one that needs them. So the ramp comes
+   * back, in a weight that can actually be read.
+   *
+   * Same recipe as `--warning-strong` above and for the same reason: darken in
+   * oklab from the brand swatch, so the hue is the brand's and the only thing
+   * added is black. No new hex enters the palette, and `check-colours.sh` has
+   * nothing to object to.
+   *
+   * Amber goes through the yellow/red mix rather than straight to black.
+   * Mixing a yellow toward black in oklab scales chroma with lightness and
+   * lands on a brown, which on a green/amber/red ramp reads as a *missing*
+   * middle rather than a darker one. Pulling the hue toward the ramp's own
+   * next stop first keeps it unmistakably orange. See the note above.
+   *
+   * Measured, against both surfaces a reading can land on:
+   *
+   *   --success-ink      #417c62   white 4.90:1   gold 4.55:1
+   *   --warning-ink      #a35e32   white 4.99:1   gold 4.64:1
+   *   --destructive-ink  #c04336   white 5.13:1   gold 4.76:1
+   *
+   * Gold as well as white because `--mz-gold` is the one tinted surface in the
+   * flow, and a token that is only safe on one background is a trap for
+   * whoever reuses it next. `colour-restraint.test.ts` recomputes all three
+   * from this file rather than trusting these numbers.
+   */
+  --success-ink: color-mix(in oklab, var(--mz-green) 78%, black);
+  --warning-ink: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--mz-yellow) 60%, var(--mz-red)) 76%,
+    black
+  );
+  --destructive-ink: color-mix(in oklab, var(--mz-red) 86%, black);
+
+  /*
    * Cool-blue family approximated to the nearest brand swatch (the Foundation
    * palette has no saturated blue). Secondary stays a solid with white text, so
    * it maps to a mid brand gray rather than the pale Sky tint.
@@ -237,6 +284,11 @@
 @theme inline {
   /* Text-weight amber, so `text-warning-strong` resolves. See above. */
   --color-warning-strong: var(--warning-strong);
+
+  /* The status ramp at text weight, so `text-success-ink` and friends resolve. */
+  --color-success-ink: var(--success-ink);
+  --color-warning-ink: var(--warning-ink);
+  --color-destructive-ink: var(--destructive-ink);
 
   /*
    * Restore Tailwind's default font-weight scale. The shared `globals.css`
@@ -689,6 +741,270 @@ main:has(> .case-workspace-wide) {
   animation-play-state: paused;
 }
 
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE INTAKE'S MOTION LAYER.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * One rule, from the brief: **one thing moves at a time, and it moves because
+ * something happened to the client's case.** Motion that tells the client
+ * nothing is decoration, and a law firm's intake is the last place for it.
+ *
+ * Two curves, and everything here uses one of them:
+ *
+ * - `--mz-ease-settle` is the curve the app already had, scattered as a
+ *   literal through five utilities above. It is an ease-out with no overshoot:
+ *   things arriving, fading, drawing. Named here so the sixth use is a token
+ *   rather than a sixth copy.
+ * - `--mz-ease-spring` overshoots slightly and comes back. Reserved for the
+ *   moments where something **lands** — a value arriving in the brief, a
+ *   confirmation taking. Overshoot on anything else reads as bounce, which is
+ *   the register this product must not be in.
+ *
+ * Durations are tokens for the same reason: `#9`'s 300ms is the flow's
+ * heartbeat and half a dozen things are meant to match it. Nothing here runs
+ * over 500ms; the two story transitions that are allowed to are the send
+ * (`#19`) and they set their own.
+ *
+ * Every utility in this block has a `prefers-reduced-motion` entry in the
+ * media query below. That is not politeness — a plain swap has to leave the
+ * element in its *final* state, and an animation that merely stops mid-flight
+ * leaves a half-drawn tick. Each fallback below is written to land on the
+ * finished frame.
+ */
+@layer base {
+  :root {
+    --mz-ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+    --mz-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --mz-duration-confirm: 300ms;
+    --mz-duration-arrive: 260ms;
+  }
+}
+
+/*
+ * #9. Confirming a brief value: the mark fills and the tick draws along its
+ * own path.
+ *
+ * The doc calls this "the most satisfying moment in the flow" and builds the
+ * rest of the list on its spring, so it is first and everything else matches
+ * it. 300ms: long enough to read as drawn rather than switched, short enough
+ * that a client confirming eight rows in a row is never waiting for it.
+ *
+ * Two animations on two elements rather than one on the parent. The disc
+ * scales from the ring it replaces and the stroke draws inside it, and the
+ * stroke has to start *after* the disc has something to draw on — hence the
+ * delay on the tick rather than a single keyframe doing both.
+ */
+@keyframes mz-confirm-fill {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mz-animate-confirm-fill {
+  animation: mz-confirm-fill var(--mz-duration-confirm) var(--mz-ease-spring)
+    both;
+}
+@keyframes mz-confirm-tick {
+  from {
+    stroke-dashoffset: -26;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mz-animate-confirm-tick {
+  stroke-dasharray: 26;
+  animation: mz-confirm-tick var(--mz-duration-confirm) 80ms
+    var(--mz-ease-settle) both;
+}
+
+/*
+ * #7. A value arrives in the brief: it slides 8px in from the left and
+ * settles.
+ *
+ * From the left because that is where it came from — the conversation is on
+ * that side of the screen, and a value that enters from the direction of the
+ * sentence that produced it is the whole of what this animation says. Eight
+ * pixels, because the claim is "Moritz put that there", not "look at this".
+ *
+ * On the spring rather than the settle curve: this is a landing.
+ */
+@keyframes mz-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.mz-animate-arrive {
+  animation: mz-arrive var(--mz-duration-arrive) var(--mz-ease-spring) both;
+}
+
+/*
+ * #11. A document that answers four fields fills them top to bottom, 100ms
+ * apart.
+ *
+ * The same arrival as #7, staggered. This is the argument of the whole
+ * product made visible in one gesture — "your contract moved four of these" —
+ * and it only reads if the rows go in sequence rather than together. The
+ * stagger is the caller's, via `--mz-cascade-index`, because only the caller
+ * knows which rows a given read actually touched.
+ *
+ * Capped at eight steps' worth of delay. A twelve-field document should not
+ * make the last row wait 1.2s to appear, and past about 800ms the sequence
+ * stops reading as one movement anyway.
+ */
+.mz-animate-cascade {
+  animation: mz-arrive var(--mz-duration-arrive) var(--mz-ease-spring) both;
+  animation-delay: calc(min(var(--mz-cascade-index, 0), 8) * 100ms);
+}
+
+/*
+ * #18. "Review and send" fills black from left to right the moment the last
+ * field is confirmed.
+ *
+ * A fill, not a flip. The button is already there and already pressable; what
+ * changed is that it is now the obvious thing to do. A colour swap says that
+ * in one frame and is missed by anyone not looking straight at it; a fill
+ * that travels says it over 400ms and is caught in peripheral vision, which
+ * is where a client who has just confirmed the last row is looking.
+ *
+ * `background-size` on a gradient rather than a pseudo-element, so the label
+ * on top never moves and the control stays one box for the layout.
+ */
+@keyframes mz-fill-lr {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+.mz-animate-fill-lr {
+  background-image: linear-gradient(
+    to right,
+    var(--primary) 0%,
+    var(--primary) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  animation: mz-fill-lr 400ms var(--mz-ease-settle) both;
+}
+
+/*
+ * #10, #31, #69. The breathing line.
+ *
+ * Three things in this flow are *ongoing* rather than *done*: a row waiting to
+ * be checked, the rail step you are on, and Moritz reading. All three used to
+ * be, or would otherwise have been, a spinner or three bouncing dots — the
+ * most generic mark on the internet, and one that says "the software is busy"
+ * where the honest statement is "a thing is in progress".
+ *
+ * So: one slow opacity breath, 3s, and it is the only looping motion the
+ * product allows itself (§6). Opacity only — no scale, no travel — because
+ * this runs forever in peripheral vision and anything that moves position
+ * there is a distraction rather than an ambience.
+ */
+@keyframes mz-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.mz-animate-breathe {
+  animation: mz-breathe 3s ease-in-out infinite;
+}
+
+/*
+ * #72. A rejected file shakes once, gently.
+ *
+ * The iOS password shake, softer: 4px rather than 10, once rather than three
+ * times, and the reason appears underneath it. The shake is not the error
+ * message — it is what makes somebody look at where the error message is.
+ */
+@keyframes mz-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.mz-animate-shake {
+  animation: mz-shake 300ms var(--mz-ease-settle) both;
+}
+
+/*
+ * #74. "Review and send" with a field still unconfirmed: the button does not
+ * disable, it points.
+ *
+ * A disabled button is a dead end that explains nothing — the client presses
+ * it, nothing happens, and there is no way to find out why. This is the
+ * opposite: the press works, and what it does is send them to the row that is
+ * missing. The pulse is what they see when they arrive, so the scroll has a
+ * destination rather than just a new scroll position.
+ */
+@keyframes mz-pulse-row {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  35% {
+    background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  }
+}
+.mz-animate-pulse-row {
+  animation: mz-pulse-row 900ms var(--mz-ease-settle) 2 both;
+}
+
+/*
+ * #14, #79. The source highlight sweeps across the quoted passage, then stays.
+ *
+ * The sweep is the whole point: a highlight that is simply *there* when the
+ * PDF opens is a highlight the client has to find, and one that travels
+ * across the text draws the eye along the passage and finishes by marking it.
+ * It ends at `both` so the mark persists — this is provenance, not a flash.
+ */
+@keyframes mz-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+.mz-animate-sweep {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--warning) 30%, transparent) 0%,
+    color-mix(in srgb, var(--warning) 30%, transparent) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  animation: mz-sweep 450ms var(--mz-ease-settle) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   /*
    * No travel at all. The rail becomes a plain scrollable row, so the
@@ -730,6 +1046,59 @@ main:has(> .case-workspace-wide) {
     background-clip: border-box;
     -webkit-background-clip: border-box;
     color: var(--muted-foreground);
+  }
+
+  /*
+   * The intake motion layer, every utility landing on its finished frame.
+   *
+   * The distinction that matters here: `animation: none` on its own reverts
+   * the element to its *authored* styles, which for anything using `both` is
+   * the pre-animation frame — a tick at `stroke-dashoffset: -26` is an
+   * invisible tick, and a fill at `background-size: 0%` is an unfilled
+   * button. So each of these restates the end state explicitly. A plain swap
+   * means the client sees the result instantly, not that they see nothing.
+   */
+  .mz-animate-confirm-fill {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .mz-animate-confirm-tick {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+  .mz-animate-arrive,
+  .mz-animate-cascade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .mz-animate-fill-lr,
+  .mz-animate-sweep {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  /*
+   * The breath stops on the *visible* frame rather than the dim one. It marks
+   * where the client is; parking it mid-fade would leave the one thing on the
+   * page that needs finding as the faintest thing on it.
+   */
+  .mz-animate-breathe {
+    animation: none;
+    opacity: 1;
+  }
+  .mz-animate-shake {
+    animation: none;
+    transform: none;
+  }
+  /*
+   * No pulse, and the scroll that goes with it becomes instant rather than
+   * smooth at the call site. The row is still scrolled to and still focused,
+   * which is the part that does the work.
+   */
+  .mz-animate-pulse-row {
+    animation: none;
   }
 }
 

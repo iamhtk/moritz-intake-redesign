@@ -50,6 +50,22 @@ export interface SuggestionChip {
   id: string;
   label: string;
   value: string;
+  /**
+   * One short line under the pill, for chip sets whose labels are jargon.
+   *
+   * Only the matter-type row sets it. "Procurement" and "M&A" are the names
+   * of practice areas rather than of problems, and a founder holding a
+   * supplier dispute has no way to know which of the six is theirs; the row
+   * was asking them to self-classify into a taxonomy they had never seen.
+   * Every other chip set in the flow answers a question that was just asked
+   * in plain words, so a caption under those would be restating the label.
+   *
+   * Under the pill rather than inside it: the `Chip` is a fixed-height pill
+   * and a second line inside one turns it into a card. Under it, and tied to
+   * the button with `aria-describedby`, the hint is read out after the label
+   * instead of being a hover the touch client never finds.
+   */
+  hint?: string;
 }
 
 export type InlineCard =
@@ -98,6 +114,8 @@ export interface IntakeQuestion {
 export interface MatterFlow {
   id: MatterId;
   label: string;
+  /** Plain-words gloss for the matter chip; see `SuggestionChip.hint`. */
+  chipHint: string;
   /** Short acknowledgement that leads the first question after the matter pick. */
   transition?: (answers: AnswersMap) => string;
   /** Tailored, mostly open-ended questions asked in order for this matter. */

@@ -51,5 +51,15 @@ describe('INTAKE_SYSTEM_PROMPT', () => {
     expect(prose).toContain('A lawyer is assigned once that quote is paid');
     // Decision 19 / never invent.
     expect(prose).toContain('Never invent a value');
+    /*
+     * The dead-end rule. `dead-end.ts` repairs a turn that breaks it, so
+     * without this assertion the sentence could be dropped from the prompt and
+     * the only symptom would be a warning in the server log that nobody reads,
+     * under a conversation that still works because the guard caught it.
+     */
+    expect(prose).toContain('every single thing you say ends on a question');
+    expect(prose).toContain(
+      'Never name a row that already has a value, including one you filled in on this very turn',
+    );
   });
 });

@@ -10,6 +10,7 @@ import { type MatterFlow } from '../intake-types';
 export const procurementFlow: MatterFlow = {
   id: 'procurement',
   label: 'Procurement',
+  chipHint: 'Tenders and supplier terms',
   transition: () =>
     'Got it \u2014 a procurement matter. Tell me a bit more and the brief will fill in on the right.',
   questions: [

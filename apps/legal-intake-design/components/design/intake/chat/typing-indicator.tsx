@@ -4,7 +4,6 @@ import {
   Marker,
   MarkerContent,
 } from '@/components/design/foundations/components/marker';
-import { Spinner } from '@/components/design/foundations/components/spinner';
 import { MoritzAvatar } from './moritz-avatar';
 
 /**
@@ -53,9 +52,29 @@ export function TypingIndicator({ label }: { label?: string }) {
  */
 export function ThinkingMarker({ label = DEFAULT_LABEL }: { label?: string }) {
   return (
+    /*
+     * #69. A breathing line, and no spinner.
+     *
+     * A spinner says "the software is busy". The label already says
+     * something better and truer — "Reading your document", "Writing up your
+     * case notes" — and putting a rotating disc in front of it downgrades a
+     * sentence about the client's case into a loading state. The one
+     * component of this marker that carried no information was the only one
+     * animating, which is the wrong way round.
+     *
+     * So the words do the work and the breath says they are still happening:
+     * a slow 3s opacity fade, the same loop the brief's amber dot and the
+     * rail's halo use, so a screen showing two of them pulses once rather
+     * than keeping two clocks. §6 allows exactly one ambient animation and
+     * this is a third view of it.
+     *
+     * The shimmer it replaces was a gradient swept across the glyphs, which
+     * needed `background-clip: text` and a transparent fill — pretty, and it
+     * put the label's colour outside the palette's control for the duration.
+     * Opacity on the real ink does the same job and leaves the token alone.
+     */
     <Marker role="status" aria-label={label}>
-      <Spinner className="size-3.5" />
-      <MarkerContent className="shimmer">{label}</MarkerContent>
+      <MarkerContent className="mz-animate-breathe">{label}</MarkerContent>
     </Marker>
   );
 }

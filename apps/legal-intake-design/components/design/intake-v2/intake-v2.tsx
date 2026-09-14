@@ -118,6 +118,12 @@ import { SentConfirmation } from './sent-confirmation';
 import { SendingSteps } from './sending-steps';
 import { TABLET_COLUMN } from '@/lib/intake/layout';
 import { describeFile } from '@/components/design/new-case/file-utils';
+import {
+  clearSentSession,
+  readSentSession,
+  writeSentSession,
+} from '@/lib/intake/sent-session';
+import { useJustTurnedTrue } from './use-landed';
 import { JourneyBar } from './journey-bar';
 import { PrototypeLink } from './prototype-link';
 import { JourneyRailColumn } from './journey-rail';
@@ -159,7 +165,22 @@ const FOOTER_SENTENCE: Record<IntakePhase, string> = {
   start: 'quote.explanation',
   building: 'quote.explanation',
   review: 'quote.explanation',
-  sending: 'quote.explanation',
+  /*
+   * Sending has its own sentence, and the difference is tense.
+   *
+   * The other three share `quote.explanation`, which opens "**When you send
+   * this**, one of our lawyers reads it and prices the work" — correct on
+   * every screen before the click and wrong on the one screen after it. A
+   * client watching the send animation was being told, in the future tense,
+   * about a thing they had already done. It is a small wrongness and it lands
+   * at the least forgiving moment in the flow: the seconds where somebody is
+   * waiting to find out whether their case went.
+   *
+   * So the sending phase says it in the present — "A lawyer **is reading** it
+   * and pricing the work" — and keeps the two facts that matter either way,
+   * the 24 hours and nothing being charged.
+   */
+  sending: 'quote.explanationSending',
   sent: 'sent.quoteHere',
   quoted: 'quote.decisionAbove',
 };
@@ -293,7 +314,58 @@ export function IntakeV2() {
     markDocumentsSuggested,
     unconfirmed,
     blocking,
+    replace,
   } = useBrief('contract', { persist: !sealed });
+
+  /**
+   * The row "Review and send" last pointed at, and how many times (#74).
+   *
+   * A key *and* a nonce, and the nonce is the load-bearing half. Pressing
+   * the button twice with the same row outstanding has to point twice; with
+   * a key alone the second press is a no-op state write, nothing re-renders,
+   * and the client gets silence from a control they just pressed.
+   *
+   * Deliberately no timer. This used to clear itself after 1200ms, which
+   * `prototype-control.test.ts` correctly rejected: an anonymous
+   * `setTimeout` in this file is exactly how the twelve-second quote timer
+   * got in, and "it is only an animation flag" is what that one would have
+   * said too. The row ends its own pulse on `animationend` instead, which is
+   * both timer-free and the right length by construction.
+   */
+  const [pointedAt, setPointedAt] = useState<{
+    key: string;
+    nonce: number;
+  } | null>(null);
+  /*
+   * #18. `sendReady` is the gate; `sendFilled` is the moment it opened.
+   *
+   * The fill is keyed off the *transition*, not the state, so a client who
+   * arrives at review with everything already confirmed — a restored draft,
+   * or a return from the quote screen — gets a button that is simply black
+   * rather than one that performs its own readiness at them. See
+   * `use-landed.ts`.
+   */
+  const sendReady = canSend(brief);
+  const sendFilled = useJustTurnedTrue(sendReady);
+  /*
+   * The same two values for the other end of the same gate.
+   *
+   * `canEnterReview` and `canSend` are both `canSubmit` today, so these track
+   * `sendReady` exactly. They are still asked as two questions, because they
+   * guard two boundaries: a later rule that opens review earlier than send
+   * should move one button and not silently both. What is shared on purpose is
+   * the *treatment* — `gatedAction` below — because that is the half that had
+   * drifted, with one button explaining itself and the other greying out.
+   *
+   * Both flags flip in the same tick, and only one button is on screen to use
+   * it. The fill therefore plays on "Review and send" when the last required
+   * row lands, and `sendFilled` has long since cleared by the time the client
+   * reaches review — which is the documented intent: arriving at a brief that
+   * was already complete gets a button that is simply black rather than one
+   * performing its readiness.
+   */
+  const reviewReady = canEnterReview(brief);
+  const reviewFilled = useJustTurnedTrue(reviewReady);
 
   /**
    * Item 6: take the observation, and report whether it was the first.
@@ -509,7 +581,7 @@ export function IntakeV2() {
    * Read once for the whole flow rather than inside the opening screen, so the
    * greeting and the confirmation email are looking at the same value. `null`
    * where the session has no usable name, which falls through to a heading
-   * with no greeting in it rather than to "Welcome back, ."
+   * with no greeting in it rather than to "Hello, ."
    */
   const firstName = useMemo(() => clientFirstName(), []);
 
@@ -720,6 +792,22 @@ export function IntakeV2() {
     !submitted &&
     (messages.length > 0 || brief.fields.some((field) => field.value !== null));
 
+  /**
+   * A sent case is still worth confirming before leaving — with a different
+   * question.
+   *
+   * `hasActiveIntake` going false at submission was right about the draft and
+   * wrong about the click. It meant Home opened a dialog mid-intake and did
+   * nothing at all afterwards, with no visible reason for the difference, so
+   * the one control on the shell behaved unpredictably at exactly the point
+   * the client is least sure whether their case went.
+   *
+   * Nothing is prompted on an empty start screen, which is the third state
+   * and the one where a dialog would be pure friction: no messages, no
+   * values, nothing to save, nothing to lose.
+   */
+  const hasSentCase = submitted;
+
   /*
    * The brief pane owns its own scroll, so a client arriving at review after a
    * long conversation would otherwise land wherever they had scrolled to —
@@ -738,6 +826,33 @@ export function IntakeV2() {
   useEffect(() => {
     if (briefLed) setBriefOpenOnMobile(true);
   }, [briefLed]);
+
+  /**
+   * Where "point at the first blocker" actually points (#74).
+   *
+   * It sits below `briefOpenOnMobile` because it now sets it, and a
+   * `useCallback` that closes over a `const` declared further down the body
+   * reads that binding during render — through its own dependency array — and
+   * throws before the screen ever paints.
+   *
+   * **Opening the brief is half the behaviour on a phone.** Below `lg` the
+   * brief stays collapsed for the whole of `building`, and the pane is hidden
+   * with `hidden` rather than unmounted — so the row is in the DOM and the
+   * bare version of this dutifully scrolled to, focused and pulsed an element
+   * with `display: none`. The client saw nothing: exactly the dead end the
+   * outline button exists to remove, surviving on the device most likely to
+   * meet it. Both updates land in one render, so the row is on screen by the
+   * time its own effect runs and scrolls to it.
+   */
+  const pointAtBlocker = useCallback(() => {
+    const first = blocking[0];
+    if (!first) return;
+    setBriefOpenOnMobile(true);
+    setPointedAt((current) => ({
+      key: first.key,
+      nonce: (current?.nonce ?? 0) + 1,
+    }));
+  }, [blocking]);
 
   const sendingTimer = useRef<number | null>(null);
   useEffect(
@@ -816,6 +931,30 @@ export function IntakeV2() {
       });
       clearIntakeSession();
 
+      /*
+       * The sealed copy, written in the same breath as the draft is cleared.
+       *
+       * These two are one fact — the case stopped being a draft — and the
+       * bug they were split by was that only half of it was durable. The
+       * confirmation on screen renders from React state, and
+       * `clearIntakeSession()` has just removed the only thing on disk, so a
+       * client who reloads to check it worked got the blank "Describe your
+       * matter" screen. Refreshing to confirm a submission is the single most
+       * natural thing to do at this exact moment, and the answer was a screen
+       * that reads as "it did not go".
+       *
+       * `sent-session.ts` was written for this, with its own key, its own
+       * twelve-hour expiry and a long note on why it must not reuse the draft
+       * keys — and then never called. This is the call.
+       */
+      writeSentSession({
+        brief,
+        matterId,
+        sentAt,
+        caseId: SUBMITTED_CASE.id,
+        documentNames: readDocuments,
+      });
+
       raisePortalNotification(
         'NON_LEGAL',
         caseReceivedNotification({
@@ -829,13 +968,22 @@ export function IntakeV2() {
         }),
       );
     }, SENDING_TOTAL_MS);
-  }, [brief.description, brief.title, messages, readDocuments, t]);
+    /*
+     * `brief` whole, not `brief.description` and `brief.title`. The sealed
+     * copy written above is the entire brief, so narrowing the dependency to
+     * two of its properties would let the callback close over a stale one:
+     * a client who confirms a last row and presses Send inside the same
+     * render would seal the brief as it was *before* that confirmation. The
+     * two narrow deps were correct while only the title and description were
+     * read; they stopped being correct the moment the whole object was.
+     */
+  }, [brief, matterId, messages, readDocuments, t]);
 
   // ---------------------------------------------------------------- leaving
 
   const [leaveDialog, setLeaveDialog] = useState<{
     open: boolean;
-    reason: 'navigate' | 'restart';
+    reason: 'navigate' | 'restart' | 'sent';
   }>({ open: false, reason: 'navigate' });
   const pendingHrefRef = useRef<string | null>(null);
 
@@ -844,10 +992,17 @@ export function IntakeV2() {
   // the generic unsaved-changes alert.
   useUnsavedChangesGuard(hasActiveIntake);
   useNavigationInterceptor((href) => {
-    if (!hasActiveIntake) return false;
-    pendingHrefRef.current = href;
-    setLeaveDialog({ open: true, reason: 'navigate' });
-    return true;
+    if (hasActiveIntake) {
+      pendingHrefRef.current = href;
+      setLeaveDialog({ open: true, reason: 'navigate' });
+      return true;
+    }
+    if (hasSentCase) {
+      pendingHrefRef.current = href;
+      setLeaveDialog({ open: true, reason: 'sent' });
+      return true;
+    }
+    return false;
   });
 
   const resumePendingNavigation = useCallback(() => {
@@ -858,6 +1013,14 @@ export function IntakeV2() {
 
   const performRestart = useCallback(() => {
     clearIntakeSession();
+    /*
+     * And the sealed receipt, immediately. Its twelve-hour expiry is the
+     * backstop for a client who wanders off, not the way out: somebody who
+     * has pressed "Start another case" has said what they want, and finding
+     * the previous confirmation again on the next reload would be the flow
+     * refusing to let go of a case they have finished with.
+     */
+    clearSentSession();
     reset();
     clear();
     setAttachments([]);
@@ -919,6 +1082,25 @@ export function IntakeV2() {
    * A restart (`reason: 'restart'`) has nowhere to go, so it is the one that
    * genuinely needs the intake rebuilt in place.
    */
+  /**
+   * Leave a case that has already gone.
+   *
+   * Drops the sealed receipt on the way out, and that distinction is the
+   * whole of this function: a **reload** is an accident and the receipt is
+   * what stops it showing a blank "Describe your matter" (see
+   * `sent-session.ts`), but pressing Home and confirming it is a statement of
+   * intent. Keeping the receipt through that is how the client ends up back
+   * on a confirmation they have finished with the next time they open the
+   * intake, which reads as the flow refusing to let go.
+   *
+   * The case itself is untouched — it is recorded on the account and reachable
+   * from Your cases, which is what the dialog says.
+   */
+  const onLeaveSent = useCallback(() => {
+    clearSentSession();
+    resumePendingNavigation();
+  }, [resumePendingNavigation]);
+
   const onLeaveDiscard = useCallback(() => {
     const leaving = pendingHrefRef.current !== null;
     if (leaving) clearIntakeSession();
@@ -1874,6 +2056,43 @@ export function IntakeV2() {
     })();
   }, [brief, setRecap]);
 
+  /**
+   * A case sent in this browser, restored after a reload (items 20 and 21).
+   *
+   * Runs once, after `useBrief` has hydrated and before the demo seed below
+   * would look at the brief. The ordering matters in both directions: the
+   * draft keys were cleared at submission so there is nothing for hydration
+   * to restore, and the demo seed refuses to run once the brief has a value
+   * in it, so a restored case correctly stops `?demo=` from seeding over it.
+   *
+   * `replace` rather than replaying updates and confirms. The sealed brief is
+   * already the finished thing — every value, every source, every
+   * confirmation as it was when it went — and rebuilding it from its parts
+   * would be a second implementation of `applyFieldUpdates` that could drift
+   * from the first. `replace` exists for exactly this and, like the trio
+   * above, had never been called.
+   *
+   * Setting the stage last, so the phase derived from it is looking at a
+   * brief that is already there rather than at an empty one for a frame.
+   *
+   * Document *bytes* are deliberately not restored — `sent-session.ts` keeps
+   * names only, and `document-store.ts` drops a library whose session is
+   * gone. The confirmation lists what was sent, which is what this screen is
+   * for; re-opening a PDF belongs to the case page.
+   */
+  const sentRestored = useRef(false);
+  useEffect(() => {
+    if (!hydrated || sentRestored.current) return;
+    sentRestored.current = true;
+
+    const sent = readSentSession();
+    if (!sent) return;
+
+    replace(sent.brief);
+    setReadDocuments([...sent.documentNames]);
+    setStage('sent');
+  }, [hydrated, replace]);
+
   // ------------------------------------------------------------------ demo
 
   useEffect(() => {
@@ -2701,6 +2920,66 @@ export function IntakeV2() {
       action
     );
 
+  /**
+   * #18 and #74 — one control's worth of thinking, applied to both controls.
+   *
+   * **It does not disable.** A disabled button is a dead end that explains
+   * nothing: the client presses it, nothing happens, and there is no way to
+   * find out why — which is the version of this gate people report as broken.
+   * Pressing it with a row outstanding scrolls that row into view, focuses it
+   * and pulses it, so the press does the most useful thing available instead
+   * of nothing.
+   *
+   * **Outline until ready, then it fills.** The variant carries the state the
+   * `disabled` attribute used to: white with a border while something is
+   * missing, black once it is not. #18 asks for that change to arrive as a
+   * fill travelling left to right rather than as a swap, because the client's
+   * eyes are on the row they just confirmed, not on the button — a one-frame
+   * colour change is missed from the corner of the eye and 400ms of travel is
+   * not.
+   *
+   * The two halves depend on each other. A black button that is always
+   * pressable reads as "go" before the brief is ready; an outline one reads as
+   * "not yet, but you may ask why", which is exactly what pressing it now
+   * does.
+   *
+   * **The reason is announced, not merely present.** `role="status"` was
+   * unnecessary while the button was disabled — a screen reader says "dimmed"
+   * and the client knows to go looking. Now that the press does something and
+   * moves them to another row, they have to be told what just happened, and
+   * this is the sentence that tells them.
+   *
+   * A function rather than two copies, because the two copies had already
+   * drifted: "Review and send" sat through the longest phase in the flow as a
+   * grey rectangle with nothing under it while "Send to Moritz" explained
+   * itself. One rule means the next change cannot land on only one of them.
+   */
+  const gatedAction = (
+    ready: boolean,
+    filled: boolean,
+    label: string,
+    blocked: string,
+    onReady: () => void,
+  ) => (
+    <div className="flex flex-col gap-2">
+      {withDocsButton(
+        <Button
+          type="button"
+          variant={ready ? 'default' : 'outline'}
+          className={cn('w-full', filled && 'mz-animate-fill-lr')}
+          onClick={ready ? onReady : pointAtBlocker}
+        >
+          {label}
+        </Button>,
+      )}
+      {ready ? null : (
+        <p role="status" className="text-muted-foreground text-center text-xs">
+          {blocked}
+        </p>
+      )}
+    </div>
+  );
+
   const briefAction =
     phase === 'sending' ? (
       /*
@@ -2719,27 +2998,13 @@ export function IntakeV2() {
         </Button>,
       )
     ) : phase === 'review' ? (
-      <div className="flex flex-col gap-2">
-        {withDocsButton(
-          <Button
-            type="button"
-            className="w-full"
-            disabled={!canSend(brief)}
-            onClick={submitCase}
-          >
-            {t('send.action')}
-          </Button>,
-        )}
-        {/*
-         * Why the button is off. A disabled control with no explanation is
-         * the version of this gate that makes people think it is broken.
-         */}
-        {canSend(brief) ? null : (
-          <p className="text-muted-foreground text-center text-xs">
-            {t('send.blocked', { count: blocking.length })}
-          </p>
-        )}
-      </div>
+      gatedAction(
+        sendReady,
+        sendFilled,
+        t('send.action'),
+        t('send.blocked', { count: blocking.length }),
+        submitCase,
+      )
     ) : phase === 'quoted' ? (
       /*
        * The one phase whose primary action is *not* in this footer, and the
@@ -2765,37 +3030,13 @@ export function IntakeV2() {
         </Button>,
       )
     ) : (
-      <div className="flex flex-col gap-2">
-        {withDocsButton(
-          <Button
-            type="button"
-            className="w-full"
-            disabled={!canEnterReview(brief)}
-            onClick={() => setStage('review')}
-          >
-            {t('quote.action')}
-          </Button>,
-        )}
-        {/*
-         * Why the button is off, on the phase where it is off for longest.
-         *
-         * `review` has carried this line from the start and `building` — the
-         * whole middle of the flow — carried nothing, so the client's first
-         * and longest encounter with the primary action was a grey rectangle
-         * with no explanation under it. That is the state people read as
-         * broken, and it is the state they are in for every turn of the
-         * conversation until the last required row lands.
-         *
-         * `blocking` rather than a second count: it is the same list the gate
-         * itself is computed from (`blockingFields`), so the sentence cannot
-         * drift from the button it is under.
-         */}
-        {canEnterReview(brief) ? null : (
-          <p className="text-muted-foreground text-center text-xs">
-            {t('quote.blocked', { count: blocking.length })}
-          </p>
-        )}
-      </div>
+      gatedAction(
+        reviewReady,
+        reviewFilled,
+        t('quote.action'),
+        t('quote.blocked', { count: blocking.length }),
+        () => setStage('review'),
+      )
     );
 
   /** The two together: the desktop brief column's sticky foot. */
@@ -2812,6 +3053,7 @@ export function IntakeV2() {
       hints={hints}
       receipts={receipts}
       progress={progress}
+      pointedAt={pointedAt}
       /*
        * Item 3, but only while there is an intake to save. On the sent state
        * the brief is a record that has been handed over, and telling someone
@@ -3028,7 +3270,9 @@ export function IntakeV2() {
       }}
       onSaveDraft={onLeaveSaveDraft}
       onDiscard={onLeaveDiscard}
+      onLeaveSent={onLeaveSent}
       reason={leaveDialog.reason}
+      reference={SUBMITTED_CASE.reference}
     />
   );
 
@@ -3284,7 +3528,7 @@ export function IntakeV2() {
        * The one `h1` for every screen after the start, and it is invisible.
        *
        * axe reported `page-has-heading-one` on twelve of fourteen runs: the
-       * start screen has a real `h1` ("Welcome back, Alex."), and the moment
+       * start screen has a real `h1` ("Hello, Alex."), and the moment
        * a client types a word that screen unmounts and the flow spends the
        * rest of its life with no level-one heading at all. Everything below
        * is an `h2` — "Your case brief", the matter title, "Case sent" — so

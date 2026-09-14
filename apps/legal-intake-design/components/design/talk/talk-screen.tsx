@@ -35,7 +35,7 @@ import { useSendPersonMessage } from './use-send-person-message';
  * same `HandoffCard` the case thread uses, read out of `person-messages.ts`. A
  * confirmation that vanished on the next navigation would be the defect this
  * feature was just fixed for, one screen along: a promise that somebody reads
- * it within four hours, and the words themselves nowhere.
+ * it within 24 hours, and the words themselves nowhere.
  *
  * **It also lands on the sent case, when there is one.** A client who has just
  * submitted and wants to speak to somebody is asking about *that* matter, and a

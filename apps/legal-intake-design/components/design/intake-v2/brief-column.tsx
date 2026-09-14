@@ -10,6 +10,7 @@ import {
 import type { Brief, BriefField } from '@/lib/intake/brief';
 import { BriefFieldRow } from './brief-field-row';
 import type { FieldReceipt } from './use-brief';
+import { useCascade } from './use-cascade';
 
 /** The bar's width, from the percentage the panel already shows. */
 function barWidth(pct: number): string {
@@ -47,6 +48,7 @@ export function BriefColumn({
   onEdit,
   onUndo,
   onOpenSource,
+  pointedAt = null,
 }: {
   brief: Brief;
   hints: Record<string, string>;
@@ -150,9 +152,22 @@ export function BriefColumn({
   onEdit: (key: string, value: string) => void;
   onUndo: (key: string) => void;
   onOpenSource: (field: BriefField) => void;
+  /**
+   * The row "Review and send" just pointed at, and the press count (#74).
+   *
+   * The nonce travels with the key so a repeat press on the same row is a
+   * new event rather than an unchanged prop.
+   */
+  pointedAt?: { key: string; nonce: number } | null;
 }) {
   const t = useTranslations('intake.brief');
   const [fieldsOpen, setFieldsOpen] = useState(false);
+
+  /*
+   * #11. Empty except in the moment after a document answered several rows
+   * at once, when it holds each of those rows' place in the cascade.
+   */
+  const cascade = useCascade(brief.fields);
 
   const fieldRows = (
     <div className="mt-2 flex flex-col">
@@ -172,6 +187,10 @@ export function BriefColumn({
              * the next turn arrives.
              */
             asking={field.key === askingKey && field.value === null}
+            {...(cascade[field.key] !== undefined
+              ? { cascadeIndex: cascade[field.key] }
+              : {})}
+            pointedAt={pointedAt?.key === field.key ? pointedAt.nonce : null}
             readOnly={readOnly}
             onConfirm={() => onConfirm(field.key)}
             onEdit={(value) => onEdit(field.key, value)}

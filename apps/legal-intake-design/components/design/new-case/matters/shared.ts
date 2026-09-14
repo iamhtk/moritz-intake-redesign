@@ -13,8 +13,12 @@ import {
 } from '../intake-types';
 
 /** Build a suggestion chip; the value doubles as the (group-unique) id. */
-export function chip(value: string, label: string): SuggestionChip {
-  return { id: value, label, value };
+export function chip(
+  value: string,
+  label: string,
+  hint?: string,
+): SuggestionChip {
+  return { id: value, label, value, ...(hint ? { hint } : {}) };
 }
 
 /** Build a chip group from `[value, label]` tuples. */

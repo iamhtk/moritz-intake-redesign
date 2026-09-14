@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
 import { useTranslations } from 'next-intl';
@@ -67,6 +68,7 @@ export function BriefValue({
   controls,
   muted = false,
   className,
+  style,
 }: {
   /** The text to show. Rendered with `whitespace-pre-line`, as it always was. */
   value: string;
@@ -81,6 +83,13 @@ export function BriefValue({
   /** The empty-row hint, which is the same layout in a lighter ink. */
   muted?: boolean;
   className?: string;
+  /**
+   * For the caller's arrival animation (#7, #11).
+   *
+   * The cascade reads its position from `--mz-cascade-index`, and only the
+   * row knows which document answered it and where in that set it fell.
+   */
+  style?: CSSProperties;
 }) {
   const t = useTranslations('intake.brief');
   const [expanded, setExpanded] = useState(false);
@@ -116,7 +125,7 @@ export function BriefValue({
   const collapsed = !expanded && overflowing;
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
+    <div className={cn('flex flex-col gap-1', className)} style={style}>
       <div
         ref={boxRef}
         className="relative overflow-hidden"

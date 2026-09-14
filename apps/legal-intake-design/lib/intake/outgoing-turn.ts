@@ -10,6 +10,33 @@
  */
 
 /**
+ * How many past turns ride along with the brief, as tone and short-term memory.
+ *
+ * ONE DEFINITION, AND IT USED TO BE TWO. `use-conversation.ts` sliced the
+ * transcript to send and `/api/intake` sliced it again on arrival, each with
+ * its own `const TRANSCRIPT_WINDOW = 6` and a comment claiming it matched the
+ * other. Two numbers that have to be equal, in two files, is one careless edit
+ * away from a client sending twelve turns and the server silently keeping six.
+ *
+ * WHY IT IS TWENTY AND NOT SIX. The brief is the durable memory of the
+ * conversation and that has not changed: values live there, the model is given
+ * the whole of it every turn, and it is told to trust it over the transcript.
+ * But the brief records what is *known*, not what was *said*, and three
+ * exchanges is not enough of the latter. It cannot see the question it asked
+ * four turns ago, so it re-asks it in different words; it cannot see the
+ * ready-made answers it offered with that question, so the second attempt
+ * offers a different set; and it cannot see that the client already said they
+ * would rather not answer something.
+ *
+ * The cost is small and bounded. These turns sit after the cached system block,
+ * so they are paid for in full, but they are chat turns: twenty of them is on
+ * the order of a thousand tokens against a prompt whose cached prefix is
+ * several times that. Re-asking a question the client already answered costs a
+ * whole turn of their patience, which is the more expensive of the two.
+ */
+export const TRANSCRIPT_WINDOW = 20;
+
+/**
  * Whether there is anything to send.
  *
  * Documents on their own are enough, which is the fix. The composer already

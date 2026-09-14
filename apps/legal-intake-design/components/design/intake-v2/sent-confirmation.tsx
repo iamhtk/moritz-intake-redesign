@@ -182,12 +182,20 @@ export function SentConfirmation({
          * heading navigation skipped straight past the one line on the screen
          * that answers "did that work". `h2` because the flow's `h1` is the
          * case's own name, up in the shell, and this is the section under it.
-         * Same classes, same 14px, same weight: nothing moves.
+         * Same 14px and same weight: nothing moves.
+         *
+         * In the serif (§4 #51). The flow's serif marks the lines that are
+         * the product speaking rather than labelling — the start screen's
+         * greeting, the lawyer's one-line bio, the how-it-works footer — and
+         * "Case sent" is the one sentence in this whole flow the client came
+         * to read. It was the only moment of that weight still set in the UI
+         * sans, which made the answer to "did that work" look like a status
+         * chip.
          */}
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className="text-foreground text-sm font-medium focus-visible:outline-none"
+          className="text-foreground font-serif text-sm font-medium focus-visible:outline-none"
         >
           {t('heading')}
         </h2>
@@ -318,7 +326,7 @@ export function SentConfirmation({
        * at submission.
        *
        * The second sentence is what is left of `turnaroundNote`, which read
-       * "Quotes usually come back within four hours. Nothing is charged until
+       * "Quotes usually come back within 24 hours. Nothing is charged until
        * you accept it." The first half of that is the Estimated response row
        * two inches up, said again in a paragraph; the second half was the
        * only clause on this screen carrying the commercial promise, so it

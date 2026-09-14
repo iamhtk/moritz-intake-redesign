@@ -28,7 +28,7 @@ import { schoolOf } from '@/lib/intake/credentials';
  * 1. **The acknowledgement lands in an AI bubble**, so the moment the client
  *    asked for a human reads as the software replying to them again. The one
  *    turn that is supposed to prove a person exists looks like more chatbot.
- * 2. **The promise scrolls away.** "Somebody reads this within four hours" is
+ * 2. **The promise scrolls away.** "Somebody reads this within 24 hours" is
  *    the only commitment the flow makes here, and as a sentence in a bubble it
  *    is unfindable ten messages later — which is exactly when the client wants
  *    to check what they were told.
@@ -106,7 +106,7 @@ export function HandoffCard({
   const firstName = lawyer ? (lawyer.name.split(' ')[0] ?? lawyer.name) : null;
 
   const title = labels?.title ?? 'Handed to a person';
-  const promise = labels?.promise ?? 'Somebody reads this within four hours.';
+  const promise = labels?.promise ?? 'Somebody reads this within 24 hours.';
   const who =
     labels?.who ??
     (firstName

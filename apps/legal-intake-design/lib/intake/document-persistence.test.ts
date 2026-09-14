@@ -174,10 +174,42 @@ describe('the panel is not offered on the opening screen', () => {
     expect(intake).toContain(
       'const docsBesideAction = documentTriggerShowing && briefOpenOnMobile',
     );
-    // Wrapped around the primary action in every phase that has one.
-    // One per phase that has a primary action: sent, review, quoted, and
-    // building. `sending` has no button, by Decision 8.
-    expect(intake.match(/withDocsButton\(/g)?.length).toBe(4);
+    /*
+     * Wrapped around the primary action in every phase that has one: sent,
+     * review, quoted and building. `sending` has no button, by Decision 8.
+     *
+     * This counted literal `withDocsButton(` call sites and expected four.
+     * Two of the four now reach it through `gatedAction` — the shared
+     * outline-until-ready control behind "Review and send" and "Send to
+     * Moritz" — so the count reads three while every phase is still wrapped.
+     * A number that moves when the code is factored differently was measuring
+     * the copies rather than the guarantee.
+     *
+     * So assert the shape: the helper wraps, and every arm of the ternary
+     * either wraps directly or goes through the helper. That survives the next
+     * arm being extracted and still fails if one stops wrapping.
+     */
+    const gated = intake.slice(
+      intake.indexOf('const gatedAction ='),
+      intake.indexOf('const briefAction ='),
+    );
+    expect(gated).toContain('withDocsButton(');
+
+    const arms = intake
+      .slice(
+        intake.indexOf('const briefAction ='),
+        intake.indexOf('const briefFooter ='),
+      )
+      .split('\n    ) : ')
+      .filter((arm) => !arm.includes('<SendingSteps />'));
+
+    expect(arms).toHaveLength(4);
+    for (const arm of arms) {
+      expect(
+        arm.includes('withDocsButton(') || arm.includes('gatedAction('),
+        `an arm of briefAction has no way into the document panel: ${arm.slice(0, 80)}`,
+      ).toBe(true);
+    }
   });
 
   /*

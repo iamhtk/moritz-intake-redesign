@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, type ReactNode } from 'react';
+import { useId, useMemo, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
 import {
@@ -10,6 +10,8 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from '@/components/design/foundations/components/message-scroller';
+import { useRotatingPlaceholder } from './use-rotating-placeholder';
+import { useValueLanded } from './use-landed';
 import {
   ChatComposer,
   type ComposerAttachment,
@@ -99,6 +101,40 @@ export function ChatColumn({
   composerLeading?: ReactNode;
 }) {
   const t = useTranslations('intake.chat');
+
+  /*
+   * The opening placeholder, cycling instruction -> three real sentences.
+   *
+   * Only while the transcript is empty. Once Moritz has replied the field is a
+   * reply box, "Reply to Moritz…" is the whole of what it needs to say, and a
+   * rotating example of how to *start* would be answering a question nobody is
+   * still asking.
+   *
+   * `useMemo` because the hook restarts its timer when the frame count
+   * changes, and a fresh array literal every render is a new identity each
+   * time. See `use-rotating-placeholder.ts` for the reduced-motion rule.
+   */
+  const first = messages.length === 0;
+  const placeholderFrames = useMemo(
+    () => [
+      t('placeholderFirst'),
+      t('placeholderExampleOne'),
+      t('placeholderExampleTwo'),
+      t('placeholderExampleThree'),
+    ],
+    [t],
+  );
+  const placeholder = useRotatingPlaceholder(placeholderFrames, first);
+
+  /*
+   * #72. A rejected file shakes the notice once, gently.
+   *
+   * Keyed off the failure's *text* rather than its presence, so a second
+   * rejection with a different reason shakes again. Keyed off presence alone,
+   * a client who drops a `.docx`, reads the reason, then drops a 40MB PDF
+   * gets a silent swap and no sign the second one failed too.
+   */
+  const failureLanded = useValueLanded(failure?.text);
   /** Stable id so the composer's field can describe itself with the failure. */
   const failureId = useId();
   const hasMessages = messages.length > 0;
@@ -333,7 +369,21 @@ export function ChatColumn({
         {failure ? (
           <div
             role="alert"
-            className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-1"
+            /*
+             * #72. Four pixels, once, 300ms — the iOS password shake with the
+             * volume down. The shake is not the error message; it is what
+             * makes somebody look at where the error message is, which is the
+             * job a line of red text appearing silently below the composer
+             * does not do on its own.
+             *
+             * `key` so the animation replays rather than being considered
+             * already-run on a reused element.
+             */
+            key={failureLanded ? `shake-${failure.text}` : 'still'}
+            className={cn(
+              'flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-1',
+              failureLanded && 'mz-animate-shake',
+            )}
           >
             {/*
              * `id` so the composer below can name this as its description.
@@ -371,9 +421,7 @@ export function ChatColumn({
          */}
         <div className="shrink-0">
           <ChatComposer
-            placeholder={
-              messages.length === 0 ? t('placeholderFirst') : t('placeholder')
-            }
+            placeholder={first ? placeholder : t('placeholder')}
             busy={busy}
             onSend={onSend}
             onAttach={onAttach}

@@ -22,7 +22,11 @@ import {
   startStep,
   type TimelineStep,
 } from '@/lib/intake/timeline';
-import { documentsOnlyMessage, isSendable } from '@/lib/intake/outgoing-turn';
+import {
+  documentsOnlyMessage,
+  isSendable,
+  TRANSCRIPT_WINDOW,
+} from '@/lib/intake/outgoing-turn';
 import { extractPartialReply } from '@/lib/intake/turn-schema';
 
 export type ChatMessage = {
@@ -92,9 +96,6 @@ export type ChatMessage = {
   /** The chip the client picked, which stays shown as the chosen one. */
   chipChoice?: string;
 };
-
-/** Matches the window the turn route keeps; sending more would be discarded. */
-const TRANSCRIPT_WINDOW = 6;
 
 /**
  * Something went wrong, in a sentence, and whether trying again could help.

@@ -74,7 +74,7 @@ describe('the waiting questions', () => {
   it('asks only things the closed fact list can answer', () => {
     // Kept honest against the prompt itself: each question maps to a fact that
     // is actually in there. See the matching test in `waiting-prompt.test.ts`.
-    expect(WAITING_SYSTEM_PROMPT).toContain('within four hours');
+    expect(WAITING_SYSTEM_PROMPT).toContain('within 24 hours');
     expect(WAITING_SYSTEM_PROMPT).toContain('Nothing is charged until');
     expect(WAITING_SYSTEM_PROMPT).toContain('A document dropped anywhere');
   });

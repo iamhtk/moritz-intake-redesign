@@ -2503,10 +2503,10 @@
   },
   "intake": {
     "start": {
-      "heading": "Welcome back, {firstName}.",
+      "heading": "Hello, {firstName}.",
       "subheading": "Tell me what happened. I do not need legal language, just the facts.",
       "orStartWith": "Not sure where to begin? Start with",
-      "headingAnonymous": "Welcome back.",
+      "headingAnonymous": "Hello.",
       "reassurance": "Take your time. You can stop and come back whenever you like, everything is saved as we go."
     },
     "brief": {
@@ -2567,6 +2567,9 @@
     },
     "chat": {
       "placeholderFirst": "Describe your matter, or attach a document…",
+      "placeholderExampleOne": "A supplier has missed three deliveries and I want out of the contract…",
+      "placeholderExampleTwo": "I need to let someone go and I want to do it properly…",
+      "placeholderExampleThree": "We are buying a small competitor and need the paperwork checked…",
       "placeholder": "Reply to Moritz…",
       "waitFirst": "Reading what you have told me",
       "waitReply": "Checking that against the rest of your case",
@@ -2612,7 +2615,8 @@
       "deletedDescription": "Your in-progress intake has been cleared."
     },
     "quote": {
-      "explanation": "When you send this, one of our lawyers reads it and prices the work, and you get a fixed quote back in this chat, usually within four hours. Nothing is charged until you accept it.",
+      "explanation": "When you send this, one of our lawyers reads it and prices the work, and you get a fixed quote back in this chat, usually within 24 hours. Nothing is charged until you accept it.",
+      "explanationSending": "A lawyer is reading it and pricing the work. A fixed quote comes back in this chat within 24 hours. Nothing is charged until you accept it.",
       "action": "Review and send",
       "blocked": "{count, plural, one {One more answer to continue} other {# more answers to continue}}",
       "arrivedHeading": "Your quote is ready",
@@ -2684,7 +2688,7 @@
         "brief": "Tell us what happened, or drop in the document.",
         "quote": "A lawyer reads it and puts a fixed price on the work.",
         "lawyer": "Accept the price and they take over this chat.",
-        "document": "They write it and send you the finished document."
+        "document": "They write it, we check it, and you get the finished document."
       },
       "when": {
         "brief": "A few minutes",
@@ -2725,7 +2729,7 @@
       "estimatedResponse": "Estimated response",
       "nextStep": "Next step",
       "nextStepValue": "One of our lawyers reads this and prices the work, then sends you a fixed quote. Nobody is assigned to the case until you have accepted it.",
-      "quoteHere": "Your quote arrives here, in this chat, usually within four hours. Nothing is charged until you accept it, and the lawyer is assigned after that.",
+      "quoteHere": "Your quote arrives here, in this chat, usually within 24 hours. Nothing is charged until you accept it, and the lawyer is assigned after that.",
       "goToCase": "Go to case",
       "showcaseLabel": "The people who price and handle work like this",
       "disagreementsTitle": "Worth knowing",
@@ -2751,7 +2755,7 @@
         }
       },
       "documentReceived": "{count, plural, one {Got {names}. I have added it to your case} other {Got all {count}: {names}. I have added them to your case}} and passed {count, plural, one {it} other {them}} to the team drafting your quote. Anything else you send here reaches them the same way.",
-      "estimatedResponseValue": "Within four hours",
+      "estimatedResponseValue": "Within 24 hours",
       "reviewer": "Reviewer",
       "reviewerValue": "{more, plural, =0 {A qualified lawyer, trained at {schools}} other {A qualified lawyer, trained at {schools} or one of # other schools}}",
       "canClose": "You can close this tab. Your quote comes to your email and to the bell at the top of this page.",
@@ -2840,13 +2844,13 @@
       "label": "What should they know?",
       "placeholder": "I would rather explain this on a call…",
       "send": "Send this to a person",
-      "cost": "It goes with your case, not into the conversation with Moritz. Somebody reads it within four hours.",
+      "cost": "It goes with your case, not into the conversation with Moritz. Somebody reads it within 24 hours.",
       "cancel": "Not now",
-      "acknowledgement": "I have passed that to a person and it goes with your case, so you will not have to explain it again. Somebody reads it within four hours. We can carry on here in the meantime, or leave it there and I will keep what you have written.",
+      "acknowledgement": "I have passed that to a person and it goes with your case, so you will not have to explain it again. Somebody reads it within 24 hours. We can carry on here in the meantime, or leave it there and I will keep what you have written.",
       "sentTitle": "Passed to a person",
-      "sentDescription": "It is on your case now. Somebody reads it within four hours.",
+      "sentDescription": "It is on your case now. Somebody reads it within 24 hours.",
       "cardTitle": "Handed to a person",
-      "cardPromise": "Somebody reads this within four hours.",
+      "cardPromise": "Somebody reads this within 24 hours.",
       "cardWhoUnknown": "A lawyer reads these, alongside the brief you have been filling in.",
       "screenTitle": "Talk to a person",
       "screenBody": "Write what you want a lawyer to know and pick who should read it. It reaches them with your case, so you do not have to explain the matter twice.",
@@ -2887,7 +2891,7 @@
       "whereBody": "The quote arrives in your case chat, which is the same conversation you just had. That chat stays open, so you can add documents or tell us something changed at any point.",
       "cta": "Open your case",
       "changeNote": "If anything in the brief above is wrong, say so in the case chat before the quote is written and we will put it right.",
-      "turnaroundNote": "Quotes usually come back within four hours. Nothing is charged until you accept it.",
+      "turnaroundNote": "Quotes usually come back within 24 hours. Nothing is charged until you accept it.",
       "signOff": "Yours,",
       "signature": "{name}",
       "signaturePractice": "{title}, Moritz",

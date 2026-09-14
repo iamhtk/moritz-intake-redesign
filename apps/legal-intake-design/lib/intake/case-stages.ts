@@ -53,7 +53,7 @@
  * So it is `detail` on the row it genuinely coincides with. That is the same
  * device `WorkRail` uses for a count it cannot give a row of its own, and here
  * it buys the single most valuable sentence on the screen: the answer to "what
- * is happening during those four hours" turns out to be "quite a lot, and some
+ * is happening during those 24 hours" turns out to be "quite a lot, and some
  * of your document already exists".
  */
 

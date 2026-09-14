@@ -145,32 +145,43 @@ describe('the sidebar, read as source', () => {
   const column = read('components/design/intake-v2/brief-column.tsx');
 
   /*
-   * 1. The traffic light lives on the mark, and the reading stays ink.
+   * 1. The traffic light is on both the mark and the reading, in two weights
+   *    of the same hue.
    *
-   * This test used to pin the opposite — green / amber / red on the three
-   * reading *words*. Measured against white at this size every step of that
-   * ramp failed WCAG AA for text (2.66:1, 3.73:1, 3.57:1 against 4.5:1), so
-   * the hue moved to the 18px mark, which only has 3:1 to clear and clears
-   * it. Pinned as the absence of a colour class rather than as prose, because
-   * the failure mode here is somebody reaching for `text-success` again to
-   * make a reading "read as good".
+   * This test has now pinned all three positions, which is worth recording.
+   * It began by pinning green / amber / red on the reading words; it was
+   * flipped to pin *grey* when the accessibility pass measured that ramp at
+   * 2.66:1 / 3.73:1 / 3.57:1 against AA's 4.5:1; and it now pins the ramp
+   * again, in the darkened `-ink` variants that clear 4.5:1.
+   *
+   * The middle position was an over-correction. "This green is too light to
+   * read" and "this column should not be coloured" are different findings,
+   * and only the first one was measured. The reading is an ordered
+   * three-step scale, and a column of identical grey makes the client read
+   * every row to find the one that wants them.
+   *
+   * The banned list stays, inverted: the raw swatches are the ones that must
+   * not come back, because they are the ones that fail. `confidence-colour.
+   * test.ts` recomputes the contrast of each `-ink` token from `globals.css`
+   * rather than trusting this file to have been kept up to date.
    */
-  it('reads the three confidence levels in ink, not in hue', () => {
-    expect(row).toContain("high: 'text-muted-foreground'");
-    expect(row).toContain("medium: 'text-muted-foreground'");
-    expect(row).toContain("low: 'text-foreground'");
+  it('reads the three confidence levels as a traffic light', () => {
+    expect(row).toContain("high: 'text-success-ink'");
+    expect(row).toContain("medium: 'text-warning-ink'");
+    expect(row).toContain("low: 'text-destructive-ink'");
   });
 
-  it('keeps every status colour off the reading words', () => {
+  it('keeps the unreadable raw swatches off the reading words', () => {
     const levelStyle = row.match(
       /const LEVEL_STYLE[\s\S]*?\n\};/,
     )?.[0] as string;
     expect(levelStyle).toBeTruthy();
     for (const banned of [
-      'text-success',
-      'text-warning',
-      'text-warning-strong',
-      'text-destructive',
+      "'text-success'",
+      "'text-warning'",
+      "'text-warning-strong'",
+      "'text-destructive'",
+      'text-muted-foreground',
     ]) {
       expect(levelStyle).not.toContain(banned);
     }
@@ -180,7 +191,14 @@ describe('the sidebar, read as source', () => {
     expect(row).toContain('bg-success text-background');
   });
 
-  it('shows the client’s own confirmation at 100%, in ink', () => {
+  /*
+   * Green, because this is the strongest form of *settled and good* the panel
+   * can report: not the model's reading of its own guess, but a person having
+   * read it and agreed. `colour-restraint.test.ts` names the client's own
+   * confirmation as one of the four surfaces green is for.
+   */
+  it('shows the client’s own confirmation at 100%, in green', () => {
+    expect(row).toContain('text-success-ink flex shrink-0 items-baseline');
     expect(row).toContain('field.confirmedByClient ?');
     expect(row).toContain("t('confidence.userConfirmed')");
     expect(row).toContain('100%');

@@ -1,8 +1,13 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { useId, type CSSProperties } from 'react';
 import { cn } from '@repo/ui/lib/utils';
 import { Chip } from '@/components/design/foundations/components/chip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { SuggestionChip } from '@/components/design/new-case/intake-types';
 
 /**
@@ -41,6 +46,8 @@ export function SuggestionChips({
   className?: string;
   style?: CSSProperties;
 }) {
+  const groupId = useId();
+
   if (chips.length === 0) return null;
   const locked = selectedValue !== undefined;
 
@@ -52,7 +59,9 @@ export function SuggestionChips({
       <div role="group" className="flex flex-wrap gap-2">
         {chips.map((chip, index) => {
           const isSelected = chip.value === selectedValue;
-          return (
+          const hintId = chip.hint ? `${groupId}-${chip.id}` : undefined;
+
+          const pill = (
             <Chip
               key={chip.id}
               type="button"
@@ -60,6 +69,7 @@ export function SuggestionChips({
               size="sm"
               disabled={locked && !isSelected}
               aria-pressed={isSelected || undefined}
+              {...(hintId ? { 'aria-describedby': hintId } : {})}
               className={cn(
                 'max-lg:h-11',
                 isSelected &&
@@ -74,6 +84,43 @@ export function SuggestionChips({
             >
               {chip.label}
             </Chip>
+          );
+
+          if (!chip.hint) return pill;
+
+          return (
+            /*
+             * `contents` so the wrapper leaves no box behind: the pill stays a
+             * direct flex item of the row and the chip sets that have no hints
+             * lay out byte-for-byte as they did before any of this. The
+             * `sr-only` sibling is absolutely positioned and takes no space.
+             */
+            <span key={chip.id} className="contents">
+              <Tooltip delayDuration={200}>
+                <TooltipTrigger asChild>{pill}</TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[15rem]">
+                  {chip.hint}
+                </TooltipContent>
+              </Tooltip>
+              {/*
+               * The same words again, for everyone the tooltip cannot reach.
+               *
+               * A Radix tooltip opens on hover and on keyboard focus and on
+               * neither of those on a touch screen, which is the device a
+               * founder is most likely to be holding when they cannot tell
+               * which of six practice areas is theirs. `aria-describedby`
+               * against a visually hidden copy means the hint is part of the
+               * button's description at all times, so a screen reader reads
+               * it after the label whether or not the bubble ever opens.
+               *
+               * Radix points `aria-describedby` at its own content while the
+               * tooltip is open; the text is identical either way, so the
+               * handover is invisible.
+               */}
+              <span id={hintId} className="sr-only">
+                {chip.hint}
+              </span>
+            </span>
           );
         })}
       </div>
