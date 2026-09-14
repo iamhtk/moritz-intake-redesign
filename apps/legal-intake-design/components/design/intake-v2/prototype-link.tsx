@@ -56,7 +56,6 @@ export function PrototypeLink({
     <div className={cn('flex justify-center', className)}>
       <button
         type="button"
-        data-tour={direction === 'forward' ? 'prototype-link' : 'prototype-back'}
         onClick={onClick}
         className="text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 flex items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2"
       >

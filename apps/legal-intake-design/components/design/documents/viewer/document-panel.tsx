@@ -178,7 +178,6 @@ export function DocumentPanel({
   return (
     <div
       data-document-panel
-      data-tour="document-panel"
       className={cn(
         'bg-background relative flex min-h-0 min-w-0 flex-col',
         // The dock's own hairline is the grid's; the overlay brings its own.
@@ -233,7 +232,6 @@ export function DocumentPanel({
               variant="ghost"
               size="icon-sm"
               aria-label={t('close')}
-              data-tour="document-close"
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground"
             >

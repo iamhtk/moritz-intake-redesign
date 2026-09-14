@@ -62,7 +62,7 @@ export function PostSubmitDropzone({
   const t = useTranslations('intake.sent');
 
   return (
-    <div data-tour="sent-dropzone" className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <p className="text-foreground text-sm font-medium">
         {isTheOneThing ? t('oneMore.document.title') : t('addMoreTitle')}
       </p>

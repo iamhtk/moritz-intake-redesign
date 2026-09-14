@@ -264,7 +264,6 @@ export function HowItWorksCard({
 
   return (
     <section
-      data-tour="how-it-works"
       className={cn(
         'bg-mz-gold border-foreground/10 tall:px-6 tall:py-5 taller:px-8 taller:py-6 rounded-2xl border px-5 py-4',
         className,

@@ -609,7 +609,7 @@ export function BriefFieldRow({
                       onUndo={onUndo}
                     />
                   ) : showConfirm ? (
-                    <span data-tour="brief-row-actions" className="contents">
+                    <>
                       {/*
                        * The solid variant, against Edit's outline. Agreeing with
                        * the value is the thing this row is asking for, and the two
@@ -637,7 +637,7 @@ export function BriefFieldRow({
                         <Pencil data-icon="inline-start" aria-hidden="true" />
                         {t('edit')}
                       </Button>
-                    </span>
+                    </>
                   ) : settled ? (
                     /*
                      * Quieter than the pair above — ghost, so no fill and no
@@ -720,7 +720,6 @@ export function BriefFieldRow({
               <span className="inline-flex max-w-full items-center gap-1">
                 <button
                   type="button"
-                  data-tour="brief-source"
                   onClick={onOpenSource}
                   className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative inline-flex min-w-0 items-center gap-1 text-left text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
                 >

@@ -29,7 +29,6 @@ export function NotificationMenu() {
           type="button"
           variant="ghost"
           size="icon"
-          data-tour="notifications"
           className="relative inline-flex size-11 sm:size-9"
           aria-label={
             unreadCount > 0

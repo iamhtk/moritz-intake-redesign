@@ -42,7 +42,6 @@ const DIRS = [
   'components/design/intake/chat',
   'components/design/new-case',
   'components/shared',
-  'components/design/tour',
 ];
 
 /**

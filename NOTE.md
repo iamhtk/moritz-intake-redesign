@@ -53,7 +53,7 @@ This answers "what am I getting into?" before the client types a single
 word. Once you start typing, the same list turns into a live tracker, so
 you always know what's done, what's next, and who's doing it.
 
-![Home screen with the "How it works" tracker](apps/legal-intake-design/public/screenshots/01-home.png)
+![Home screen with the "How it works" tracker](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/01-home.png)
 
 ### 2. Drag-and-drop file upload
 
@@ -62,7 +62,7 @@ own red; other file types get their own colour too. This was one of the
 biggest complaints (people couldn't find how to upload), so we made it
 impossible to miss.
 
-![Dropping a file anywhere on the page](apps/legal-intake-design/public/screenshots/a3-upload.png)
+![Dropping a file anywhere on the page](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/a3-upload.png)
 
 ### 3. Human-in-the-loop: Accept and Edit, with a confidence score
 
@@ -78,7 +78,7 @@ Nothing moves forward on the AI's word alone, no matter how high the
 confidence score is. The client, and later the lawyer, always has the
 final say.
 
-![Facts shown with confidence scores, with Accept and Edit](apps/legal-intake-design/public/screenshots/02-describe.png)
+![Facts shown with confidence scores, with Accept and Edit](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/02-describe.png)
 
 ### 4. A clearer side panel for reviewing documents
 
@@ -86,7 +86,7 @@ A preview panel on the right lets you see the document you uploaded, or
 the draft coming back, without leaving the page or downloading anything
 first.
 
-![Document preview panel next to the case brief](apps/legal-intake-design/public/screenshots/document-panel.png)
+![Document preview panel next to the case brief](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/document-panel.png)
 
 ### 5. Command palette (Ctrl+K)
 
@@ -101,7 +101,7 @@ Press **Ctrl+K** (or **Cmd+K** on Mac) anywhere to quickly:
 This is for people who already know what they want and don't want to
 hunt through menus.
 
-![Command palette for sharing a case with a lawyer](apps/legal-intake-design/public/screenshots/cmd-k.png)
+![Command palette for sharing a case with a lawyer](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/cmd-k.png)
 
 ### 6. Ask Nora: a simple Q&A assistant
 
@@ -112,7 +112,7 @@ plain questions about your own cases:
 - "What have I not read yet?"
 - "What am I being charged for?"
 
-![AI chat panel for basic questions](apps/legal-intake-design/public/screenshots/ask-nora.png)
+![AI chat panel for basic questions](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/ask-nora.png)
 
 Nora only answers from your case data and the documents you've sent. She
 says clearly when she doesn't know something, she never gives legal
@@ -125,8 +125,8 @@ directly. No new app, no new link. It's the same conversation the client
 has been having the whole time, just with a real person on the other end
 now.
 
-![Quote ready, with options to accept, ask a question, or push back on price](apps/legal-intake-design/public/screenshots/ask-human-1.png)
-![Quote ready, with options to accept, ask a question, or push back on price](apps/legal-intake-design/public/screenshots/ask-human-2.png)
+![Quote ready, with options to accept, ask a question, or push back on price](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/ask-human-1.png)
+![Quote ready, with options to accept, ask a question, or push back on price](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/ask-human-2.png)
 
 ### 8. Confirmation, so you know you're actually done
 
@@ -135,8 +135,8 @@ status, and a note that a copy was emailed to you. The message tells you
 that you can close the tab. That only feels honest because the email and
 the notification actually exist.
 
-![Confirmation screen with reference number and status](apps/legal-intake-design/public/screenshots/05-sent.png)
-![Confirmation email with the same case details](apps/legal-intake-design/public/screenshots/f4-email.png)
+![Confirmation screen with reference number and status](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/05-sent.png)
+![Confirmation email with the same case details](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/f4-email.png)
 
 ### 9. Progress bar
 
@@ -145,11 +145,9 @@ confirmed**. If you upload a contract that already answers four of the
 six questions we'd normally ask, the bar jumps ahead immediately. It
 reflects what we actually know, not how many boxes are left on a form.
 
-![Case brief at 100% confirmed](apps/legal-intake-design/public/screenshots/03-confirm.png)
+![Case brief at 100% confirmed](https://moritz-intake-redesign-legal-intake.vercel.app/screenshots/03-confirm.png)
 
 ---
-
-
 
 ## Why these changes
 

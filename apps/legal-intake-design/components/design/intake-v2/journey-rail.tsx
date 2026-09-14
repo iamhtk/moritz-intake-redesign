@@ -127,7 +127,6 @@ export function JourneyRailColumn({
   return (
     <aside
       aria-label={t('label')}
-      data-tour="journey-rail"
       /*
        * `pt-8` is the panes' own `py-8`, so the first heading lines up with
        * the first message rather than floating above it. Hidden below `xl`
@@ -288,11 +287,7 @@ function JourneyStep({
   const stepState = done ? 'done' : current ? 'current' : 'future';
 
   return (
-    <li
-      aria-current={current ? 'step' : undefined}
-      data-tour={`journey-step-${step}`}
-      className="flex gap-2"
-    >
+    <li aria-current={current ? 'step' : undefined} className="flex gap-2">
       {/*
        * The line, drawn beside the row as a flex column rather than as a left
        * border on it: a border runs the full height of the last row and

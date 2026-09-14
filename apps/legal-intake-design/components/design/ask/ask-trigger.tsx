@@ -54,7 +54,6 @@ export function AskTrigger() {
         <Button
           type="button"
           variant="ghost"
-          data-tour="ask-nora"
           onClick={() => setOpen(true)}
           aria-keyshortcuts="Meta+J Control+J"
           aria-label={t('openHint')}

@@ -391,7 +391,6 @@ export function ChatComposer({
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <form
       data-slot="control"
-      data-tour="composer"
       {...dropHandlers}
       onSubmit={(event) => {
         event.preventDefault();
@@ -706,10 +705,7 @@ export function ChatComposer({
           {t(`voice.${dictation.error}`)}
         </p>
       ) : null}
-      <div
-        data-tour="composer-tools"
-        className="flex items-center justify-between gap-2 px-3 pb-3 pt-1"
-      >
+      <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">
         <div className="flex items-center gap-2">
           {showAttach ? (
             <>

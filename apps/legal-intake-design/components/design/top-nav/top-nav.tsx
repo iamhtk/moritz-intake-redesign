@@ -7,8 +7,6 @@ import { useIntakeProgressPanel } from '@/components/design/intake/intake-progre
 import { AskTrigger } from '@/components/design/ask/ask-trigger';
 import { useAskAvailable } from '@/components/design/ask/use-ask-available';
 import { CommandPaletteTrigger } from '@/components/design/command-palette/command-palette-trigger';
-import { TourButton } from '@/components/design/tour/tour-button';
-import { tourOffered } from '@/lib/tour/availability';
 import { NotificationMenu } from '@/components/design/top-nav/notification-menu';
 import { TopNavMobileNav } from '@/components/design/top-nav/top-nav-mobile-nav';
 import { TopNavSegmented } from '@/components/design/top-nav/top-nav-segmented';
@@ -354,13 +352,6 @@ export function TopNav({ user }: TopNavProps) {
              * disappearances and is not coming back to a call site.
              */}
             {askAvailable ? <AskTrigger /> : null}
-            {/*
-             * The tour, after Ask and before the bell: the two "help me"
-             * controls sit together and the bell keeps its place by the
-             * avatar. Offered by `tourOffered`, the same predicate the shell
-             * mounts the provider from, so the button is never inert.
-             */}
-            {tourOffered(companyType) ? <TourButton /> : null}
             <NotificationMenu />
             {intakePanel?.isAvailable ? (
               <Tooltip>

@@ -17,8 +17,6 @@ import { NotificationsPanel } from '@/components/design/notifications/notificati
 import { NotificationsPanelProvider } from '@/components/design/notifications/notifications-panel-context';
 import { TalkOverlay } from '@/components/design/talk/talk-overlay';
 import { TalkOverlayProvider } from '@/components/design/talk/talk-overlay-context';
-import { TourProvider } from '@/components/design/tour/tour-context';
-import { tourOffered } from '@/lib/tour/availability';
 import { SettingsV2Modal } from '@/components/design/settings-v2/settings-v2-modal';
 import { SettingsV2Provider } from '@/components/design/settings-v2/settings-v2-context';
 import { SupportChatLauncher } from '@/components/design/support-chat/support-chat-launcher';
@@ -53,25 +51,6 @@ import { isIntakeRoute } from '@/lib/intake/route-match';
  * carry one line rather than four, and so the palette's *Ask Nora* row has a
  * handle to the panel beside it.
  */
-/**
- * The tour's engine, for the roles it is offered to (`tourOffered`), and a
- * plain fragment for everyone else — so `TourButton` in the nav and the
- * provider it needs are decided by one predicate in one file.
- */
-function MaybeTour({
-  user,
-  children,
-}: {
-  user: AuthUser;
-  children: React.ReactNode;
-}) {
-  return tourOffered(user.company.type) ? (
-    <TourProvider>{children}</TourProvider>
-  ) : (
-    <>{children}</>
-  );
-}
-
 function DashboardOverlays({ user }: { user: AuthUser }) {
   const { flags } = useDesignFlags();
   const { openAsk } = useAsk();
@@ -177,31 +156,29 @@ export function DashboardShell({
       >
         <IntakeProgressPanelProvider>
           <NavigationGuardProvider>
-            <MaybeTour user={user}>
-              <TopNav user={user} />
-              <DashboardOverlays user={user} />
-              {/*
-               * The intake owns its own container so its two columns can run the
-               * full height and line up with the header above them. Every other
-               * route keeps the shell's width and padding.
-               */}
-              <main
-                id="main-content"
-                // `tabIndex={-1}` so the skip link can actually move focus
-                // here. Without it the browser scrolls to the anchor and leaves
-                // focus on the link, so the next Tab goes back into the nav —
-                // which is the thing the link exists to escape.
-                tabIndex={-1}
-                className={cn(
-                  'mx-auto w-full flex-1 overflow-y-auto outline-none',
-                  onIntakeRoute
-                    ? 'flex min-h-0 flex-col'
-                    : 'max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8',
-                )}
-              >
-                {children}
-              </main>
-            </MaybeTour>
+            <TopNav user={user} />
+            <DashboardOverlays user={user} />
+            {/*
+             * The intake owns its own container so its two columns can run the
+             * full height and line up with the header above them. Every other
+             * route keeps the shell's width and padding.
+             */}
+            <main
+              id="main-content"
+              // `tabIndex={-1}` so the skip link can actually move focus
+              // here. Without it the browser scrolls to the anchor and leaves
+              // focus on the link, so the next Tab goes back into the nav —
+              // which is the thing the link exists to escape.
+              tabIndex={-1}
+              className={cn(
+                'mx-auto w-full flex-1 overflow-y-auto outline-none',
+                onIntakeRoute
+                  ? 'flex min-h-0 flex-col'
+                  : 'max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8',
+              )}
+            >
+              {children}
+            </main>
           </NavigationGuardProvider>
         </IntakeProgressPanelProvider>
       </div>
@@ -224,25 +201,23 @@ export function DashboardShell({
       <SidebarInset className="h-svh overflow-hidden md:h-[calc(100svh-1rem)]">
         <IntakeProgressPanelProvider>
           <NavigationGuardProvider>
-            <MaybeTour user={user}>
-              <SiteHeader user={user} />
-              <DashboardOverlays user={user} />
-              {/*
-               * The intake owns its own container so its columns can run full
-               * height and line up with the header. Every other route keeps the
-               * shell's padding.
-               */}
-              <main
-                id="main-content"
-                tabIndex={-1}
-                className={cn(
-                  'flex min-h-0 flex-1 flex-col overflow-y-auto outline-none',
-                  !onIntakeRoute && 'px-4 pb-10 pt-6 sm:px-6 lg:px-8',
-                )}
-              >
-                {children}
-              </main>
-            </MaybeTour>
+            <SiteHeader user={user} />
+            <DashboardOverlays user={user} />
+            {/*
+             * The intake owns its own container so its columns can run full
+             * height and line up with the header. Every other route keeps the
+             * shell's padding.
+             */}
+            <main
+              id="main-content"
+              tabIndex={-1}
+              className={cn(
+                'flex min-h-0 flex-1 flex-col overflow-y-auto outline-none',
+                !onIntakeRoute && 'px-4 pb-10 pt-6 sm:px-6 lg:px-8',
+              )}
+            >
+              {children}
+            </main>
           </NavigationGuardProvider>
         </IntakeProgressPanelProvider>
       </SidebarInset>

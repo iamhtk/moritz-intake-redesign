@@ -212,7 +212,6 @@ export function TalkToAPerson({
   return (
     <button
       type="button"
-      data-tour="talk-to-a-person"
       onClick={open}
       className={cn(
         'text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 flex w-fit items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2',
