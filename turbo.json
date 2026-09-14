@@ -1,6 +1,12 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "ANTHROPIC_API_KEY",
+    "PLAYGROUND_PASSWORD",
+    "PLAYGROUND_GATE_SECRET",
+    "VERCEL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
