@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import {
@@ -19,6 +20,8 @@ import {
   getCaseTypeById,
   getTemplatesForCaseType,
 } from '@/lib/mocks/case-types';
+
+export const metadata: Metadata = { title: 'Case type' };
 
 interface PageProps {
   params: Promise<{ caseTypeId: string }>;

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EXTRA_ROUTES } from '@/components/navigation/sidebar-nav-items';
 import { isMatterId } from '@/components/design/new-case/intake-types';
+import { lawyerById } from '@/components/design/new-case/lawyers';
 import { MORITZ_AI, toCaseTranscript } from './case-transcript';
 import type { ParticipantRef } from '@/lib/types';
 
@@ -259,10 +260,15 @@ describe('the wiring', () => {
     expect(record).toContain('carryPersonMessagesToCase');
   });
 
+  /*
+   * Asserted on the shared hook now rather than on the screen. The screen
+   * delegates, and so does the overlay — see 'shares one send path' below,
+   * which is what stops the two surfaces drifting.
+   */
   it('puts a message sent after submission straight onto the case', () => {
-    const screen = read('components/design/talk/talk-screen.tsx');
-    expect(screen).toContain('addSubmittedCaseTurns');
-    expect(screen).toContain('recordPersonMessage');
+    const hook = read('components/design/talk/use-send-person-message.ts');
+    expect(hook).toContain('addSubmittedCaseTurns');
+    expect(hook).toContain('recordPersonMessage');
   });
 
   it('renders the handoff as a card in the case thread', () => {
@@ -270,15 +276,84 @@ describe('the wiring', () => {
   });
 
   /*
-   * The exit navigates now. A dialog here was the thing that sent the client
-   * back to the conversation they had just opted out of.
+   * The exit opens over the page and *sending* navigates.
+   *
+   * Both halves matter and they used to be one. A dialog that wrote back into
+   * the transcript was the original defect — the exit did not go anywhere. A
+   * straight navigation on the first click fixed that and broke the entrance:
+   * the page went away before the client had written a word, behind a discard
+   * prompt about work they had not asked to abandon.
    */
-  it('navigates instead of opening a dialog', () => {
+  it('opens the overlay rather than navigating on the first click', () => {
     const trigger = read('components/design/intake-v2/talk-to-a-person.tsx');
-    expect(trigger).toContain('/client/talk');
-    expect(trigger).toContain('navigationGuard.navigate');
-    expect(trigger).not.toContain('Dialog');
+    expect(trigger).toContain('overlay.openTalk');
+    // No compose surface of its own: the overlay owns the message.
     expect(trigger).not.toContain('Textarea');
+  });
+
+  it('navigates to the screen when the message is sent', () => {
+    const overlay = read('components/design/talk/talk-overlay.tsx');
+    expect(overlay).toContain('/client/talk');
+    expect(overlay).toContain('navigationGuard.navigate');
+  });
+
+  /*
+   * A named click is a choice already made. Offering a roster afterwards asks
+   * the same question twice and lets the second answer contradict the first,
+   * which is how an employment matter gets addressed to the commercial lead.
+   */
+  it('hides the roster when the request names a lawyer', () => {
+    const overlay = read('components/design/talk/talk-overlay.tsx');
+    expect(overlay).toContain("step === 'pick' && !lockedLawyer");
+  });
+
+  /*
+   * The label follows the face on screen, not `matterId`.
+   *
+   * The trigger used to resolve its own first name through `leadForMatter`,
+   * which returns the default lead for an unknown matter — so every one of the
+   * eleven rotating faces carried "Ask Daniel something" underneath it.
+   */
+  it('never resolves its own name from the matter', () => {
+    const trigger = read('components/design/intake-v2/talk-to-a-person.tsx');
+    expect(trigger).not.toContain('leadForMatter');
+    expect(trigger).toContain('triggerAnyone');
+    // Named only once the rotation has settled on a real lead.
+    expect(trigger).toContain('pinned && lawyer');
+  });
+
+  it('passes the face it is showing down to the trigger', () => {
+    const note = read('components/design/intake-v2/intake-lawyer-note.tsx');
+    expect(note).toContain('lawyer={lawyer}');
+    expect(note).toContain('pinned={isSettled}');
+  });
+
+  /*
+   * One send path, or a message written in the overlay reaches the Talk screen
+   * and never reaches the case — which looks correct on both screens.
+   */
+  it('shares one send path between the overlay and the screen', () => {
+    expect(read('components/design/talk/talk-screen.tsx')).toContain(
+      'useSendPersonMessage',
+    );
+    expect(read('components/design/talk/talk-overlay.tsx')).toContain(
+      'useSendPersonMessage',
+    );
+    const hook = read('components/design/talk/use-send-person-message.ts');
+    expect(hook).toContain('recordPersonMessage');
+    expect(hook).toContain('addSubmittedCaseTurns');
+  });
+
+  /*
+   * Priya is the one lawyer this flow names to a client by design, and she is
+   * not in `ONBOARDING_LAWYERS` — so the lookup the handoff card draws a face
+   * from has to read the full roster or *Ask Priya* records an id that
+   * resolves to nobody.
+   */
+  it('resolves every roster lawyer by id, not just the onboarding five', () => {
+    expect(lawyerById('intake-lawyer-priya')?.name).toBe('Priya Shah');
+    expect(lawyerById('onboarding-lawyer-daniel')).not.toBeNull();
+    expect(lawyerById('not-a-lawyer')).toBeNull();
   });
 
   /* One column. A brief panel here would be about work this screen is not doing. */
@@ -322,9 +397,15 @@ describe('the wiring', () => {
     expect(picker).toContain('group-focus:bg-primary-foreground/20');
   });
 
+  /*
+   * The full roster, not the onboarding five. A client can watch any of eleven
+   * faces rotate beside the composer, so a picker that offers five of them is
+   * a list that contradicts the screen above it — and the one it left out was
+   * Priya, the only lawyer this flow names to a client by design.
+   */
   it('offers the roster with faces rather than one resolved lawyer', () => {
     const picker = read('components/design/talk/lawyer-picker.tsx');
-    expect(picker).toContain('ONBOARDING_LAWYERS');
+    expect(picker).toContain('INTAKE_NOTE_ROSTER');
     expect(picker).toContain('AvatarImage');
     // "Anyone at Moritz" is the default, so the exit is not a quiz.
     expect(picker).toContain('ANY_LAWYER');

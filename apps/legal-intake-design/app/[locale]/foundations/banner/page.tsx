@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   AlertCircle,
   AlertTriangle,
@@ -12,6 +13,8 @@ import {
   BannerTitle,
 } from '@/components/design/foundations/components/banner';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Banner · Foundations' };
 
 export default function BannerFoundationPage() {
   return (

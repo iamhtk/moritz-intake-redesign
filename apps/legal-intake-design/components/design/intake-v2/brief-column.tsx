@@ -35,6 +35,7 @@ export function BriefColumn({
   notice,
   afterFields,
   footer,
+  mobileNote,
   readOnly = false,
   foldFields = false,
   showProgress = true,
@@ -111,6 +112,20 @@ export function BriefColumn({
   afterFields?: ReactNode;
   /** Anchored to the bottom of the column: the quote line, or how this works. */
   footer?: ReactNode;
+  /**
+   * The sentence that normally rides above the action, when the action is not
+   * here (below `lg`).
+   *
+   * On a phone the button lives in its own bar under the composer, outside
+   * this collapsible panel, so that it cannot be closed away. The sentence
+   * does not follow it: three lines of 10.5px copy pinned above a button at
+   * the bottom of a 390px screen is a permanent disclaimer, and what the
+   * sentence is *about* is the brief. So it ends the brief instead, which is
+   * where a client reading the document arrives at it exactly once.
+   *
+   * `lg:hidden`, because above that breakpoint `footer` already carries it.
+   */
+  mobileNote?: ReactNode;
   /** A sent brief is a record. No Accept, no pencil, no Undo. */
   readOnly?: boolean;
   /**
@@ -193,6 +208,12 @@ export function BriefColumn({
 
   return (
     <section aria-label={t('title')} className="flex h-full min-h-0 flex-col">
+      {/*
+       * Both children are `max-lg:hidden`, so on a phone this block collapses
+       * to nothing: the heading is already in the collapsible summary bar
+       * above the panel, and the progress bar moved up there with it so it
+       * survives the panel being closed (`brief-summary-bar.tsx`).
+       */}
       <div className="flex flex-col gap-3">
         {/*
          * Hidden below `lg`, where the collapsible summary bar above the panel
@@ -217,7 +238,7 @@ export function BriefColumn({
         </h2>
 
         {showProgress ? (
-          <>
+          <div className="flex flex-col gap-3 max-lg:hidden">
             <div className="flex items-baseline justify-between gap-4">
               <span className="text-muted-foreground text-xs">
                 {t('label')}
@@ -270,7 +291,7 @@ export function BriefColumn({
                 style={{ width: barWidth(progress.percent) }}
               />
             </div>
-          </>
+          </div>
         ) : null}
       </div>
 
@@ -390,8 +411,21 @@ export function BriefColumn({
        * here: if the row beneath the composer grows a second line, this is the
        * value that has to follow it.
        */}
+      {mobileNote ? (
+        <div className="border-border mt-6 border-t pt-4 lg:hidden">
+          {mobileNote}
+        </div>
+      ) : null}
+
+      {/*
+       * Desktop only. Below `lg` the primary action is not in this panel at
+       * all — it sits in its own bar under the composer, outside the
+       * collapsible (see `intake-v2.tsx`), because a Send button that
+       * disappears when the client closes the brief is a Send button they
+       * have to go looking for.
+       */}
       {footer ? (
-        <div className="bg-background pb-13 sticky -bottom-8 -mx-4 mt-auto px-4 pt-5 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="bg-background pb-13 sticky -bottom-8 -mx-4 mt-auto px-4 pt-5 max-lg:hidden sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <div className="border-border border-t pt-4">{footer}</div>
         </div>
       ) : null}

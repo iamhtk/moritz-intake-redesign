@@ -45,8 +45,24 @@ const byId = (id: string): OnboardingLawyer | null =>
  * *who* it was put in front of, and the matter that resolved them is not on the
  * case thread to resolve again. Same `null` discipline as `byId` — a stale id
  * shows no face rather than the wrong one.
+ *
+ * **It searches the whole roster, not just the onboarding five.** This was
+ * `byId` itself, and that is a narrower list: it excludes the five additional
+ * team members the homepage rotates, and it excludes Priya, the employment
+ * lead, who exists only in this file. So the one lawyer this app names to a
+ * client by design — *Ask Priya*, on an employment matter, with her monogram
+ * beside it — was also the one whose id resolved to `null` everywhere a face
+ * had to be drawn back from a recorded handoff. The message was addressed
+ * correctly and the card said "a lawyer reads these" with no name on it.
+ *
+ * `INTAKE_NOTE_ROSTER` is the full set and is declared below; a function body
+ * reads it at call time, which is long after module evaluation. It cannot be
+ * the `const` alias this used to be, because `INTAKE_NOTE_ROSTER` is built from
+ * `DEFAULT_LEAD`, which is built from `byId`.
  */
-export const lawyerById = byId;
+export function lawyerById(id: string): OnboardingLawyer | null {
+  return INTAKE_NOTE_ROSTER.find((one) => one.id === id) ?? null;
+}
 
 /**
  * The practice areas the intake actually routes on (item 13).

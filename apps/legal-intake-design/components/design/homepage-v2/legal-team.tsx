@@ -1,5 +1,6 @@
 'use client';
 
+import { MOBILE_QUERY } from '@/lib/breakpoints';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
@@ -23,7 +24,6 @@ const STAGGER_MS = 700;
 const DESKTOP_CELL_COUNT = 5;
 const MOBILE_CELL_COUNT = 3;
 /** Tailwind `sm` breakpoint; below this we drop to the mobile cell count. */
-const MOBILE_QUERY = '(max-width: 639px)';
 
 /**
  * Per-headshot crop/zoom so the row reads as a cohesive, symmetric set: anchor

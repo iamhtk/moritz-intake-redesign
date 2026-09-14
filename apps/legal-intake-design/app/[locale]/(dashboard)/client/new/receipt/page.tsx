@@ -1,4 +1,7 @@
+import type { Metadata } from 'next';
 import CaseConfirmation from '@/components/cases/case-confirmation';
+
+export const metadata: Metadata = { title: 'Case sent' };
 
 interface PageProps {
   searchParams: Promise<{ caseId?: string | string[] }>;

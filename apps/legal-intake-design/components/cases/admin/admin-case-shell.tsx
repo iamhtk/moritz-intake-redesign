@@ -1,5 +1,6 @@
 'use client';
 
+import { MOBILE_QUERY } from '@/lib/breakpoints';
 import {
   useCallback,
   useEffect,
@@ -235,7 +236,7 @@ export function AdminCaseShell({
   // after the initial paint so the first render is instant, while later manual
   // toggles still animate.
   useEffect(() => {
-    if (window.matchMedia('(max-width: 767px)').matches) {
+    if (window.matchMedia(MOBILE_QUERY).matches) {
       setIsPanelOpen(false);
     }
     const id = requestAnimationFrame(() => setAnimationsEnabled(true));

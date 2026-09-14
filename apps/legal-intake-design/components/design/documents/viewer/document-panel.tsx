@@ -34,6 +34,23 @@ export type DocumentPanelProps = {
   /** `true` in the docked column, `false` in the overlay. */
   compact: boolean;
   maximised: boolean;
+  /**
+   * Whether a docked column exists to minimise *into*, at this width and phase.
+   *
+   * Not a styling flag. `intake-v2` docks only from `xl` up (`roomToDock`) and
+   * never on the opening screen, and it enforces that with an effect that
+   * re-maximises anything that becomes docked without room. So below 1280px
+   * `onMinimise()` set the mode to `docked` and the effect immediately set it
+   * back to `maximised`: the button was there, it was labelled, it was
+   * focusable, and pressing it did nothing at all except re-render.
+   *
+   * Offering the control only where it can land is the same rule the composer
+   * already follows in `ask-panel` ("a paperclip here would be a control that
+   * does nothing"). When this is `false` the overlay is the only seat the
+   * document has, so the toggle is not drawn and Escape closes instead of
+   * minimising.
+   */
+  dockable: boolean;
   citations: readonly DocumentCitation[];
   reveal: DocumentReveal | null;
   onRevealHandled: (found: boolean) => void;
@@ -138,6 +155,7 @@ export function DocumentPanel({
   active,
   compact,
   maximised,
+  dockable,
   citations,
   reveal,
   onRevealHandled,
@@ -178,27 +196,34 @@ export function DocumentPanel({
           {active.name}
         </h2>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t(maximised ? 'minimise' : 'maximise')}
-              onClick={maximised ? onMinimise : onMaximise}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {maximised ? (
-                <Minimize2 className="size-3.5" aria-hidden />
-              ) : (
-                <Maximize2 className="size-3.5" aria-hidden />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            {t(maximised ? 'minimise' : 'maximise')}
-          </TooltipContent>
-        </Tooltip>
+        {/*
+         * Drawn only when it has somewhere to go. A maximised panel with no
+         * dock to return to (below `xl`, or on the opening screen) offers no
+         * toggle, because the one it used to offer was inert: see `dockable`.
+         */}
+        {dockable ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t(maximised ? 'minimise' : 'maximise')}
+                onClick={maximised ? onMinimise : onMaximise}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {maximised ? (
+                  <Minimize2 className="size-3.5" aria-hidden />
+                ) : (
+                  <Maximize2 className="size-3.5" aria-hidden />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {t(maximised ? 'minimise' : 'maximise')}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
 
         <Tooltip>
           <TooltipTrigger asChild>

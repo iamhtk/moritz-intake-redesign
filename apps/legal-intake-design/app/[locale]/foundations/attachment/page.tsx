@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   AttachmentDemo,
@@ -7,6 +8,8 @@ import {
   AttachmentStatesExample,
   AttachmentTriggerExample,
 } from '@/components/design/foundations/examples/attachment-examples';
+
+export const metadata: Metadata = { title: 'Attachment · Foundations' };
 
 export default function AttachmentFoundationPage() {
   return (

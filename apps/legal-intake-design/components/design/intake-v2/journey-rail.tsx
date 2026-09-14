@@ -39,11 +39,11 @@ import type { IntakePhase } from '@/lib/intake/phase';
  * an arbitrary moment, not at the bottom of a column. In its own column at the
  * far left it is always in the same place, whatever else the page is doing:
  * document open or closed, narrow or dragged wide, first reply or
- * confirmation. Mirrors the document panel on the right.
- *
- * On the opening screen it waits: the column is reserved from first paint and
- * the rail is drawn the moment the client types, taking over from the card
- * that explains the same four words. See `JourneyHandoff`.
+ * confirmation. Not on the opening screen — nothing has started there, so
+ * there is no position to report, and a tracker that appears mid-keystroke is
+ * worse again. The card there (`how-it-works.tsx`) explains the same four
+ * words; this reports on them once there is something to report. Mirrors the
+ * document panel on the right.
  *
  * **It is a column, not an overlay.** See `JourneyRailColumn` for the three
  * ways the overlay version failed. Overlap is not avoided here, it is
@@ -70,53 +70,6 @@ import type { IntakePhase } from '@/lib/intake/phase';
  * to that measure — see `intake.journey` in `en.json` — rather than borrowed
  * from a panel that had 400px to play with.
  */
-
-/**
- * The column, as a class string, so the reserved-but-empty case cannot drift.
- *
- * `pt-8` is the panes' own `py-8`, so the first heading lines up with the
- * first message rather than floating above it. Hidden below `xl` rather than
- * shrunk: a rail narrower than this cannot hold its own sentences, and the
- * folded line is the better answer at that width.
- */
-const RAIL_COLUMN =
-  'hidden w-[11.25rem] shrink-0 flex-col pl-5 pr-2 pt-8 xl:flex';
-
-/**
- * ⭐ The opening screen's card-to-rail handoff.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * WHY THE RAIL IS NOW ON THE OPENING SCREEN, HAVING BEEN KEPT OFF IT.
- * ─────────────────────────────────────────────────────────────────────────────
- *
- * The rule used to be "no rail before the conversation", and the argument was
- * good: nothing has started, so there is no position to report, and four
- * labels tracking a case that does not exist are chrome on the one screen
- * whose design is a single centred column.
- *
- * What changed is that the opening screen now explains the case in the rail's
- * own four words (`how-it-works.tsx`), so there is something for the rail to
- * *take over from*. The client reads Brief, Quote, Lawyer, Document as a card
- * in the middle of the page, types their first character, and watches the same
- * four words reappear in the margin with Brief active. The explanation turns
- * into the tracker. That is worth more than either the card or the rail alone,
- * and it is only possible if the rail can be on the opening screen.
- *
- * The old rule survives in a tighter form: no rail *before the client begins*.
- *
- * - `'waiting'` — the column is reserved and nothing is drawn in it. Reserved
- *   rather than absent because the page is a centred composition, and a column
- *   appearing at the left would shove the composer sideways under the cursor
- *   of somebody mid-sentence. The space is paid for at first paint, when
- *   nobody can see it being paid for.
- * - `'arriving'` — the rail is drawn, fading in, while the card folds away.
- *   `mz-animate-reveal` is opacity and a hair of scale, and `globals.css`
- *   disables it under `prefers-reduced-motion`, so the reduced-motion client
- *   gets the plain swap the handoff promises for free.
- * - `undefined` — every screen after the opening one. The rail is simply
- *   there, with no entrance, because it has been there since the first reply.
- */
-export type JourneyHandoff = 'waiting' | 'arriving';
 
 /**
  * The rail's own column, at the far left of the window.
@@ -162,33 +115,26 @@ export type JourneyHandoff = 'waiting' | 'arriving';
 export function JourneyRailColumn({
   phase,
   accepted = false,
-  handoff,
   className,
 }: {
   phase: IntakePhase;
   /** Whether the quote has been accepted, which ticks one more row. */
   accepted?: boolean;
-  /** See `JourneyHandoff`. Omitted everywhere except the opening screen. */
-  handoff?: JourneyHandoff;
   className?: string;
 }) {
   const t = useTranslations('intake.journey');
 
-  /*
-   * An empty landmark is worse than no landmark: a screen reader would list
-   * "Where you are" in the page outline and find nothing under it. While the
-   * column is only holding space it is a plain, hidden box.
-   */
-  if (handoff === 'waiting') {
-    return <div aria-hidden="true" className={cn(RAIL_COLUMN, className)} />;
-  }
-
   return (
     <aside
       aria-label={t('label')}
+      /*
+       * `pt-8` is the panes' own `py-8`, so the first heading lines up with
+       * the first message rather than floating above it. Hidden below `xl`
+       * rather than shrunk: a rail narrower than this cannot hold its own
+       * sentences, and the folded line is the better answer at that width.
+       */
       className={cn(
-        RAIL_COLUMN,
-        handoff === 'arriving' && 'mz-animate-reveal',
+        'hidden w-[11.25rem] shrink-0 flex-col pl-5 pr-2 pt-8 xl:flex',
         className,
       )}
     >

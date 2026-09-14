@@ -1,7 +1,10 @@
+import type { Metadata } from 'next';
 import { ArrowRight, CircleCheck, Plus, Settings } from '@repo/ui/icons';
 
 import { Button } from '@/components/design/foundations/components/button';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Buttons · Foundations' };
 
 const SIZES = ['sm', 'default', 'lg', 'xl', '2xl'] as const;
 const ICON_SIZES = ['icon-sm', 'icon', 'icon-lg'] as const;

@@ -7,8 +7,8 @@
  * with the passages a brief field claims to quote highlighted on the page.
  */
 export { DocumentOverlay } from './document-overlay';
-export { DocumentPanel } from './document-panel';
 export { DocumentRailTrigger } from './document-rail-trigger';
+export { DocumentPanel } from './document-panel';
 export {
   DocumentResizeHandle,
   MIN_DOCUMENT_WIDTH,

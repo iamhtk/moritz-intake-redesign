@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/design/foundations/components/dialog';
+import { MobileSheet } from '@/components/design/mobile/mobile-sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   InputGroup,
   InputGroupAddon,
@@ -90,6 +92,38 @@ function CommandDialog({
   description: string;
   className?: string;
 }) {
+  const isMobile = useIsMobile();
+
+  /*
+   * On a phone the palette is a bottom sheet, not a centred dialog.
+   *
+   * Same reasoning as the bell and Ask: everything the top bar can summon
+   * arrives from the bottom edge with a grab handle on it, so there is one
+   * dismiss gesture to learn rather than four. It also puts the field within
+   * thumb reach and the results above it, which is the right way round when
+   * the keyboard is going to take the lower third of the screen.
+   *
+   * The title is visible here rather than `sr-only`. In the dialog the input
+   * is the only thing on the surface and labels itself; the sheet already has
+   * a header row (it needs somewhere to hang the × and the handle), so
+   * leaving it blank would be a deliberately empty bar.
+   */
+  if (isMobile) {
+    return (
+      <MobileSheet
+        open={props.open ?? false}
+        onOpenChange={props.onOpenChange ?? (() => {})}
+        title={title}
+        description={description}
+        closeLabel="Close command menu"
+        bodyClassName="px-2 pt-0"
+        autoFocus
+      >
+        {children}
+      </MobileSheet>
+    );
+  }
+
   return (
     <Dialog {...props}>
       <DialogContent

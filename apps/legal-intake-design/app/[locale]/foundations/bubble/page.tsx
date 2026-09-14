@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   BubbleAlignmentExample,
@@ -10,6 +11,8 @@ import {
   BubbleTooltipExample,
   BubbleVariantsExample,
 } from '@/components/design/foundations/examples/bubble-examples';
+
+export const metadata: Metadata = { title: 'Bubble · Foundations' };
 
 export default function BubbleFoundationPage() {
   return (

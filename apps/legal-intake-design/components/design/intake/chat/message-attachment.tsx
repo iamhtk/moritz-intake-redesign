@@ -54,19 +54,27 @@ export function MessageAttachment({
         <Icon aria-hidden="true" className={colorClass} />
       </AttachmentMedia>
       <AttachmentContent>
-        <AttachmentTitle>{name}</AttachmentTitle>
+        {/*
+         * Wrapped, not truncated. A client who uploads
+         * "2026-03-11 Heads of Terms (IBM) — countersigned FINAL.pdf" gets a
+         * name longer than a phone is wide, and the old single ellipsised line
+         * both hid it and — because the card is `w-fit` inside a shrink-to-fit
+         * bubble — dragged the whole transcript sideways. See `wrap` in
+         * `attachment.tsx`.
+         */}
+        <AttachmentTitle wrap>{name}</AttachmentTitle>
       </AttachmentContent>
     </>
   );
 
   return (
-    <Attachment className={cn('w-full', className)}>
+    <Attachment className={cn('w-full min-w-0 items-start', className)}>
       {onOpen ? (
         <button
           type="button"
           onClick={onOpen}
           title={name}
-          className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -m-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[0.5rem] p-1 text-left outline-none transition-colors focus-visible:outline-2"
+          className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-[0.5rem] p-1 text-left outline-none transition-colors focus-visible:outline-2"
         >
           {body}
         </button>

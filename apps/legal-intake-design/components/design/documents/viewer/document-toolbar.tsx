@@ -66,7 +66,14 @@ function ToolbarButton({
       size={compact ? 'icon-sm' : 'sm'}
       disabled={disabled}
       onClick={onClick}
-      aria-label={compact ? label : undefined}
+      /*
+       * Always, not only when `compact`. The label below can be hidden by a
+       * container query as well as by the prop, and a `hidden` span is out of
+       * the accessibility tree — so a button that was named by its own text
+       * became a nameless glyph the moment the overlay got narrow. Setting it
+       * unconditionally is the same string either way.
+       */
+      aria-label={label}
       aria-pressed={active}
       className={cn(
         'text-muted-foreground hover:text-foreground font-normal',
@@ -74,7 +81,7 @@ function ToolbarButton({
       )}
     >
       {icon}
-      {!compact && <span>{label}</span>}
+      {!compact && <span className="@max-[30rem]:hidden">{label}</span>}
     </Button>
   );
 
@@ -119,8 +126,31 @@ export function DocumentToolbar({
   const searched = (viewer?.query.trim().length ?? 0) >= MIN_QUERY_LENGTH;
 
   return (
-    <div className="border-border shrink-0 border-b">
-      <div className="flex items-center justify-between gap-1 px-2 py-1.5">
+    /*
+     * `@container`, so the two strips below react to the width the toolbar is
+     * actually given rather than to the window. The same toolbar is a 30rem
+     * docked column, a centred overlay on a laptop, and a full-bleed overlay
+     * on a phone, and only the first of those is predictable from a media
+     * query.
+     */
+    <div className="@container border-border shrink-0 border-b">
+      {/*
+       * Two clusters, one flex line that is allowed to become two.
+       *
+       * What is in this row is two different jobs: things you do to the
+       * *file* (read about it, download it, print it, search it) and things
+       * you do to the *view* (which page, how big). Six controls and a page
+       * readout do not fit across a phone, and the old row simply overflowed
+       * — the zoom controls ran off the right edge.
+       *
+       * `flex-wrap` rather than a breakpoint, because the split is a fact
+       * about whether they fit: the file actions keep the first strip, the
+       * view controls drop onto a second one underneath, and on anything
+       * wide enough the two sit on one line exactly as before. Nothing is
+       * hidden, nothing is behind an overflow menu, and there is no width at
+       * which a control is unreachable.
+       */}
+      <div className="flex flex-wrap items-center justify-between gap-x-1 gap-y-0.5 px-2 py-1.5">
         <div className="flex min-w-0 items-center gap-0.5">
           <Popover>
             <PopoverTrigger asChild>
@@ -128,11 +158,15 @@ export function DocumentToolbar({
                 type="button"
                 variant="ghost"
                 size={compact ? 'icon-sm' : 'sm'}
-                aria-label={compact ? t('about.label') : undefined}
+                aria-label={t('about.label')}
                 className="text-muted-foreground hover:text-foreground font-normal"
               >
                 <Info aria-hidden />
-                {!compact && <span>{t('about.label')}</span>}
+                {!compact && (
+                  <span className="@max-[30rem]:hidden">
+                    {t('about.label')}
+                  </span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-auto p-4">

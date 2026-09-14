@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Card, CardContent } from '@repo/ui/components/card';
 import { cn } from '@repo/ui/lib/utils';
 
@@ -13,6 +14,8 @@ import {
   Text,
   TextLink,
 } from '@/components/design/foundations/components/text';
+
+export const metadata: Metadata = { title: 'Typography · Foundations' };
 
 /** The three typefaces the playground ships, with the role each one plays. */
 const TYPEFACES = [

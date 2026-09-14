@@ -17,6 +17,12 @@ import { DocumentPanel, type DocumentPanelProps } from './document-panel';
  * Escape and the backdrop minimise; only the × closes. The two are different
  * intentions — "I am done with the big view" and "I am done with this
  * document" — and the reversible one is what an accidental Escape should get.
+ *
+ * Unless there is nothing to minimise into. Below `xl`, and on the opening
+ * screen, the overlay is the document's only seat (`dockable`), and minimising
+ * there used to be a no-op that the shell immediately undid — which on Escape
+ * meant a dialog that would not close. When the reversible intention is not
+ * available, Escape and the backdrop take the other one rather than nothing.
  */
 export function DocumentOverlay(
   props: Omit<DocumentPanelProps, 'compact' | 'maximised' | 'className'>,
@@ -25,7 +31,9 @@ export function DocumentOverlay(
     <DialogPrimitive.Root
       open
       onOpenChange={(open) => {
-        if (!open) props.onMinimise();
+        if (open) return;
+        if (props.dockable) props.onMinimise();
+        else props.onClose();
       }}
     >
       <DialogPrimitive.Portal>

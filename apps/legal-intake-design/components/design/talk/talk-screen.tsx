@@ -11,16 +11,8 @@ import { ANY_LAWYER, LawyerPicker } from './lawyer-picker';
 import { Link } from '@/i18n/navigation';
 import { leadForMatter } from '@/components/design/new-case/lawyers';
 import type { MatterId } from '@/components/design/new-case/intake-types';
-import { SUBMITTED_CASE } from '@/lib/intake/submitted-case';
-import {
-  addSubmittedCaseTurns,
-  useSubmissions,
-} from '@/lib/mocks/submitted-cases';
-import {
-  recordPersonMessage,
-  usePersonMessages,
-} from '@/lib/mocks/person-messages';
-import { generateId } from '@/lib/utils';
+import { usePersonMessages } from '@/lib/mocks/person-messages';
+import { useSendPersonMessage } from './use-send-person-message';
 
 /**
  * *Talk to a person* as its own screen.
@@ -54,14 +46,16 @@ import { generateId } from '@/lib/utils';
 export function TalkScreen({ matterId }: { matterId?: MatterId }) {
   const t = useTranslations('intake.person');
   const sent = usePersonMessages();
-  const submissions = useSubmissions();
 
   /*
-   * Whether the client has actually sent a case. Read through the hook rather
-   * than called in render, so the screen re-renders when a submission arrives
-   * in another tab instead of showing a stale "back to your case".
+   * What happens to a sent message lives in `useSendPersonMessage`, shared with
+   * the overlay that opens over the rest of the app. It records the message and
+   * — when a case has actually been submitted — puts it onto that case too, so
+   * the lawyer who picks it up reads it where they work rather than here. Two
+   * copies of that rule is how a message sent from one surface quietly stops
+   * reaching the case.
    */
-  const hasCase = Boolean(submissions[SUBMITTED_CASE.id]);
+  const send = useSendPersonMessage();
 
   /*
    * The matter's lead, marked in the picker but never chosen for them. See
@@ -76,43 +70,7 @@ export function TalkScreen({ matterId }: { matterId?: MatterId }) {
   const trimmed = text.trim();
 
   const submit = () => {
-    if (trimmed === '') return;
-    const at = new Date().toISOString();
-    const chosen = lawyerId === ANY_LAWYER ? undefined : lawyerId;
-
-    /*
-     * Stamped with the case when there is one, which is what stops it being
-     * picked up a second time by `carryPersonMessagesToCase` at a later
-     * submission. The screen's own copy and the case's copy are one event.
-     */
-    recordPersonMessage({
-      id: generateId(),
-      text: trimmed,
-      at,
-      ...(chosen ? { lawyerId: chosen } : {}),
-      ...(hasCase ? { caseId: SUBMITTED_CASE.id } : {}),
-    });
-
-    /*
-     * Onto the case as well, when the client has actually sent one. A client
-     * who has just submitted and wants a human is asking about *that* matter,
-     * and a lawyer picking it up reads the case rather than this screen.
-     */
-    if (hasCase) {
-      addSubmittedCaseTurns(SUBMITTED_CASE.id, [
-        {
-          role: 'client',
-          text: trimmed,
-          at,
-          handoff: {
-            ...(chosen ? { lawyerId: chosen } : {}),
-            acknowledgement: t('acknowledgement'),
-          },
-        },
-        { role: 'moritz', text: t('acknowledgement'), at },
-      ]);
-    }
-
+    if (!send(text, lawyerId)) return;
     setText('');
   };
 

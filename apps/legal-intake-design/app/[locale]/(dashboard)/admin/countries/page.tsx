@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { CountriesTable } from '@/components/admin/countries-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Countries' };
 
 export default function CountriesPage() {
   return (

@@ -63,42 +63,21 @@ describe('nothing arrives on a clock', () => {
   });
 
   /*
-   * Every timer left in the file is one of three named ones, and none of them
-   * moves the phase. `sendingTimer` is the wait Garzai asked for — "the
+   * Every timer left in the file is one of two named ones, and neither of
+   * them moves the phase. `sendingTimer` is the wait Garzai asked for — "the
    * design has to survive some gap between the click and the case actually
-   * being submitted" — `announceTimer` delays a screen-reader announcement by
-   * a few hundred milliseconds, and `handoffTimer` unmounts the "how this
-   * works" card after it has finished folding away. An anonymous timer here
-   * is how the old quote timer got in.
-   *
-   * `handoffTimer` is the one that had to be argued for, because a timer on
-   * this screen is exactly the shape of the defect this file exists to
-   * prevent. It is allowed because it is downstream of the client's own
-   * keystroke rather than of a clock: nothing *arrives* when it fires, a card
-   * the client has already dismissed by starting to type is removed from the
-   * DOM. The test below pins that it can only ever call `setCardGone`.
+   * being submitted" — and `announceTimer` delays a screen-reader
+   * announcement by a few hundred milliseconds. An anonymous timer here is
+   * how the old one got in.
    */
-  it('has no timer that is not one of the three named waits', () => {
-    const refTimers =
-      code.match(/(\w+)\.current = window\.setTimeout\(/g) ?? [];
-    const localTimers = code.match(/const (\w+) = window\.setTimeout\(/g) ?? [];
+  it('has no timer that is not one of the two named waits', () => {
+    const timers = code.match(/(\w+)\.current = window\.setTimeout\(/g) ?? [];
     const all = code.match(/window\.setTimeout\(/g) ?? [];
-    expect(refTimers.length + localTimers.length).toBe(all.length);
-    expect([...new Set([...refTimers, ...localTimers])].sort()).toEqual([
+    expect(timers).toHaveLength(all.length);
+    expect([...new Set(timers)].sort()).toEqual([
       'announceTimer.current = window.setTimeout(',
-      'const handoffTimer = window.setTimeout(',
       'sendingTimer.current = window.setTimeout(',
     ]);
-  });
-
-  /*
-   * ⭐ The one timer that is not a wait does nothing but tidy up. If it ever
-   * learns to touch the stage, the prototype has a clock again.
-   */
-  it('lets the handoff timer remove a card and nothing else', () => {
-    expect(code).toContain(
-      'const handoffTimer = window.setTimeout(() => setCardGone(true), HANDOFF_MS);',
-    );
   });
 
   /* ⭐ And the phase reaching `quoted` happens in exactly one place. */

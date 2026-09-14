@@ -19,6 +19,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { MobileSheet } from '@/components/design/mobile/mobile-sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/design/design-system/button';
 import { ChatComposer } from '@/components/design/intake/chat/chat-composer';
 import { MarkdownContent } from '@repo/ui/components/markdown-content';
@@ -28,6 +30,8 @@ import {
 } from '@/components/design/foundations/components/bubble';
 import {
   MessageScroller,
+  MessageScrollerContent,
+  MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from '@/components/design/foundations/components/message-scroller';
@@ -77,6 +81,7 @@ import type { AuthUser } from '@/lib/types';
 export function AskPanel({ user }: { user: AuthUser }) {
   const t = useTranslations('ask');
   const { open, setOpen, closeAsk } = useAsk();
+  const isMobile = useIsMobile();
   const router = useRouter();
   const navigationGuard = useNavigationGuard();
 
@@ -220,7 +225,192 @@ export function AskPanel({ user }: { user: AuthUser }) {
 
   const hasTurns = turns.length > 0;
 
-  return (
+  const modeTabs = (
+    <AskModeTabs
+      mode={mode}
+      onChange={switchMode}
+      caseCount={scope.cases.length}
+      panelId={panelId}
+      tabId={tabId}
+    />
+  );
+
+  /*
+   * The transcript is the tab's panel, and now says so. Previously the
+   * header carried a `role="tablist"` whose tabs controlled nothing
+   * nameable: switching wiped the thread and replaced it, and a screen
+   * reader had no way to know the two were related. `aria-labelledby`
+   * points back at whichever tab is active, so "Your cases, selected" and
+   * the panel beneath it are one thing.
+   *
+   * Hoisted out of the return because there are two shells around it now —
+   * the desktop side sheet and the phone bottom sheet — and the panel itself
+   * is identical in both.
+   */
+  const askBody = (
+    <div
+      id={panelId}
+      role="tabpanel"
+      aria-labelledby={tabId(mode)}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      {hasTurns ? (
+        <MessageScrollerProvider autoScroll>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <MessageScroller>
+              <MessageScrollerViewport className="mz-scrollbar-on-scroll px-4 py-4">
+                {/*
+                 * `MessageScrollerContent` and one `MessageScrollerItem` per
+                 * turn, rather than the plain `div` and bare rows this used to
+                 * be. Not styling: the two parts are how the scroller learns
+                 * that there is a transcript at all.
+                 *
+                 * `Content` is what installs the MutationObserver and the
+                 * ResizeObserver that notice a reply growing, and `Item` is
+                 * what registers a turn so the count can change. With neither
+                 * of them the scroller saw an empty list that never grew, so
+                 * `autoScroll` on the provider above was inert and Nora's
+                 * answers streamed off the bottom of the sheet — worst on a
+                 * phone, where the panel is short.
+                 *
+                 * No `scrollAnchor` here, for the reason set out at length in
+                 * `chat-message.tsx`: anchoring a turn to the top leaves the
+                 * scroller in a mode that stops following the live edge for
+                 * the rest of the answer.
+                 */}
+                <MessageScrollerContent aria-busy={busy} className="gap-4">
+                  {turns.map((turn) => (
+                    <MessageScrollerItem key={turn.id} messageId={turn.id}>
+                      <AskTurnView
+                        turn={turn}
+                        mode={mode}
+                        busy={busy}
+                        onGo={go}
+                        onRetry={() => {
+                          // Retry re-asks the question above this answer,
+                          // after dropping the failed pair. Leaving them in
+                          // would build a transcript of the reader's bad luck.
+                          const index = turns.findIndex(
+                            (candidate) => candidate.id === turn.id,
+                          );
+                          const question = turns[index - 1];
+                          if (!question) return;
+                          setTurns(turns.slice(0, index - 1));
+                          void ask(question.text);
+                        }}
+                      />
+                    </MessageScrollerItem>
+                  ))}
+                </MessageScrollerContent>
+              </MessageScrollerViewport>
+            </MessageScroller>
+          </div>
+        </MessageScrollerProvider>
+      ) : (
+        /*
+         * The empty state, and the D2 consequence: **say what she is,
+         * once.** Adopting a named actor reverses this repo's convention
+         * that AI surfaces are anonymous, and a name with no explanation
+         * invites exactly the question nobody is there to answer.
+         *
+         * One body per tab. The old single line said she answers from your
+         * cases and nothing else, which was simply false on the Legal
+         * basics tab, where she is told the opposite and has no case data
+         * at all.
+         */
+        <div className="flex flex-1 flex-col justify-end gap-3 px-4 py-6">
+          <h3 className="text-foreground font-serif text-2xl">
+            {t('emptyTitle')}
+          </h3>
+          <p className="text-muted-foreground text-sm/6">
+            {mode === 'cases' ? t('emptyBody') : t('emptyBodyGeneral')}
+          </p>
+        </div>
+      )}
+
+      {/*
+       * Chips only on an empty thread, and only when the projection has
+       * something for them to be about. A row of suggestions over a
+       * conversation already in progress is answering a question the reader
+       * has stopped asking.
+       */}
+      {!hasTurns && mode === 'cases' && suggestions.length > 0 ? (
+        <div className="flex flex-col gap-2 px-4 pb-2">
+          <p className="text-muted-foreground text-xs">
+            {t('suggestionsLabel')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion) => (
+              <Button
+                key={suggestion.id}
+                type="button"
+                variant="outline"
+                size="sm"
+                // `whitespace-normal` because Button's base class sets
+                // `whitespace-nowrap`, and these chips are whole
+                // questions: "Which of my 4 cases need me?" on one
+                // unbreakable line overflows a 390px panel.
+                className="h-auto whitespace-normal rounded-full py-1.5 text-left text-xs font-normal"
+                onClick={() => void ask(suggestion.text)}
+              >
+                {suggestion.text}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="border-border border-t p-3">
+        <ChatComposer
+          value={draft}
+          onChange={setDraft}
+          onSend={(text) => void ask(text)}
+          busy={busy}
+          onStop={stop}
+          // Nora reads case data and cannot take an upload, so a paperclip
+          // here would be a control that does nothing.
+          showAttach={false}
+          placeholder={
+            mode === 'cases' ? t('placeholder') : t('placeholderGeneral')
+          }
+          labels={{ field: t('fieldLabel'), stop: t('stop') }}
+        />
+      </div>
+    </div>
+  );
+
+  return isMobile ? (
+    /*
+     * Nora on a phone is the same bottom sheet the bell, the palette and the
+     * account menu use (`MobileSheet`), for the reason spelled out there: one
+     * edge, one handle, one dismiss gesture for everything the top bar can
+     * open. A chat panel sliding in from the right of a 390px screen was a
+     * full-bleed surface pretending to be a sidebar, and the only way out of
+     * it was a × in the far corner.
+     *
+     * Fixed height rather than `max-h`, because this one has a composer
+     * anchored to its bottom: on a sheet that sizes to its content, an empty
+     * thread would put the input halfway up the screen and then have it walk
+     * downward as the conversation grew.
+     */
+    <MobileSheet
+      open={open}
+      onOpenChange={setOpen}
+      title={
+        <span className="inline-flex items-center gap-2">
+          <Sparkles className="text-muted-foreground size-4" aria-hidden />
+          {t('title')}
+        </span>
+      }
+      description={t('description')}
+      closeLabel={t('title')}
+      headerBelow={modeTabs}
+      className="data-[vaul-drawer-direction=bottom]:h-[88svh]"
+      bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden p-0 pb-[env(safe-area-inset-bottom)]"
+    >
+      {askBody}
+    </MobileSheet>
+  ) : (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
         side="right"
@@ -240,132 +430,10 @@ export function AskPanel({ user }: { user: AuthUser }) {
           <SheetDescription className="sr-only">
             {t('description')}
           </SheetDescription>
-          <AskModeTabs
-            mode={mode}
-            onChange={switchMode}
-            caseCount={scope.cases.length}
-            panelId={panelId}
-            tabId={tabId}
-          />
+          {modeTabs}
         </SheetHeader>
 
-        {/*
-         * The transcript is the tab's panel, and now says so. Previously the
-         * header carried a `role="tablist"` whose tabs controlled nothing
-         * nameable: switching wiped the thread and replaced it, and a screen
-         * reader had no way to know the two were related. `aria-labelledby`
-         * points back at whichever tab is active, so "Your cases, selected" and
-         * the panel beneath it are one thing.
-         */}
-        <div
-          id={panelId}
-          role="tabpanel"
-          aria-labelledby={tabId(mode)}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          {hasTurns ? (
-            <MessageScrollerProvider autoScroll>
-              <div className="flex min-h-0 flex-1 flex-col">
-                <MessageScroller>
-                  <MessageScrollerViewport className="mz-scrollbar-on-scroll px-4 py-4">
-                    <div className="flex flex-col gap-4">
-                      {turns.map((turn) => (
-                        <AskTurnView
-                          key={turn.id}
-                          turn={turn}
-                          mode={mode}
-                          busy={busy}
-                          onGo={go}
-                          onRetry={() => {
-                            // Retry re-asks the question above this answer,
-                            // after dropping the failed pair. Leaving them in
-                            // would build a transcript of the reader's bad luck.
-                            const index = turns.findIndex(
-                              (candidate) => candidate.id === turn.id,
-                            );
-                            const question = turns[index - 1];
-                            if (!question) return;
-                            setTurns(turns.slice(0, index - 1));
-                            void ask(question.text);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </MessageScrollerViewport>
-                </MessageScroller>
-              </div>
-            </MessageScrollerProvider>
-          ) : (
-            /*
-             * The empty state, and the D2 consequence: **say what she is,
-             * once.** Adopting a named actor reverses this repo's convention
-             * that AI surfaces are anonymous, and a name with no explanation
-             * invites exactly the question nobody is there to answer.
-             *
-             * One body per tab. The old single line said she answers from your
-             * cases and nothing else, which was simply false on the Legal
-             * basics tab, where she is told the opposite and has no case data
-             * at all.
-             */
-            <div className="flex flex-1 flex-col justify-end gap-3 px-4 py-6">
-              <h3 className="text-foreground font-serif text-2xl">
-                {t('emptyTitle')}
-              </h3>
-              <p className="text-muted-foreground text-sm/6">
-                {mode === 'cases' ? t('emptyBody') : t('emptyBodyGeneral')}
-              </p>
-            </div>
-          )}
-
-          {/*
-           * Chips only on an empty thread, and only when the projection has
-           * something for them to be about. A row of suggestions over a
-           * conversation already in progress is answering a question the reader
-           * has stopped asking.
-           */}
-          {!hasTurns && mode === 'cases' && suggestions.length > 0 ? (
-            <div className="flex flex-col gap-2 px-4 pb-2">
-              <p className="text-muted-foreground text-xs">
-                {t('suggestionsLabel')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((suggestion) => (
-                  <Button
-                    key={suggestion.id}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    // `whitespace-normal` because Button's base class sets
-                    // `whitespace-nowrap`, and these chips are whole
-                    // questions: "Which of my 4 cases need me?" on one
-                    // unbreakable line overflows a 390px panel.
-                    className="h-auto whitespace-normal rounded-full py-1.5 text-left text-xs font-normal"
-                    onClick={() => void ask(suggestion.text)}
-                  >
-                    {suggestion.text}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="border-border border-t p-3">
-            <ChatComposer
-              value={draft}
-              onChange={setDraft}
-              onSend={(text) => void ask(text)}
-              busy={busy}
-              onStop={stop}
-              // Nora reads case data and cannot take an upload, so a paperclip
-              // here would be a control that does nothing.
-              showAttach={false}
-              placeholder={
-                mode === 'cases' ? t('placeholder') : t('placeholderGeneral')
-              }
-              labels={{ field: t('fieldLabel'), stop: t('stop') }}
-            />
-          </div>
-        </div>
+        {askBody}
       </SheetContent>
     </Sheet>
   );

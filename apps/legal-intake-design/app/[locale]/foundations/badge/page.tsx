@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { CheckCircle, AlertTriangle, Info } from '@repo/ui/icons';
 
 import {
@@ -5,6 +6,8 @@ import {
   BadgeButton,
 } from '@/components/design/foundations/components/badge';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Badge · Foundations' };
 
 export default function BadgeFoundationPage() {
   return (

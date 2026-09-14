@@ -50,15 +50,31 @@ describe('the card says the rail’s four words', () => {
     expect(JOURNEY_STEPS).toEqual(['brief', 'quote', 'lawyer', 'document']);
   });
 
-  /* Every step has a sentence, a who and a when. No half-filled rows. */
-  it.each(JOURNEY_STEPS)(
-    'has a description, a who and a when for %s',
-    (step) => {
-      expect(typeof COPY.description[step]).toBe('string');
-      expect(typeof COPY.who[step]).toBe('string');
-      expect(typeof COPY.when[step]).toBe('string');
-    },
-  );
+  /* Every step has a sentence and a time. No half-filled rows. */
+  it.each(JOURNEY_STEPS)('has a description and a when for %s', (step) => {
+    expect(typeof COPY.description[step]).toBe('string');
+    expect(typeof COPY.when[step]).toBe('string');
+  });
+
+  /*
+   * ⭐ No "who" column, and this is a rule rather than a tidy-up.
+   *
+   * It was there and it could not be made to say anything true. Ask *who
+   * does the work* and the answer is You, Lawyer, Lawyer, Lawyer; ask *who
+   * closes the step* and it is You, You, Lawyer, You. Quote is the row that
+   * exposes it — `JOURNEY_STAGES` gives that step four rows and three of
+   * them are the client's, which is why the same file calls it "the only
+   * part of the pipeline the client drives". Labelling it *a lawyer*
+   * contradicted the tracker this card exists to introduce.
+   *
+   * And it restated the sentence beside it in all four rows. One muted time
+   * per row is the only thing on the right the left does not already say.
+   */
+  it('carries no who column, only the time', () => {
+    expect(COPY).not.toHaveProperty('who');
+    expect(CODE).not.toContain('howItWorks.who');
+    expect(CODE).toContain('t(`howItWorks.when.${step}`)');
+  });
 });
 
 describe('what the card promises', () => {
@@ -113,10 +129,18 @@ describe('a real face, following the matter', () => {
     expect(CODE).not.toContain('ONBOARDING_LAWYERS');
   });
 
-  /* Quote and Lawyer only. Brief and Document are the client. */
-  it('puts a face on the two rows a lawyer is on', () => {
+  /*
+   * Quote only, now that the rows carry no written who.
+   *
+   * The face was on Lawyer as well while each row had a label — the same
+   * person twice said *whoever prices it takes it*, which is worth saying.
+   * Unlabelled, a second photograph down the same edge reads as either a
+   * different person or as decoration, and this card has no decoration in
+   * it. Brief and Document are the client, so neither can have one at all.
+   */
+  it('puts a face on the one row a stranger is on', () => {
     expect(CODE).toContain(
-      "const FACE_STEPS: readonly JourneyStepId[] = ['quote', 'lawyer']",
+      "const FACE_STEPS: readonly JourneyStepId[] = ['quote']",
     );
   });
 

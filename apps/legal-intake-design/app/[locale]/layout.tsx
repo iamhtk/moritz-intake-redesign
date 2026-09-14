@@ -35,8 +35,22 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
+/**
+ * One title template, so every page only has to name itself.
+ *
+ * Every route in this app used to render the same tab title, because only
+ * two of ninety-two set one. That is a paper cut on a marketing site and a
+ * real problem here: this is a product people work in with six case tabs
+ * open, and six identical tabs means reading each one to find the matter you
+ * were in. `%s · Moritz` is the suffix; the leaf page supplies the part that
+ * distinguishes it, and `default` covers the routes that genuinely have no
+ * better name than the product's.
+ */
 export const metadata: Metadata = {
-  title: 'Moritz Design Playground',
+  title: {
+    template: '%s · Moritz',
+    default: 'Moritz Design Playground',
+  },
 };
 
 export default async function LocaleLayout({

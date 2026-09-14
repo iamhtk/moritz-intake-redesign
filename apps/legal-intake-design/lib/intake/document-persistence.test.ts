@@ -120,11 +120,64 @@ describe('the panel is not offered on the opening screen', () => {
     );
   });
 
-  /* The gutter held open for the handle goes with the handle. */
+  /*
+   * The gutter held open for the handle went with the handle — on the widths
+   * that had no room for either.
+   *
+   * The `fixed` edge tab is still the desktop control and still sits on the
+   * edge the panel comes out of. What changed is that it stands down below
+   * `lg`, where the composer's toolbar carries the button instead
+   * (`documents-trigger.tsx`), so no pane has to reserve a right-hand margin
+   * for something floating over it. `pe-14` is the specific number that made
+   * the transcript and the composer sit 56px off-centre for the rest of the
+   * flow once a document existed, and it must not come back.
+   *
+   * The two `hidden` classes are pinned together because they are one rule
+   * split across two call sites: drop either and a phone gets both controls,
+   * or a desktop gets none.
+   */
   it('does not reserve room for a handle it is not drawing', () => {
     expect(intake).toMatch(
-      /const documentTabShowing =\s*documentsReachable &&/,
+      /const documentTriggerShowing =\s*documentsReachable &&/,
     );
+    expect(intake).not.toContain('pe-14');
+  });
+
+  it('gives each width exactly one way into the panel', () => {
+    const tab = intake.slice(
+      intake.indexOf('<DocumentRailTrigger'),
+      intake.indexOf('<DocumentOverlay'),
+    );
+    expect(tab).toContain('className="max-lg:hidden"');
+
+    const toolbar = intake.slice(
+      intake.indexOf('<DocumentsTrigger'),
+      intake.indexOf('<DocumentsTrigger') + 300,
+    );
+    expect(toolbar).toContain('className="lg:hidden"');
+  });
+
+  /*
+   * ⭐ And the state the first two miss.
+   *
+   * On a phone the panes are one at a time, and from `review` onwards the
+   * brief opens itself — which hides the chat column, and with it the
+   * composer that carries the button. So on the confirmation, the review
+   * screen and the quote there was no way back into a document at all: the
+   * composer was gone and the edge tab is desktop-only.
+   *
+   * The action row picks it up, gated on the real condition (*is the
+   * composer on screen*) rather than on a list of phases, so closing the
+   * brief hands the job back to the composer instead of leaving two.
+   */
+  it('keeps a way into the panel when the composer is off screen', () => {
+    expect(intake).toContain(
+      'const docsBesideAction = documentTriggerShowing && briefOpenOnMobile',
+    );
+    // Wrapped around the primary action in every phase that has one.
+    // One per phase that has a primary action: sent, review, quoted, and
+    // building. `sending` has no button, by Decision 8.
+    expect(intake.match(/withDocsButton\(/g)?.length).toBe(4);
   });
 
   /*

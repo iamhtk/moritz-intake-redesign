@@ -679,6 +679,86 @@ main:has(> .case-workspace-wide) {
 }
 
 /*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * REDUCED MOTION, FOR THE ANIMATIONS NOBODY HAND-WROTE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The block above covers the five `.mz-animate-*` utilities this app defines
+ * itself. It was the smaller half of the problem: there are roughly ninety
+ * *other* movements on screen — every dialog, drawer, dropdown, popover,
+ * tooltip, toast and bottom sheet — and all of them come from
+ * `tw-animate-css` or from a library's own inline transition, so none of them
+ * were reached. The bottom sheets are the worst of it, because a full-height
+ * surface travelling up the screen is the largest single movement the product
+ * makes.
+ *
+ * ── WHAT THIS TURNS OFF, AND WHAT IT DELIBERATELY LEAVES ALONE ──
+ *
+ * It removes *travel*: translation, scale, rotation and blur. It keeps the
+ * opacity fade, because fading is the accepted substitute rather than another
+ * thing to suppress — WCAG 2.3.3 is about motion, and a surface that appears
+ * with no transition at all reads as a glitch rather than as a considered
+ * absence of animation.
+ *
+ * It also leaves the spinner spinning. A loading indicator is *informational*
+ * motion: it is the only thing on screen saying the wait is a wait rather
+ * than a hang, and freezing it trades a comfort problem for a comprehension
+ * one. Same reasoning as the `role="status"` regions above.
+ *
+ * ── WHY VARIABLES RATHER THAN `animation: none` ──
+ *
+ * `tw-animate-css` composes its `enter` / `exit` keyframes out of custom
+ * properties (`--tw-enter-translate-y` and friends, declared with
+ * `@property`), so zeroing those neutralises every `slide-in-from-*`,
+ * `zoom-in-*` and `spin-in-*` utility in the app at once — including ones
+ * added tomorrow — while the `--tw-*-opacity` half keeps working. Killing the
+ * animation outright would take the fade with it, and doing it per component
+ * would be ninety-odd places to keep in step.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-enter-blur: 0 !important;
+    --tw-exit-blur: 0 !important;
+  }
+
+  /*
+   * Vaul drives the sheets with an inline `transform` and its own transition
+   * rather than through a keyframe, so the variables above cannot reach it.
+   * The drag still works; it just arrives instantly instead of gliding.
+   */
+  [data-vaul-drawer],
+  [data-vaul-overlay] {
+    transition-duration: 1ms !important;
+  }
+
+  /* Sonner does the same thing for the toast stack. */
+  [data-sonner-toast] {
+    transition-duration: 1ms !important;
+  }
+
+  /*
+   * Height animations (accordion, collapsible). A box growing from zero is
+   * motion even though nothing slides across the screen, and Radix measures
+   * the height itself — so with the keyframe off the content simply is there.
+   */
+  [data-slot='collapsible-content'],
+  [data-state='open'][data-slot='accordion-content'],
+  [data-state='closed'][data-slot='accordion-content'] {
+    animation: none !important;
+  }
+}
+
+/*
  * Toasts: white, with the status in a bar down the left edge.
  *
  * The brief was to stop colouring the whole notification and say what kind it

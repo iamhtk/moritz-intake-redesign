@@ -42,9 +42,9 @@ export function ChatColumn({
   onAttach,
   onRemoveAttachment,
   onOpenDocument,
-  onEdit,
   attachmentsCanSend,
   beneathComposer,
+  composerLeading,
 }: {
   messages: Turn[];
   busy: boolean;
@@ -69,16 +69,6 @@ export function ChatColumn({
    */
   onOpenDocument: (name: string) => void;
   /**
-   * The client is typing, for the one caller that needs to know before they
-   * send.
-   *
-   * Passed straight through to `ChatComposer`; see the prop there for why it
-   * is not `onChange`. The opening screen uses it to hand the "how this works"
-   * card over to the journey rail on the first character, which has to happen
-   * while the client is still mid-sentence rather than after they submit it.
-   */
-  onEdit?: (next: string) => void;
-  /**
    * Whether the docked files are something the client can send on their own.
    *
    * The dock shows two different things: files staged and waiting to go, and
@@ -99,6 +89,14 @@ export function ChatColumn({
    * this component's business.
    */
   beneathComposer?: ReactNode;
+  /**
+   * An extra control in the composer's own toolbar, beside the paperclip.
+   *
+   * The intake's documents button goes here. Passed down rather than built in
+   * `ChatComposer` for the same reason `beneathComposer` is: the composer is
+   * shared with two older intake flows that have no document surface at all.
+   */
+  composerLeading?: ReactNode;
 }) {
   const t = useTranslations('intake.chat');
   const hasMessages = messages.length > 0;
@@ -365,7 +363,6 @@ export function ChatColumn({
             busy={busy}
             onSend={onSend}
             onAttach={onAttach}
-            {...(onEdit ? { onEdit } : {})}
             /*
              * The page owns the drag, not the composer.
              *
@@ -383,6 +380,7 @@ export function ChatColumn({
             onOpenAttachment={(attachment) => onOpenDocument(attachment.name)}
             onRemoveAttachment={onRemoveAttachment}
             attachmentsEnableSend={attachmentsCanSend}
+            {...(composerLeading ? { toolbarLeading: composerLeading } : {})}
           />
           {beneathComposer}
         </div>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from '@repo/ui/icons';
@@ -17,6 +18,8 @@ import { RichTextViewer } from '@/components/rich-text/rich-text-viewer';
 import { FormattedDate } from '@/components/formatted-date';
 import { getCaseById } from '@/lib/mocks/cases';
 import { getInitials } from '@/lib/utils';
+
+export const metadata: Metadata = { title: 'Proposal' };
 
 interface PageProps {
   params: Promise<{ id: string }>;

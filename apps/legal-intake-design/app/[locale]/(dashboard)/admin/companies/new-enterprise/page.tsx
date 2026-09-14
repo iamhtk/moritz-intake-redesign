@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Card,
   CardContent,
@@ -6,6 +7,8 @@ import {
 } from '@/components/design/design-system/card';
 import { CreateEnterpriseForm } from '@/components/companies/create-enterprise-form';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'New enterprise company' };
 
 export default function NewEnterprisePage() {
   return (

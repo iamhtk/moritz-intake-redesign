@@ -115,7 +115,33 @@ export function ChatMessage({
 }: ChatMessageProps) {
   if (role === 'user') {
     return (
-      <MessageScrollerItem messageId={messageId} scrollAnchor>
+      /*
+       * No `scrollAnchor`, and its absence is the thing that makes a streaming
+       * reply follow the live edge.
+       *
+       * This used to be `scrollAnchor`, which is the "pin the question to the
+       * top and let the answer fill the space below it" pattern. The scroller
+       * implements that by calling `scrollToElement(align: 'start')` on the new
+       * turn, and that call puts it in `anchored-to-message` mode — it does
+       * *not* pass the `autoscrolling` flag that `scrollToEnd` does, so the
+       * mode never returns to `following-bottom` on its own.
+       *
+       * Everything after that is the bug. While the reply streams, the item
+       * count does not change, so the scroller looks for an unhandled anchor,
+       * finds none (this turn was marked handled when it anchored), and falls
+       * through to a branch that only scrolls when the mode is
+       * `following-bottom`. It is not. So the answer grew downward off the
+       * bottom of the viewport and nothing moved, on phones almost immediately
+       * and on a desktop as soon as a reply ran past the fold.
+       *
+       * Without the anchor, a new turn and each streaming growth both land on
+       * that same branch with the mode still `following-bottom`, so the
+       * scroller calls `scrollToEnd` and keeps the newest text in view. Scroll
+       * up by hand and it flips to `free-scrolling` and stops chasing, which is
+       * the behaviour that should interrupt it, rather than the arrival of a
+       * question.
+       */
+      <MessageScrollerItem messageId={messageId}>
         <div className="flex items-start gap-2.5">
           <Bubble variant="muted" align="end">
             <BubbleContent className="space-y-2 px-4 py-3 text-[15px] leading-relaxed">

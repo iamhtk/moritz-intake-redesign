@@ -261,8 +261,15 @@ describe('the sidebar, read as source', () => {
    */
   it('has no stepper in the footer any more', () => {
     const intake = read('components/design/intake-v2/intake-v2.tsx');
+    /*
+     * From the first of the two pieces the footer is now built from. The
+     * sentence and the action were split so the phone can put them in two
+     * places (the sentence ends the brief; the button is a bar under the
+     * composer), and `briefFooter` is just the pair of them together — so
+     * the slice has to start where the content does.
+     */
     const footer = intake.slice(
-      intake.indexOf('const briefFooter = ('),
+      intake.indexOf('const briefExplanation = ('),
       intake.indexOf('const briefPanel = ('),
     );
     expect(footer).not.toContain('<BriefStepper');

@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { WaitlistTable } from '@/components/admin/waitlist-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Waitlist' };
 
 export default function WaitlistPage() {
   return (

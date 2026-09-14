@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Field, FieldLabel } from '@repo/ui/components/field';
 
 import { Button } from '@/components/design/foundations/components/button';
@@ -12,6 +13,8 @@ import {
 } from '@/components/design/foundations/components/card';
 import { Input } from '@/components/design/foundations/components/input';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Card · Foundations' };
 
 // Inline SVG placeholder so the media example has no network dependency.
 const COVER_IMAGE =

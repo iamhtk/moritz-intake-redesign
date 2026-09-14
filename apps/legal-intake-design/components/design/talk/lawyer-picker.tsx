@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/design/foundations/components/select';
 import { AVATAR_FRAMING } from '@/components/design/homepage-v2/legal-team';
-import { ONBOARDING_LAWYERS } from '@/components/design/onboarding/onboarding-lawyers';
+import { INTAKE_NOTE_ROSTER } from '@/components/design/new-case/lawyers';
 import { schoolOf } from '@/lib/intake/credentials';
 
 /**
@@ -44,10 +44,19 @@ import { schoolOf } from '@/lib/intake/credentials';
  * made, with the added problem that a client who never opens the dropdown would
  * never know a choice had been made for them.
  *
- * Faces come from `ONBOARDING_LAWYERS`, which is the roster with real headshots
- * and real `education` lines, and is the same list `leadForMatter` resolves
- * through — so the person offered here is the same person the intake and the
- * handoff card show. One roster, or the client is introduced to two firms.
+ * Faces come from `INTAKE_NOTE_ROSTER`, which is every real person this app
+ * shows a client: the five onboarding personas, the five additional team
+ * members the homepage rotates, and Priya, the employment lead who exists only
+ * in `lawyers.ts`.
+ *
+ * It used to be `ONBOARDING_LAWYERS`, five of the eleven, and the gap was not
+ * cosmetic. The intake note rotates all eleven faces beside the composer and
+ * the overlay offers the same eleven, so a client could watch a lawyer's
+ * photograph, press *Ask a human*, and find that they were not on the list. The
+ * worst case was Priya: the one person this flow names to a client by design,
+ * on the one matter type it routes by name, and she could not be picked.
+ * `lawyerById` reads the same roster, so whoever is chosen here is whoever the
+ * handoff card draws back.
  */
 
 /** The value used for "no particular person". Not a lawyer id, so it cannot collide. */
@@ -94,7 +103,7 @@ export function LawyerPicker({
             lawyerId=""
           />
         </SelectItem>
-        {ONBOARDING_LAWYERS.map((lawyer) => (
+        {INTAKE_NOTE_ROSTER.map((lawyer) => (
           <SelectItem key={lawyer.id} value={lawyer.id}>
             <Row
               name={lawyer.name}

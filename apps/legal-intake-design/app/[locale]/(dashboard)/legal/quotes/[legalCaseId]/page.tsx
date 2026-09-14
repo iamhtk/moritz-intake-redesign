@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from '@repo/ui/icons';
@@ -17,6 +18,8 @@ import { ProposalActions } from '@/components/cases/legal/proposal-actions';
 import { H3 } from '@/components/design/design-system/typography';
 import { getQuoteRoundById } from '@/lib/mocks/quotes';
 import { formatCurrency } from '@/lib/utils';
+
+export const metadata: Metadata = { title: 'Quote' };
 
 interface PageProps {
   params: Promise<{ legalCaseId: string }>;

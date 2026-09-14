@@ -209,66 +209,42 @@ describe('where the rail sits', () => {
   });
 
   /*
-   * ⭐ On the opening screen, but only once the client has begun.
+   * ⭐ Not on the opening screen, in either layout.
    *
-   * The rule used to be "not on the opening screen at all", and the argument
-   * was sound while the card there told a different story: nothing has been
-   * started, so there is no position to report. `HowItWorksCard` now says the
-   * rail's own four words, so the rail is no longer a second stepper arriving
-   * — it is the same one taking over, and the handoff is the best moment on
-   * the screen.
+   * It was there once, and looked at, that was wrong: nothing has been
+   * started, so there is no position to report, and four labels tracking
+   * progress through a case that does not exist read as chrome on the one
+   * screen whose design is a single centred column.
    *
-   * So: two of each, one pair on the opening screen and one in the two-pane
-   * return, and the opening pair is gated on `begun`.
+   * A later attempt had the rail slide in on the first keystroke, taking over
+   * from the "how this works" card as the client typed. Worse again: it
+   * snatched the explanation away mid-sentence and put a progress tracker on
+   * a case that still had not been sent. Hence the flat rule this pins — the
+   * rail belongs to the conversation, and the card carries the four words
+   * until there is something to track.
+   *
+   * One of each, both in the two-pane return.
    */
-  it('waits for the client to begin, then takes over from the card', () => {
-    expect(intake.match(/<JourneyRailColumn/g)).toHaveLength(2);
-    expect(flat.match(/<JourneyBar phase/g)).toHaveLength(2);
+  it('arrives with the conversation, not before it', () => {
+    expect(intake.match(/<JourneyRailColumn/g)).toHaveLength(1);
+    expect(flat.match(/<JourneyBar phase/g)).toHaveLength(1);
 
     const openingScreen = intake.slice(
       intake.indexOf("if (phase === 'start') {"),
       intake.indexOf('const docked ='),
     );
-    // The column holds its space from first paint and fills on the first
-    // character: reserved rather than conditional, or it would shove the
-    // composer sideways under a cursor that is already mid-sentence.
-    expect(openingScreen).toContain("handoff={begun ? 'arriving' : 'waiting'}");
-    // The bar is the one that can be conditional, because it pushes down
-    // rather than sideways.
-    expect(openingScreen).toContain(
-      '{begun ? <JourneyBar phase={phase} className="xl:hidden" /> : null}',
-    );
-  });
-
-  /*
-   * ⭐ The rail is in place before the card is gone.
-   *
-   * The one rule the handoff cannot break: a frame with neither the
-   * explanation nor the tracker on it reads as the page losing something. So
-   * the card's fold and its unmount are two separate things — `begun` starts
-   * the fold, `cardGone` removes it one `HANDOFF_MS` later — and the rail
-   * fills its column on the same tick the fold starts.
-   */
-  it('never leaves the screen with neither the card nor the rail', () => {
-    expect(intake).toContain('leaving={begun}');
-    expect(intake).toContain('{cardGone ? null : (');
-    expect(intake).toContain('setCardGone(true), HANDOFF_MS');
-  });
-
-  /*
-   * `prefers-reduced-motion` gets the plain swap, not a faster fade. The
-   * rail's entrance keyframe is already disabled in `globals.css`; this is
-   * the other half, which is that the card does not linger folding.
-   */
-  it('swaps rather than fades under reduced motion', () => {
-    expect(intake).toContain(
-      "window.matchMedia('(prefers-reduced-motion: reduce)').matches",
-    );
-    const card = readFileSync(
-      join(process.cwd(), 'components/design/intake-v2/how-it-works.tsx'),
-      'utf8',
-    );
-    expect(card).toContain('motion-reduce:transition-none');
+    expect(openingScreen).not.toContain('JourneyRail');
+    expect(openingScreen).not.toContain('JourneyBar');
+    /*
+     * And nothing that could bring one in on a keystroke: no handoff flag, no
+     * column reserved for it, no timer folding the card away. These are the
+     * three pieces the withdrawn version was made of, and each of them is
+     * cheap to reintroduce by accident.
+     */
+    expect(openingScreen).not.toContain('handoff');
+    expect(openingScreen).not.toContain('w-[11.25rem]');
+    expect(intake).not.toContain('HANDOFF_MS');
+    expect(intake).not.toContain('cardGone');
   });
 
   /*
@@ -337,11 +313,8 @@ describe('where the rail sits', () => {
     );
     expect(rail).toContain('xl:flex');
     expect(flat.match(/<JourneyBar [^>]*className="xl:hidden"/g)).toHaveLength(
-      2,
+      1,
     );
-    // The reserved-but-empty column and the mirror that keeps the opening
-    // screen centred are the same width as the rail itself.
-    expect(intake.match(/w-\[11\.25rem\] shrink-0 xl:block/g)).toHaveLength(1);
   });
 
   /*
@@ -415,7 +388,59 @@ describe('the horizontal bar', () => {
   /* No count, here least of all: this is the line §3 wanted "Step 1 of 4" on. */
   it('carries no count', () => {
     expect(source).not.toContain("t('position'");
-    expect(source).not.toMatch(/Step \d|of 4|%|percent/i);
+    expect(source).not.toMatch(/Step \d|of 4/i);
+  });
+
+  /*
+   * Rule 2, restated as what it actually protects: **never two progress
+   * readings on screen at once.**
+   *
+   * The original form of this was "the bar carries no percentage", written
+   * when the brief panel was always beside it. On a phone the panel is a
+   * collapsed header, so that reading left the one number a client checks
+   * between answers behind a tap, and the header grew a second copy of it —
+   * which is the very thing the rule exists to stop.
+   *
+   * So the percentage moved *into* this bar and out of everywhere else below
+   * `lg`. The two halves are hard-pinned here because they are one rule
+   * split across two files, and a `lg:hidden` quietly dropped from either
+   * side puts two disagreeing figures three rows apart.
+   */
+  it('shows the brief’s percentage only where the brief is collapsed', () => {
+    // Here: phone widths only.
+    expect(source).toContain("tBrief('percentDone', { percent })");
+    expect(source).toContain(
+      'text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums lg:hidden',
+    );
+    expect(source).toContain(
+      'bg-border absolute inset-x-0 bottom-0 h-[2px] lg:hidden',
+    );
+
+    // There: the panel's own copy, from `lg` up.
+    const column = readFileSync(
+      join(process.cwd(), 'components/design/intake-v2/brief-column.tsx'),
+      'utf8',
+    );
+    expect(column).toContain('flex flex-col gap-3 max-lg:hidden');
+
+    // And nowhere in the collapsed header, which is now only a tap target.
+    const summary = readFileSync(
+      join(process.cwd(), 'components/design/intake-v2/brief-summary-bar.tsx'),
+      'utf8',
+    );
+    expect(summary).not.toContain('percentDone');
+    expect(summary).not.toContain('progressbar');
+  });
+
+  /*
+   * The active step's sentence is a caption for a stepper the client can
+   * already read. It is worth its 24px on a laptop and not on a phone, where
+   * it was the third row of status above the first line of content.
+   */
+  it('drops the step sentence on a phone', () => {
+    expect(source).toMatch(
+      /hidden truncate text-\[11px\] leading-snug lg:block/,
+    );
   });
 
   /*

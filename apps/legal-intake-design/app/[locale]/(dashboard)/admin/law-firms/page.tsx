@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { H3, Muted } from '@/components/design/design-system/typography';
 import { LawFirmsTable } from '@/components/design/law-firms/law-firms-table';
+
+export const metadata: Metadata = { title: 'Law firms' };
 
 export default function AdminLawFirmsPage() {
   return (

@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { UsersTableClient } from '@/components/admin/users-table-client';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Users' };
 
 export default function AdminUsersPage() {
   return (

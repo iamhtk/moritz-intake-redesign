@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { Slider } from '@/components/design/foundations/components/slider';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Slider · Foundations' };
 
 export default function SliderFoundationPage() {
   return (

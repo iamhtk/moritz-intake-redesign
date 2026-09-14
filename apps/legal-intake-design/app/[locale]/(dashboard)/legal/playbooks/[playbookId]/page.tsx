@@ -1,4 +1,7 @@
+import type { Metadata } from 'next';
 import { PlaybookEditor } from '@/components/design/playbook-studio/playbook-editor';
+
+export const metadata: Metadata = { title: 'Playbook' };
 
 interface PageProps {
   params: Promise<{ playbookId: string }>;

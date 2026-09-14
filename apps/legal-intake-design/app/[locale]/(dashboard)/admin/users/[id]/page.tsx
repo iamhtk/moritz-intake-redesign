@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from '@repo/ui/icons';
@@ -13,6 +14,8 @@ import { Label } from '@repo/ui/components/label';
 import { Badge } from '@repo/ui/components/badge';
 import { FormattedDate } from '@/components/formatted-date';
 import { MOCK_USERS } from '@/lib/mocks/users';
+
+export const metadata: Metadata = { title: 'User' };
 
 interface PageProps {
   params: Promise<{ id: string }>;

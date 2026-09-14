@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft, Mail, MapPin, Phone } from '@repo/ui/icons';
@@ -23,6 +24,8 @@ import { FormattedDate } from '@/components/formatted-date';
 import { getLawFirmSummary } from '@/lib/mocks/companies';
 import { getCasesForCompany } from '@/lib/mocks/cases';
 import type { CompanyMember, FirmMemberType } from '@/lib/types';
+
+export const metadata: Metadata = { title: 'Law firm' };
 
 const MEMBER_TYPE_LABELS: Record<FirmMemberType, string> = {
   LAWYER: 'Lawyer',

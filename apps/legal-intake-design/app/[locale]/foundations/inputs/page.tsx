@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Badge } from '@repo/ui/components/badge';
 import {
   Field,
@@ -26,6 +27,8 @@ import {
   SelectValue,
 } from '@/components/design/foundations/components/select';
 import { ControlledInputExample } from '@/components/design/foundations/examples/input-examples';
+
+export const metadata: Metadata = { title: 'Inputs · Foundations' };
 
 export default function InputsFoundationPage() {
   return (

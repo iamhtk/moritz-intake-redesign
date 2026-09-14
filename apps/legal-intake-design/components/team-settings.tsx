@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from 'react';
 import { toast } from 'sonner';
+
+import { toastUndo } from '@/lib/toast-undo';
 import { useTranslations } from 'next-intl';
 import { Mail } from '@repo/ui/icons';
 import {
@@ -84,6 +86,9 @@ export function TeamSettings({
 
   const handleRevokeInvitation = useCallback(
     (invitationId: string) => {
+      // The previous status, so undo puts the invitation back as it was
+      // rather than guessing at `PENDING`.
+      const previous = invitations.find((invite) => invite.id === invitationId);
       setInvitations((prev) =>
         prev.map((invite) =>
           invite.id === invitationId
@@ -91,17 +96,33 @@ export function TeamSettings({
             : invite,
         ),
       );
-      toast.success(revokeSuccessMessage);
+      toastUndo(revokeSuccessMessage, () => {
+        if (!previous) return;
+        setInvitations((prev) =>
+          prev.map((invite) =>
+            invite.id === invitationId ? previous : invite,
+          ),
+        );
+      });
     },
-    [revokeSuccessMessage],
+    [invitations, revokeSuccessMessage],
   );
 
   const handleRemoveMember = useCallback(
     (memberId: string) => {
+      const index = members.findIndex((m) => m.id === memberId);
+      const removed = members[index];
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
-      toast.success(removeMemberSuccessMessage);
+      toastUndo(removeMemberSuccessMessage, () => {
+        if (!removed) return;
+        setMembers((prev) => {
+          const next = [...prev];
+          next.splice(index, 0, removed);
+          return next;
+        });
+      });
     },
-    [removeMemberSuccessMessage],
+    [members, removeMemberSuccessMessage],
   );
 
   const createFormatter = useDateFormatter();

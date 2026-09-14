@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { OtpVerifyForm } from '@/components/auth/otp-verify-form';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Check your email' };
 
 export default function SignInVerifyPage() {
   return (

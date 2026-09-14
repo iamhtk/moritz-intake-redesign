@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { FileText, Inbox, MessageCircleDashed } from '@repo/ui/icons';
 
 import { Button } from '@/components/design/foundations/components/button';
@@ -10,6 +11,8 @@ import {
   EmptyTitle,
 } from '@/components/design/foundations/components/empty';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Empty · Foundations' };
 
 export default function EmptyFoundationPage() {
   return (

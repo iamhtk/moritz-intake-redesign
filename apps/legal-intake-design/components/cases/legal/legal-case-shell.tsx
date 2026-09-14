@@ -1,5 +1,6 @@
 'use client';
 
+import { MOBILE_QUERY } from '@/lib/breakpoints';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -206,7 +207,7 @@ export function LegalCaseShell({
   // after the initial paint so the first render is instant, while later manual
   // toggles still animate.
   useEffect(() => {
-    if (window.matchMedia('(max-width: 767px)').matches) {
+    if (window.matchMedia(MOBILE_QUERY).matches) {
       setIsPanelOpen(false);
     }
     const id = requestAnimationFrame(() => setAnimationsEnabled(true));

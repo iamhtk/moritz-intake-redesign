@@ -5,6 +5,7 @@ import {
   type ComponentType,
   type DragEvent,
   type KeyboardEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useRef,
@@ -77,21 +78,6 @@ type ChatComposerProps = {
   value?: string;
   /** Controlled change handler. Required for controlled usage. */
   onChange?: (next: string) => void;
-  /**
-   * Every edit, whether the field is controlled or not.
-   *
-   * `onChange` cannot answer this: it is half of the controlled contract and
-   * fires only when `value` is supplied, so an uncontrolled caller that merely
-   * wants to know the client has started typing would have to take ownership
-   * of the text to find out — and owning the text means re-rendering the whole
-   * screen on every keystroke to learn one boolean.
-   *
-   * Added for the intake's card-to-rail handoff (`how-it-works.tsx`), where
-   * the first character typed is what swaps the explanation for the tracker.
-   * Fires on dictation and on paste as well as on typing, because all three
-   * are the client starting.
-   */
-  onEdit?: (next: string) => void;
   /** Assistant is generating: the Send button becomes a Stop control. */
   busy?: boolean;
   /** Stop generation (only used while `busy`). */
@@ -114,6 +100,15 @@ type ChatComposerProps = {
    * so an empty text field can't send a message. Defaults to `true`.
    */
   attachmentsEnableSend?: boolean;
+  /**
+   * Extra controls for the toolbar's left cluster, beside the paperclip.
+   *
+   * A slot rather than a prop per control, because what belongs here is
+   * caller business: the intake puts its documents button here, and no other
+   * surface that mounts this composer has one. Same `gap-2` as the mic/send
+   * pair on the right, so the row reads as one set of controls at one rhythm.
+   */
+  toolbarLeading?: ReactNode;
   /**
    * A file is being held over the composer.
    *
@@ -192,13 +187,13 @@ export function ChatComposer({
   onAttachClick,
   value: valueProp,
   onChange,
-  onEdit,
   busy = false,
   onStop,
   attachments = [],
   onRemoveAttachment,
   onOpenAttachment,
   attachmentsEnableSend = true,
+  toolbarLeading,
   onDraggingChange,
   dropTarget = true,
   showAttach = true,
@@ -209,11 +204,10 @@ export function ChatComposer({
   const value = isControlled ? valueProp : internalValue;
   const setValue = useCallback(
     (next: string) => {
-      onEdit?.(next);
       if (isControlled) onChange?.(next);
       else setInternalValue(next);
     },
-    [isControlled, onChange, onEdit],
+    [isControlled, onChange],
   );
 
   const [fade, setFade] = useState({ top: false, bottom: false });
@@ -485,7 +479,14 @@ export function ChatComposer({
                   key={attachment.id}
                   size="sm"
                   state={attachment.state ?? 'done'}
-                  className="bg-muted/50 max-w-56 gap-0.5 border-transparent"
+                  /*
+                   * `max-w-56` caps the chip, `min-w-0` lets it fall below
+                   * that on a 390px phone, and the wrapped title below is what
+                   * makes both safe: a 60-character file name used to set the
+                   * card's own `min-content` width and push the composer past
+                   * the edge of the screen.
+                   */
+                  className="bg-muted/50 min-w-0 max-w-56 items-start gap-0.5 border-transparent"
                 >
                   {attachment.previewUrl ? (
                     <AttachmentMedia variant="image">
@@ -511,10 +512,19 @@ export function ChatComposer({
                       type="button"
                       onClick={() => onOpenAttachment(attachment)}
                       title={attachment.name}
-                      className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -mx-0.5 flex min-w-0 flex-1 cursor-pointer rounded-[0.375rem] px-0.5 text-left outline-none transition-colors focus-visible:outline-2"
+                      className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -mx-0.5 flex min-w-0 flex-1 cursor-pointer items-start rounded-[0.375rem] px-0.5 text-left outline-none transition-colors focus-visible:outline-2"
                     >
                       <AttachmentContent>
-                        <AttachmentTitle>{attachment.name}</AttachmentTitle>
+                        {/*
+                         * Wrapped over up to three lines rather than
+                         * ellipsised on one. The `title` above still carries
+                         * the whole string for the hover, and the clamp is
+                         * what stops a pathological name turning the dock
+                         * into half the composer.
+                         */}
+                        <AttachmentTitle wrap className="line-clamp-3">
+                          {attachment.name}
+                        </AttachmentTitle>
                         {attachment.meta ? (
                           <AttachmentDescription>
                             {attachment.meta}
@@ -524,7 +534,13 @@ export function ChatComposer({
                     </button>
                   ) : (
                     <AttachmentContent>
-                      <AttachmentTitle>{attachment.name}</AttachmentTitle>
+                      <AttachmentTitle
+                        wrap
+                        className="line-clamp-3"
+                        title={attachment.name}
+                      >
+                        {attachment.name}
+                      </AttachmentTitle>
                       {attachment.meta ? (
                         <AttachmentDescription>
                           {attachment.meta}
@@ -670,6 +686,7 @@ export function ChatComposer({
               )}
             </>
           ) : null}
+          {toolbarLeading}
         </div>
         <div className="flex items-center gap-2">
           {/*

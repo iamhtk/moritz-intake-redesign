@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   DescriptionDetails,
   DescriptionList,
@@ -5,6 +6,8 @@ import {
 } from '@/components/design/foundations/components/description-list';
 import { Subheading } from '@/components/design/foundations/components/heading';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Description list · Foundations' };
 
 export default function DescriptionListFoundationPage() {
   return (

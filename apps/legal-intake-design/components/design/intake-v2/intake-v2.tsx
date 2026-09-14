@@ -1,6 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -103,8 +110,9 @@ import {
 import { progressNoteFor } from '@/lib/intake/progress-note';
 import { WaitingQuestions } from './waiting-questions';
 import { BriefColumn } from './brief-column';
-import { HANDOFF_MS, HowItWorksCard } from './how-it-works';
+import { HowItWorksCard } from './how-it-works';
 import { BriefSummaryBar } from './brief-summary-bar';
+import { DocumentsTrigger } from './documents-trigger';
 import { DropOverlay } from './drop-overlay';
 import { IntakeLawyerNote } from './intake-lawyer-note';
 import type { AddedDocument } from './post-submit-dropzone';
@@ -655,23 +663,6 @@ export function IntakeV2() {
   // Fills the picked chip in before the screen changes, so the click is
   // acknowledged rather than swallowed by the layout switch.
   const [startChoice, setStartChoice] = useState<string | undefined>(undefined);
-
-  /**
-   * ⭐ The client has started, which is earlier than the case has started.
-   *
-   * `started` below is `messages.length > 0` — the first turn has gone to the
-   * server — and that is the right boundary for the phase, the layout and
-   * everything the brief does. It is the wrong boundary for the card-to-rail
-   * handoff, which has to happen on the *first character*: the whole point of
-   * the move is that the explanation becomes the tracker while the client is
-   * still writing their first sentence, not a beat after they submit it.
-   *
-   * So the composer reports its edits (`onEdit`, threaded through
-   * `ChatColumn`) and this holds the one bit that comes out of them. State
-   * rather than the composer's text, because the screen does not want to
-   * re-render on every keystroke to learn a boolean it already knows.
-   */
-  const [typed, setTyped] = useState(false);
 
   // ----------------------------------------------------------------- phases
 
@@ -2144,6 +2135,12 @@ export function IntakeV2() {
           onClose: documents.close,
           onMaximise: documents.maximise,
           onMinimise: documents.minimise,
+          /*
+           * Whether minimising has a column to land in. The effect above
+           * re-maximises anything docked without room, so passing this lets
+           * the panel hide a toggle that the shell would only undo.
+           */
+          dockable: canDock,
         }
       : null;
 
@@ -2156,35 +2153,72 @@ export function IntakeV2() {
    * the grid, and it stays there.
    */
   /**
-   * Whether the document tab is on the right edge right now.
+   * The documents the client has actually handed over.
    *
-   * Read by the two panes below, which have to leave room for it (item 5).
-   * `DocumentRailTrigger` returns `null` at a count of zero, so the condition
-   * is duplicated here rather than inferred: a gutter held open for a control
-   * that is not rendered is a 56px margin nobody asked for.
+   * `acceptFiles` puts every accepted file into the viewer's library the
+   * moment it is picked, because that is the only place a file is ever
+   * accepted and the library is what the composer's chips open. But a file
+   * sitting in the composer's dock has not been *given* to us yet — it is
+   * staged, waiting for the client to press send with it — and counting it
+   * here is what put the edge tab on screen the instant somebody attached
+   * something, offering a panel for a document they had not sent.
+   *
+   * So the rail counts the library minus whatever is still staged. Attaching
+   * changes nothing on the edge of the screen; sending is what makes the
+   * document a thing there is a surface for.
    */
-  const documentTabShowing =
-    documentsReachable &&
-    documents.mode === 'closed' &&
-    documents.documents.length > 0;
+  const stagedNames = useMemo(
+    () => new Set(stagedFiles.map((one) => one.file.name)),
+    [stagedFiles],
+  );
+  const handedOver = useMemo(
+    () => documents.documents.filter((one) => !stagedNames.has(one.name)),
+    [documents.documents, stagedNames],
+  );
+
+  /**
+   * Open whatever the client last looked at, or the newest document they have
+   * handed over. Shared by both of the triggers below.
+   */
+  const openDocumentPanel = useCallback(() => {
+    const last = documents.active ?? documents.tabs.at(-1) ?? handedOver.at(-1);
+    if (last) documents.open(last.id);
+  }, [documents, handedOver]);
+
+  /**
+   * Whether there is a document panel to be opened at all.
+   *
+   * Read by the two triggers, which are the only things that draw it now.
+   * The edge tab is gone — see `documents-trigger.tsx` for why, and for what
+   * replaced it.
+   */
+  const documentTriggerShowing =
+    documentsReachable && documents.mode === 'closed' && handedOver.length > 0;
 
   const documentSurface = !documentsReachable ? null : (
     <>
       {/*
-       * The way back in. Hidden while the panel is open — it is the handle on a
-       * closed drawer, and a handle beside an open one is a second control for
-       * something already done.
+       * The way back in, on the edge the panel comes out of.
+       *
+       * Hidden while the panel is open — it is the handle on a closed drawer,
+       * and a handle beside an open one is a second control for something
+       * already done.
+       *
+       * `max-lg:hidden`, which is the whole of the fix that was made here.
+       * The tab is `fixed`, so on a phone it landed on top of a sentence and
+       * the only way to stop that was a 56px gutter held open down the right
+       * of both panes — which moved the transcript and the composer
+       * off-centre for the rest of the flow. From `lg` up the panes already
+       * carry a `lg:pr-*` gutter and the tab sits in it, costing nothing; so
+       * the tab keeps the desktop, the composer's toolbar button takes the
+       * phone (`documents-trigger.tsx`), and neither width has a control
+       * sitting on the words.
        */}
-      {documents.mode === 'closed' && (
+      {documents.mode === 'closed' && handedOver.length > 0 && (
         <DocumentRailTrigger
-          count={documents.documents.length}
-          onOpen={() => {
-            const last =
-              documents.active ??
-              documents.tabs.at(-1) ??
-              documents.documents.at(-1);
-            if (last) documents.open(last.id);
-          }}
+          count={handedOver.length}
+          onOpen={openDocumentPanel}
+          className="max-lg:hidden"
         />
       )}
 
@@ -2241,52 +2275,6 @@ export function IntakeV2() {
    * pressed is the defect this distinguishes.
    */
   const dockedCanSend = attachments.length === 0 && stagedFiles.length > 0;
-
-  /**
-   * ⭐ The opening screen's handoff: the card explains, then the rail tracks.
-   *
-   * ───────────────────────────────────────────────────────────────────────────
-   * THE CARD BECOMES THE RAIL.
-   * ───────────────────────────────────────────────────────────────────────────
-   *
-   * `HowItWorksCard` and `JourneyRailColumn` say the same four words — Brief,
-   * Quote, Lawyer, Document — out of the same copy key. On the opening screen
-   * the card says them in the middle of the page with a sentence each; the
-   * moment the client types a character or drops a file, the rail fills the
-   * column it has been holding open since first paint and the card folds away
-   * underneath it. The client reads the shape once and then watches it move
-   * for the rest of the case.
-   *
-   * **Begun means typed or dropped, not sent.** Both are the client starting,
-   * and the drop is the one that matters most: somebody who hands over a
-   * contract without a word has done more to start this case than somebody
-   * halfway through a sentence.
-   *
-   * **Two pieces of state rather than one**, because CSS and React have to
-   * agree on an order. `begun` drives the fold, which is a transition on the
-   * card. `cardGone` unmounts it afterwards, and it has to be afterwards: a
-   * card unmounted on the same tick never animates, and a card left mounted
-   * forever leaves the opening column carrying a collapsed block's flex gap
-   * between the suggestion chips and the lawyer note.
-   *
-   * **Reduced motion takes the plain swap the rules ask for.** No fold, no
-   * fade, no wait: the card is gone on the next render and the rail's own
-   * entrance keyframe is already disabled in `globals.css`. Read at the
-   * moment of the handoff rather than subscribed to, because this fires once
-   * per session and a client who changes the setting mid-sentence is not a
-   * case worth a listener.
-   */
-  const begun = typed || dockedAttachments.length > 0;
-  const [cardGone, setCardGone] = useState(false);
-  useEffect(() => {
-    if (!begun || cardGone) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setCardGone(true);
-      return;
-    }
-    const handoffTimer = window.setTimeout(() => setCardGone(true), HANDOFF_MS);
-    return () => window.clearTimeout(handoffTimer);
-  }, [begun, cardGone]);
 
   /*
    * The one lawyer this flow claims is involved.
@@ -2530,17 +2518,31 @@ export function IntakeV2() {
       }}
       onAttach={receiveFiles}
       onOpenDocument={openDocumentNamed}
-      /*
-       * The first character, for the card-to-rail handoff on the opening
-       * screen. Passed in every phase rather than only that one, because the
-       * flag it sets is read on one screen and a prop that appears and
-       * disappears with the layout is a prop somebody has to reason about.
-       * After the opening screen it is a no-op: `typed` is already true.
-       */
-      onEdit={(next) => {
-        if (next.trim().length > 0) setTyped(true);
-      }}
       attachmentsCanSend={dockedCanSend}
+      /*
+       * The phone's way back into a document, beside the paperclip.
+       *
+       * The desktop keeps the edge tab (see `documentSurface` above); this is
+       * the half of the pair for the widths with no gutter to spare. Two
+       * candidates were built and compared in place for that half — this, and
+       * a text control beside *Talk to a person* — and the toolbar won on the
+       * count of things stacked under the input: the composer already has an
+       * exit row under it and an action bar under that, and a third line
+       * would have made the bottom of a phone four rows of chrome. It also
+       * puts *attach a document* and *open a document* next to each other,
+       * which is one subject. See `documents-trigger.tsx`.
+       */
+      {...(documentTriggerShowing
+        ? {
+            composerLeading: (
+              <DocumentsTrigger
+                count={handedOver.length}
+                onOpen={openDocumentPanel}
+                className="lg:hidden"
+              />
+            ),
+          }
+        : {})}
       /*
        * The way out, under the composer, in every phase (V22).
        *
@@ -2605,57 +2607,125 @@ export function IntakeV2() {
    * happened and it must not be possible to make it happen twice — and it is
    * why this is a switch rather than a `disabled` prop.
    */
-  const briefFooter = (
-    <div className="flex flex-col gap-3">
-      {/*
-       * No stepper here any more. It is the left rail (`journey-rail.tsx`).
-       *
-       * This footer is inside a column that scrolls, and a stepper the client
-       * has to scroll to find is not an answer to "where am I". The rail is
-       * fixed to the window and is on screen for the whole flow, including the
-       * confirmation, where this one used to be replaced by a second, longer
-       * stepper saying the same thing in different words.
-       */}
-      {/*
-       * The commercial sentence, and it has to change on `quoted` (G3).
-       *
-       * `quote.explanation` is written for a client who has not sent anything
-       * yet ("when you send this, a lawyer reads it and prices the work"), and
-       * `sent.quoteHere` for one who is waiting. Neither is true once the quote
-       * has arrived, and leaving the default in place had the panel promising a
-       * quote underneath the quote.
-       */}
-      {/*
-       * 10.5px, which is the floor rather than a preference.
-       *
-       * Three sentences of explanation were the tallest thing in a footer whose
-       * other two occupants — the stepper and the Send button — are the ones
-       * the client acts on. `leading-[1.5]` is what keeps it readable at this
-       * size: small type fails from tight leading before it fails from size,
-       * and three wrapped lines at 10.5px/1.25 would be a block rather than
-       * sentences. Smaller than this and it stops being copy and becomes a
-       * disclaimer nobody reads, which would be a worse answer than cutting it.
-       */}
-      <p className="text-muted-foreground text-[10.5px] leading-[1.5]">
-        {t(FOOTER_SENTENCE[phase])}
-      </p>
+  /**
+   * The commercial sentence, and the action, as two pieces.
+   *
+   * They used to be one `briefFooter` and on a desktop they still read as one
+   * — the sentence sits directly above the button at the foot of the brief.
+   * On a phone they now live in two different places, because they answer two
+   * different questions at two different moments: the sentence is *what
+   * happens when I send this*, which belongs with the brief it is about and is
+   * read once; the button is *send it*, which has to be reachable at all
+   * times and is the only thing in the bottom bar.
+   *
+   * Splitting them is also what stops the phone's action bar being three
+   * lines of 10.5px disclaimer with a button under it, permanently occupying
+   * the bottom fifth of a 390x844 screen.
+   */
+  /*
+   * No stepper here any more. It is the left rail (`journey-rail.tsx`).
+   *
+   * This footer is inside a column that scrolls, and a stepper the client
+   * has to scroll to find is not an answer to "where am I". The rail is
+   * fixed to the window and is on screen for the whole flow, including the
+   * confirmation, where this one used to be replaced by a second, longer
+   * stepper saying the same thing in different words.
+   */
+  /*
+   * The commercial sentence, and it has to change on `quoted` (G3).
+   *
+   * `quote.explanation` is written for a client who has not sent anything
+   * yet ("when you send this, a lawyer reads it and prices the work"), and
+   * `sent.quoteHere` for one who is waiting. Neither is true once the quote
+   * has arrived, and leaving the default in place had the panel promising a
+   * quote underneath the quote.
+   */
+  /*
+   * 10.5px, which is the floor rather than a preference.
+   *
+   * Three sentences of explanation were the tallest thing in a footer whose
+   * other two occupants — the stepper and the Send button — are the ones
+   * the client acts on. `leading-[1.5]` is what keeps it readable at this
+   * size: small type fails from tight leading before it fails from size,
+   * and three wrapped lines at 10.5px/1.25 would be a block rather than
+   * sentences. Smaller than this and it stops being copy and becomes a
+   * disclaimer nobody reads, which would be a worse answer than cutting it.
+   */
+  const briefExplanation = (
+    <p className="text-muted-foreground text-[10.5px] leading-[1.5]">
+      {t(FOOTER_SENTENCE[phase])}
+    </p>
+  );
 
-      {phase === 'sending' ? (
-        /*
-         * Item 38. Was one spinner and one sentence, which is the complaint it
-         * was built to answer arriving at the worst possible moment. See
-         * `lib/intake/sending-steps.ts`.
-         */
-        <SendingSteps />
-      ) : phase === 'sent' ? (
+  /**
+   * Whether the action row has to carry the documents button itself.
+   *
+   * ───────────────────────────────────────────────────────────────────────
+   * THE GAP THIS CLOSES.
+   * ───────────────────────────────────────────────────────────────────────
+   *
+   * On a phone the two panes are one at a time, and from `review` onwards the
+   * brief opens itself (`briefLed`) because it is the only thing worth
+   * reading — which hides the chat column, and with it the composer that
+   * carries the documents button. So on the confirmation, on the review
+   * screen and on the quote, a client who wanted to look again at the
+   * contract they had just handed over had no way to: the composer was gone
+   * and the edge tab is desktop-only by design.
+   *
+   * Keyed on `briefOpenOnMobile` rather than on the phase, because that is
+   * the actual condition — *is the composer on screen right now* — and it
+   * follows the client if they close the brief again, which puts the
+   * composer and its button back. That keeps the one-control-per-width rule
+   * intact: there is never a width or a state with two of these, or none.
+   */
+  const docsBesideAction = documentTriggerShowing && briefOpenOnMobile;
+
+  /**
+   * The primary action, with the documents button stacked to its left.
+   *
+   * A small square on the left, then the action taking everything that is
+   * left — so the shape of the row still says which of the two is the thing
+   * to press. It wraps only the button, never the sentence underneath it, so
+   * "2 more answers and this opens" stays full width under the control it
+   * explains rather than being indented past an icon.
+   *
+   * `lg:hidden` on the icon: from `lg` up the edge tab is the control and
+   * this row is back to being one button wide.
+   */
+  const withDocsButton = (action: ReactNode) =>
+    docsBesideAction ? (
+      <div className="flex items-center gap-3">
+        <DocumentsTrigger
+          count={handedOver.length}
+          onOpen={openDocumentPanel}
+          className="shrink-0 lg:hidden"
+        />
+        <div className="min-w-0 flex-1">{action}</div>
+      </div>
+    ) : (
+      action
+    );
+
+  const briefAction =
+    phase === 'sending' ? (
+      /*
+       * Item 38. Was one spinner and one sentence, which is the complaint it
+       * was built to answer arriving at the worst possible moment. See
+       * `lib/intake/sending-steps.ts`.
+       */
+      <SendingSteps />
+    ) : phase === 'sent' ? (
+      withDocsButton(
         <Button asChild className="w-full">
           <Link href={SUBMITTED_CASE.href}>
             {t('sent.goToCase')}
             <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Link>
-        </Button>
-      ) : phase === 'review' ? (
-        <div className="flex flex-col gap-2">
+        </Button>,
+      )
+    ) : phase === 'review' ? (
+      <div className="flex flex-col gap-2">
+        {withDocsButton(
           <Button
             type="button"
             className="w-full"
@@ -2663,49 +2733,81 @@ export function IntakeV2() {
             onClick={submitCase}
           >
             {t('send.action')}
-          </Button>
-          {/*
-           * Why the button is off. A disabled control with no explanation is
-           * the version of this gate that makes people think it is broken.
-           */}
-          {canSend(brief) ? null : (
-            <p className="text-muted-foreground text-center text-[11.5px]">
-              {t('send.blocked', { count: blocking.length })}
-            </p>
-          )}
-        </div>
-      ) : phase === 'quoted' ? (
-        /*
-         * The one phase whose primary action is *not* in this footer, and the
-         * exception is the point rather than an inconsistency.
-         *
-         * Everywhere else there is one thing to do next, so it belongs in the
-         * one place the client has learned to look for it. On a quote there are
-         * four, and they are a set: accept, ask, push back, ask for less. They
-         * have to be read together and against the figure they are about, which
-         * means they live on the card. A fifth full-width button down here
-         * would read as the recommended one and would be competing with the
-         * decision rather than supporting it.
-         *
-         * So this drops to the outline variant and becomes a way out of the
-         * screen rather than a way through it.
-         */
+          </Button>,
+        )}
+        {/*
+         * Why the button is off. A disabled control with no explanation is
+         * the version of this gate that makes people think it is broken.
+         */}
+        {canSend(brief) ? null : (
+          <p className="text-muted-foreground text-center text-[11.5px]">
+            {t('send.blocked', { count: blocking.length })}
+          </p>
+        )}
+      </div>
+    ) : phase === 'quoted' ? (
+      /*
+       * The one phase whose primary action is *not* in this footer, and the
+       * exception is the point rather than an inconsistency.
+       *
+       * Everywhere else there is one thing to do next, so it belongs in the
+       * one place the client has learned to look for it. On a quote there are
+       * four, and they are a set: accept, ask, push back, ask for less. They
+       * have to be read together and against the figure they are about, which
+       * means they live on the card. A fifth full-width button down here
+       * would read as the recommended one and would be competing with the
+       * decision rather than supporting it.
+       *
+       * So this drops to the outline variant and becomes a way out of the
+       * screen rather than a way through it.
+       */
+      withDocsButton(
         <Button asChild variant="outline" className="w-full">
           <Link href={SUBMITTED_CASE.href}>
             {t('sent.goToCase')}
             <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Link>
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          className="w-full"
-          disabled={!canEnterReview(brief)}
-          onClick={() => setStage('review')}
-        >
-          {t('quote.action')}
-        </Button>
-      )}
+        </Button>,
+      )
+    ) : (
+      <div className="flex flex-col gap-2">
+        {withDocsButton(
+          <Button
+            type="button"
+            className="w-full"
+            disabled={!canEnterReview(brief)}
+            onClick={() => setStage('review')}
+          >
+            {t('quote.action')}
+          </Button>,
+        )}
+        {/*
+         * Why the button is off, on the phase where it is off for longest.
+         *
+         * `review` has carried this line from the start and `building` — the
+         * whole middle of the flow — carried nothing, so the client's first
+         * and longest encounter with the primary action was a grey rectangle
+         * with no explanation under it. That is the state people read as
+         * broken, and it is the state they are in for every turn of the
+         * conversation until the last required row lands.
+         *
+         * `blocking` rather than a second count: it is the same list the gate
+         * itself is computed from (`blockingFields`), so the sentence cannot
+         * drift from the button it is under.
+         */}
+        {canEnterReview(brief) ? null : (
+          <p className="text-muted-foreground text-center text-[11.5px]">
+            {t('quote.blocked', { count: blocking.length })}
+          </p>
+        )}
+      </div>
+    );
+
+  /** The two together: the desktop brief column's sticky foot. */
+  const briefFooter = (
+    <div className="flex flex-col gap-3">
+      {briefExplanation}
+      {briefAction}
     </div>
   );
 
@@ -2898,6 +3000,7 @@ export function IntakeV2() {
           }
         : {})}
       footer={briefFooter}
+      mobileNote={briefExplanation}
       onConfirm={onBriefConfirm}
       onEdit={onBriefEdit}
       onUndo={undo}
@@ -2941,263 +3044,229 @@ export function IntakeV2() {
   if (phase === 'start') {
     return (
       /*
-       * ⭐ No rail until the client begins, and then the rail instead of the
-       * card.
+       * No rail on this screen, in either layout, and no tracker of any kind.
        *
-       * The rule here used to be "no rail on this screen, in either layout",
-       * and the argument was sound: nothing has been started, so there is no
-       * position to report, and a stepper beside an empty composer is four
-       * labels tracking a case that does not exist.
+       * It was here once, on the argument that "the client should never wonder
+       * what step they are on" covers the step before they have started.
+       * Looked at, that is wrong twice over: nothing has been started, so there
+       * is no position to report, and a stepper standing beside an empty
+       * composer is four labels claiming to track progress through a case that
+       * does not exist yet. It also puts chrome around the one screen whose
+       * whole design is a single centred column.
        *
-       * It is still true of the empty screen and it stopped being the whole
-       * rule when the card below started saying the rail's own four words.
-       * Once Brief, Quote, Lawyer and Document are on this page anyway, the
-       * rail is not a second stepper arriving — it is the same one, taking
-       * over. So the column waits, empty, and fills on the first character.
-       * See `JourneyHandoff` in `journey-rail.tsx` and `HANDOFF_MS` above.
+       * A later attempt had the rail slide in on the first keystroke, taking
+       * over from the card as the client typed. It read as the page snatching
+       * the explanation away at the moment somebody was mid-sentence, and it
+       * put a progress tracker on a case that still had not been sent. Both
+       * versions failed for the same reason, so the rule is now flat: **the
+       * rail belongs to the conversation, never to this screen.** It arrives
+       * with the first reply, which is the first moment there is a position to
+       * be in.
        *
-       * **The column is reserved from first paint, not conditionally
-       * rendered.** This screen is a centred composition; a 11.25rem column
-       * appearing at the left would shove the composer sideways under the
-       * cursor of somebody mid-sentence. So the rail's track and a mirror of
-       * it on the right are both paid for before anyone is looking, and the
-       * 940px column stays centred in the window whether the rail is drawn or
-       * not.
+       * What the rail would have carried here — that a person and a price are
+       * on the other side of this — is already this screen's job and already
+       * done better. `HowItWorksCard` says it in four steps, in the rail's own
+       * words, so the client meets the vocabulary here and meets the tracker
+       * when there is something to track. The lawyer note underneath says it
+       * with a face.
        */
-      <div className="flex min-h-full w-full flex-col">
+      <div className="tall:py-7 taller:py-10 mx-auto flex min-h-full w-full max-w-[940px] flex-col px-4 py-5 sm:px-6">
         {/*
-         * The rail lying down, for the widths with no room for a column.
-         *
-         * Conditional where the column is reserved, because this one costs
-         * nothing to leave out: it is a full-width bar above the content, so
-         * it pushes down rather than sideways, and the card folding away at
-         * the same moment gives back several times its height.
+         * `my-auto` rather than `justify-center`: it centres the column when
+         * there is room, and quietly gives up when there is not, letting the
+         * page scroll instead. Centring a flex column that overflows clips the
+         * top of it, which is how a short laptop screen loses the heading.
          */}
-        {begun ? <JourneyBar phase={phase} className="xl:hidden" /> : null}
+        {/*
+         * Height-first spacing, like the client homepage.
+         *
+         * This screen is meant to fit the window: it is the first thing a
+         * client sees and a scrollbar on it says the form is longer than it
+         * looks. The base values are the ones that have to survive a laptop,
+         * and `tall:`/`taller:` buy the air back when the window has it. See
+         * the variant definitions in `globals.css`.
+         */}
+        <div className="tall:gap-6 taller:gap-8 my-auto flex flex-col gap-5">
+          {/*
+           * The three things said once, before Moritz says anything (items 1,
+           * 2 and 3).
+           *
+           * All three live on this screen rather than in an opening chat
+           * message, and that is the firing rule rather than a layout
+           * preference. This screen exists only while `phase === 'start'`, so
+           * greeting the client by name, telling them the law is not their job
+           * to explain, and telling them they can leave whenever they like are
+           * structurally incapable of happening twice. An opening message in
+           * the transcript would be three sentences the model could then
+           * echo, and a scrollback the client passes on their way to the
+           * bottom every time they come back.
+           *
+           * The prompt is told all three have been said and that none of them
+           * are his to repeat. See `system-prompt.ts`.
+           */}
+          {/*
+           * The greeting, and one line telling them what to do. Nothing else.
+           *
+           * Everything this used to say has an owner elsewhere on the screen:
+           * the composer's placeholder says a document can be handed over, the
+           * brief panel lists what will be asked for, and the four steps below
+           * say how the whole case goes. A client who has not typed a word
+           * yet is not reading a preamble, and copy that restates what the
+           * layout already shows is the most expensive kind to keep.
+           */}
+          <header
+            className={cn(
+              'tall:gap-3 flex flex-col gap-2 text-center',
+              ENTRANCE_CLASS,
+            )}
+            style={entrance(0)}
+          >
+            <h1 className="text-foreground tall:text-3xl mx-auto max-w-2xl font-serif text-2xl tracking-tight">
+              {firstName === null
+                ? t('start.headingAnonymous')
+                : t('start.heading', { firstName })}
+            </h1>
+            <p className="text-muted-foreground tall:text-base mx-auto max-w-xl text-sm">
+              {t('start.subheading')}
+            </p>
+          </header>
 
-        <div className="flex w-full flex-1">
-          <JourneyRailColumn
-            phase={phase}
-            handoff={begun ? 'arriving' : 'waiting'}
-          />
-
-          <div className="tall:py-7 taller:py-10 mx-auto flex w-full max-w-[940px] flex-col px-4 py-5 sm:px-6">
+          {/*
+           * The opening move is one action, and there is now one place to make
+           * it: say what you need, drop the document, send once (A, Decision 1,
+           * L2).
+           *
+           * There used to be a second, separate drop zone under the composer.
+           * It came from a good instinct — an intake whose best input is a
+           * contract should not hide the way to hand one over behind an icon —
+           * but it answered that by adding a target rather than by making the
+           * existing one obvious, and two places to put a document is the exact
+           * shape of the complaint this redesign is answering. The zone is gone
+           * and nothing it did is lost: the whole window still takes a drop
+           * (`use-window-drop.ts`), the composer takes one itself and now says
+           * so in the same visual language as the page (`chat-composer.tsx`),
+           * and the paperclip still opens the picker. Three ways in, one place
+           * they land.
+           *
+           * What the deletion buys is the Legora composition: one serif line as
+           * the largest thing on the screen, the composer directly under it,
+           * and nothing between them competing for the first glance.
+           *
+           * Attaching here does *not* start reading the document. The file is
+           * held until send, so the description and the document arrive
+           * together and the turn call sees a brief the contract has already
+           * filled in.
+           */}
+          <div
+            className={cn('flex flex-col gap-3', ENTRANCE_CLASS)}
+            style={entrance(1)}
+          >
+            <div className="flex flex-col">{chatColumn()}</div>
             {/*
-             * `my-auto` rather than `justify-center`: it centres the column when
-             * there is room, and quietly gives up when there is not, letting the
-             * page scroll instead. Centring a flex column that overflows clips the
-             * top of it, which is how a short laptop screen loses the heading.
-             */}
-            {/*
-             * Height-first spacing, like the client homepage.
+             * Permission to leave, directly under the thing they are being
+             * asked to fill in (item 3).
              *
-             * This screen is meant to fit the window: it is the first thing a
-             * client sees and a scrollbar on it says the form is longer than it
-             * looks. The base values are the ones that have to survive a laptop,
-             * and `tall:`/`taller:` buy the air back when the window has it. See
-             * the variant definitions in `globals.css`.
+             * It was in the intro and it was wrong there: a preamble is read by
+             * someone deciding whether to start, and this sentence is for
+             * someone already mid-thought who has just realised they need to go
+             * and find the contract. Set to match the save indicator on the
+             * brief, because it is the same promise: the one says work is kept,
+             * the other shows it being kept.
              */}
-            <div className="tall:gap-6 taller:gap-8 my-auto flex flex-col gap-5">
-              {/*
-               * The three things said once, before Moritz says anything (items 1,
-               * 2 and 3).
-               *
-               * All three live on this screen rather than in an opening chat
-               * message, and that is the firing rule rather than a layout
-               * preference. This screen exists only while `phase === 'start'`, so
-               * greeting the client by name, telling them the law is not their job
-               * to explain, and telling them they can leave whenever they like are
-               * structurally incapable of happening twice. An opening message in
-               * the transcript would be three sentences the model could then
-               * echo, and a scrollback the client passes on their way to the
-               * bottom every time they come back.
-               *
-               * The prompt is told all three have been said and that none of them
-               * are his to repeat. See `system-prompt.ts`.
-               */}
-              {/*
-               * The greeting, and one line telling them what to do. Nothing else.
-               *
-               * Everything this used to say has an owner elsewhere on the screen:
-               * the composer's placeholder says a document can be handed over, the
-               * brief panel lists what will be asked for, and the four steps below
-               * say how the whole case goes. A client who has not typed a word
-               * yet is not reading a preamble, and copy that restates what the
-               * layout already shows is the most expensive kind to keep.
-               */}
-              <header
-                className={cn(
-                  'tall:gap-3 flex flex-col gap-2 text-center',
-                  ENTRANCE_CLASS,
-                )}
-                style={entrance(0)}
-              >
-                <h1 className="text-foreground tall:text-3xl mx-auto max-w-2xl font-serif text-2xl tracking-tight">
-                  {firstName === null
-                    ? t('start.headingAnonymous')
-                    : t('start.heading', { firstName })}
-                </h1>
-                <p className="text-muted-foreground tall:text-base mx-auto max-w-xl text-sm">
-                  {t('start.subheading')}
-                </p>
-              </header>
-
-              {/*
-               * The opening move is one action, and there is now one place to make
-               * it: say what you need, drop the document, send once (A, Decision 1,
-               * L2).
-               *
-               * There used to be a second, separate drop zone under the composer.
-               * It came from a good instinct — an intake whose best input is a
-               * contract should not hide the way to hand one over behind an icon —
-               * but it answered that by adding a target rather than by making the
-               * existing one obvious, and two places to put a document is the exact
-               * shape of the complaint this redesign is answering. The zone is gone
-               * and nothing it did is lost: the whole window still takes a drop
-               * (`use-window-drop.ts`), the composer takes one itself and now says
-               * so in the same visual language as the page (`chat-composer.tsx`),
-               * and the paperclip still opens the picker. Three ways in, one place
-               * they land.
-               *
-               * What the deletion buys is the Legora composition: one serif line as
-               * the largest thing on the screen, the composer directly under it,
-               * and nothing between them competing for the first glance.
-               *
-               * Attaching here does *not* start reading the document. The file is
-               * held until send, so the description and the document arrive
-               * together and the turn call sees a brief the contract has already
-               * filled in.
-               */}
-              <div
-                className={cn('flex flex-col gap-3', ENTRANCE_CLASS)}
-                style={entrance(1)}
-              >
-                <div className="flex flex-col">{chatColumn()}</div>
-                {/*
-                 * Permission to leave, directly under the thing they are being
-                 * asked to fill in (item 3).
-                 *
-                 * It was in the intro and it was wrong there: a preamble is read by
-                 * someone deciding whether to start, and this sentence is for
-                 * someone already mid-thought who has just realised they need to go
-                 * and find the contract. Set to match the save indicator on the
-                 * brief, because it is the same promise: the one says work is kept,
-                 * the other shows it being kept.
-                 */}
-                {/*
-                 * Nothing renders here now. Both halves of this row left for a
-                 * reason, so both reasons are recorded rather than dropped.
-                 *
-                 * The credentials moved into the gold "how this works" panel below
-                 * (see its footer in `how-it-works.tsx`). This was the better
-                 * adjacency — a client reads this row while deciding whether to
-                 * upload a contract — but it was a loose strip on white with no
-                 * container, and the panel is the one block on the screen that
-                 * already explains the process. The height it frees is roughly the
-                 * height it costs down there, which is what made the move cheap on
-                 * a screen that has to fit the window.
-                 *
-                 * The reassurance line is commented out rather than deleted,
-                 * because the argument for where it sits is the expensive part to
-                 * rebuild; uncomment the `<p>` to bring it back.
-                 */}
-                {/*
-                 * Italic and 7px because it is an aside: permission to leave, not
-                 * an instruction.
-                 *
-                 * It spent a while rendered with an inline `fontSize` while sizes
-                 * were compared, because the dev server was serving a stale CSS
-                 * chunk and every newly written arbitrary size compiled to
-                 * nothing, silently falling back to the inherited 16px. That is
-                 * why three successive attempts at "smaller" all looked
-                 * identical. Worth knowing the next time a size will not take.
-                 */}
-                {/* <p className="text-muted-foreground px-1 text-[7px] italic leading-relaxed">
-              {t('start.reassurance')}
-            </p> */}
-              </div>
-
-              {/*
-               * A way in for someone who does not know how to begin. Below the
-               * composer and under a quiet lead-in: typing or dropping a document is
-               * the flow, and these must not compete with it.
-               */}
-              <SuggestionChips
-                className={ENTRANCE_CLASS}
-                style={entrance(2)}
-                chips={chipsByField[MATTER_TYPE_KEY] ?? []}
-                label={t('start.orStartWith')}
-                {...(startChoice !== undefined
-                  ? { selectedValue: startChoice }
-                  : {})}
-                onSelect={(chip) => {
-                  setStartChoice(chip.value);
-                  void send(chip.label);
-                }}
-              />
-
-              {/*
-               * How the whole case goes, before a word has been typed.
-               *
-               * Four steps in the rail's own words, each with who does it and
-               * when, and it hands itself over to the rail on the first
-               * character. See `how-it-works.tsx` for the card and the handoff
-               * note above for the swap.
-               */}
-              {cardGone ? null : (
-                <HowItWorksCard
-                  matterId={matterId}
-                  leaving={begun}
-                  className={ENTRANCE_CLASS}
-                  style={entrance(3)}
-                />
-              )}
-
-              {/*
-               * One real person, before a word is typed (Decision 21).
-               *
-               * Under the outline rather than above the composer: the client came
-               * here to describe a problem, and the first thing on the screen has
-               * to be the place to do that. This is what they find when they look
-               * past it for reassurance that a human is involved, which is exactly
-               * when it is worth something.
-               */}
-              <IntakeLawyerNote
-                matterId={matterId}
-                askable
-                className={cn(
-                  'border-border tall:pt-5 taller:pt-6 border-t pt-4',
-                  ENTRANCE_CLASS,
-                )}
-                style={entrance(4)}
-              />
-            </div>
-
             {/*
-             * No document surface here. `documentSurface` is `null` for this
-             * phase and the reason is with the flag (`documentsReachable`); it
-             * is left out rather than rendered-as-nothing so that reading this
-             * screen does not suggest a handle appears on it.
+             * Nothing renders here now. Both halves of this row left for a
+             * reason, so both reasons are recorded rather than dropped.
+             *
+             * The credentials moved into the gold "how this works" panel below
+             * (see its footer in `how-it-works.tsx`). This was the better
+             * adjacency — a client reads this row while deciding whether to
+             * upload a contract — but it was a loose strip on white with no
+             * container, and the panel is the one block on the screen that
+             * already explains the process. The height it frees is roughly the
+             * height it costs down there, which is what made the move cheap on
+             * a screen that has to fit the window.
+             *
+             * The reassurance line is commented out rather than deleted,
+             * because the argument for where it sits is the expensive part to
+             * rebuild; uncomment the `<p>` to bring it back.
              */}
-            {dropOverlay}
-            {leaveDialogElement}
+            {/*
+             * Italic and 7px because it is an aside: permission to leave, not
+             * an instruction.
+             *
+             * It spent a while rendered with an inline `fontSize` while sizes
+             * were compared, because the dev server was serving a stale CSS
+             * chunk and every newly written arbitrary size compiled to
+             * nothing, silently falling back to the inherited 16px. That is
+             * why three successive attempts at "smaller" all looked
+             * identical. Worth knowing the next time a size will not take.
+             */}
+            {/* <p className="text-muted-foreground px-1 text-[7px] italic leading-relaxed">
+            {t('start.reassurance')}
+          </p> */}
           </div>
 
           {/*
-           * The rail's mirror image, holding the right margin open.
-           *
-           * Not symmetry for its own sake: without it the 940px column would
-           * be centred in what is left *after* the rail, which puts the
-           * heading and the composer 90px left of the middle of the window on
-           * the one screen whose entire design is a centred column. A spacer
-           * is the cheapest honest fix — no measurement, no negative margins,
-           * and it disappears with the rail at the same breakpoint.
+           * A way in for someone who does not know how to begin. Below the
+           * composer and under a quiet lead-in: typing or dropping a document is
+           * the flow, and these must not compete with it.
            */}
-          <div
-            aria-hidden="true"
-            className="hidden w-[11.25rem] shrink-0 xl:block"
+          <SuggestionChips
+            className={ENTRANCE_CLASS}
+            style={entrance(2)}
+            chips={chipsByField[MATTER_TYPE_KEY] ?? []}
+            label={t('start.orStartWith')}
+            {...(startChoice !== undefined
+              ? { selectedValue: startChoice }
+              : {})}
+            onSelect={(chip) => {
+              setStartChoice(chip.value);
+              void send(chip.label);
+            }}
+          />
+
+          {/*
+           * How the whole case goes, before a word has been typed.
+           *
+           * Four steps in the rail's own words, each with who does it and
+           * when. It stays put for as long as this screen does: a client
+           * halfway through their first sentence is exactly the person who
+           * might glance back at it. See `how-it-works.tsx`.
+           */}
+          <HowItWorksCard
+            matterId={matterId}
+            className={ENTRANCE_CLASS}
+            style={entrance(3)}
+          />
+
+          {/*
+           * One real person, before a word is typed (Decision 21).
+           *
+           * Under the outline rather than above the composer: the client came
+           * here to describe a problem, and the first thing on the screen has
+           * to be the place to do that. This is what they find when they look
+           * past it for reassurance that a human is involved, which is exactly
+           * when it is worth something.
+           */}
+          <IntakeLawyerNote
+            matterId={matterId}
+            askable
+            className={cn(
+              'border-border tall:pt-5 taller:pt-6 border-t pt-4',
+              ENTRANCE_CLASS,
+            )}
+            style={entrance(4)}
           />
         </div>
+
+        {/*
+         * No document surface here. `documentSurface` is `null` for this phase
+         * and the reason is with the flag (`documentsReachable`); it is left
+         * out rather than rendered-as-nothing so that reading this screen does
+         * not suggest a handle appears on it.
+         */}
+        {dropOverlay}
+        {leaveDialogElement}
       </div>
     );
   }
@@ -3219,6 +3288,14 @@ export function IntakeV2() {
       <JourneyBar
         phase={phase}
         accepted={quoteAccepted}
+        /*
+         * The brief's measure rides on this row below `lg`, where the brief
+         * itself is a collapsed header — see `percent` in `journey-bar.tsx`.
+         * `null` once the case is sent, under the same rule the panel uses: a
+         * full bar over a submitted case is a progress indicator for a
+         * finished thing.
+         */
+        percent={isSubmitted(phase) ? null : progress.percent}
         className="xl:hidden"
       />
 
@@ -3253,12 +3330,26 @@ export function IntakeV2() {
            * The phone layout, and the only place the two panes are not side by
            * side. One line for the brief, opened on a tap (Decision 18).
            */}
-          <div className="shrink-0 px-4 sm:px-6 lg:hidden">
+          {/*
+           * `sticky top-0` as well as `shrink-0`, and the two are answering
+           * different things. `shrink-0` keeps the row out of the panes'
+           * scroll; `sticky` keeps it pinned when the whole page scrolls
+           * (which it does on a short phone viewport, where the composer and
+           * the action bar push the column past the window). The progress bar
+           * this row now carries is the thing that has to survive both.
+           *
+           * `z-20` stays *below* `JourneyBar`'s `z-30` on purpose. This row is
+           * the second bar on a phone and it sits directly under the first,
+           * whose disclosure opens downward over it. While the two matched at
+           * `z-20` this one won on DOM order and the opened journey bar was
+           * drawn behind it. See the note on the `z-30` in `journey-bar.tsx`.
+           */}
+          <div className="bg-background sticky top-0 z-20 shrink-0 px-4 sm:px-6 lg:hidden">
             <BriefSummaryBar
               brief={brief}
-              progress={progress}
               open={briefOpenOnMobile}
               onToggle={() => setBriefOpenOnMobile((open) => !open)}
+              titlePending={recapPending}
             />
           </div>
 
@@ -3403,26 +3494,25 @@ export function IntakeV2() {
              */}
             <div
               className={cn(
-                'order-2 flex min-h-0 flex-col px-4 py-8 sm:px-6 lg:order-1 lg:flex',
+                // `max-lg:pb-4`: the mobile action bar below carries its own
+                // top padding, so the pane's 32px would double up against it.
+                'order-2 flex min-h-0 flex-col px-4 py-8 max-lg:pb-4 sm:px-6 lg:order-1 lg:flex',
                 // A 40px gutter is generous beside a wide transcript and absurd
                 // beside a narrow one: it was eating a fifth of the strip.
                 briefLed ? 'lg:pl-7 lg:pr-6' : 'lg:pl-10 lg:pr-8',
                 /*
-                 * Room for the document tab below the two-column breakpoint.
+                 * No reserved gutter here any more.
                  *
-                 * The tab is `fixed` to the right edge at mid-height, which on a
-                 * desktop lands in the `lg:pr-*` gutter above and on a phone lands
-                 * on top of the text: at 390px both panes run to 16px of the edge
-                 * and the tab is wider than that, so it sat over the middle of a
-                 * sentence. An overlay control whose whole claim is "there is a
-                 * surface over here" cannot be the thing covering the words.
-                 *
-                 * A reserved gutter rather than moving the tab, because every other
-                 * position on a phone is worse — the top is the summary bar, the
-                 * bottom is the composer and the primary button — and because the
-                 * edge is where the panel actually comes from.
+                 * There used to be a `max-lg:pe-14` on both panes, held open so
+                 * the `fixed` document tab on the right edge would not sit on
+                 * top of the text. It did its job and it cost the composition:
+                 * the transcript, the composer and the brief all shifted 56px
+                 * left the moment a document existed, so the screen was
+                 * visibly off-centre for the rest of the flow. The tab is a
+                 * button in the toolbar now (`documents-trigger.tsx`), which
+                 * takes its space from the row it is in rather than from the
+                 * page.
                  */
-                documentTabShowing && 'max-lg:pe-14',
                 briefOpenOnMobile && 'max-lg:hidden',
               )}
             >
@@ -3439,9 +3529,7 @@ export function IntakeV2() {
               ref={briefPaneRef}
               id="intake-brief-panel"
               className={cn(
-                'border-border mz-scrollbar-on-scroll order-1 min-h-0 overflow-y-auto px-4 py-8 sm:px-6 lg:order-2 lg:block lg:border-l lg:pl-8 lg:pr-10',
-                // Same gutter as the transcript pane. See the note there.
-                documentTabShowing && 'max-lg:pe-14',
+                'border-border mz-scrollbar-on-scroll order-1 min-h-0 overflow-y-auto px-4 py-8 max-lg:pb-4 sm:px-6 lg:order-2 lg:block lg:border-l lg:pl-8 lg:pr-10',
                 !briefOpenOnMobile && 'hidden',
               )}
             >
@@ -3477,6 +3565,32 @@ export function IntakeV2() {
                 className="border-border order-3 hidden min-h-0 lg:border-l xl:flex"
               />
             )}
+          </div>
+
+          {/*
+           * The primary action on a phone, and the point is where it is *not*.
+           *
+           * It used to be the brief column's sticky footer, which on a phone
+           * lives inside the collapsible — so "Review and submit", the
+           * sentence explaining what pressing it does, and the reason it is
+           * disabled were all behind a tap on a panel that is shut by
+           * default. A client could finish answering every question and never
+           * see the button that finishes the case.
+           *
+           * Here it is a bar of its own, a sibling of the two panes rather
+           * than a child of either, sitting directly under the composer. That
+           * is what makes it survive both states: closing the brief does not
+           * take it away, and opening the brief does not either. Below the
+           * input rather than above it because the input is where the client
+           * is working and the action is what comes after — and because a
+           * full-width button between the transcript and the thing they are
+           * typing into would read as part of the conversation.
+           *
+           * `lg:hidden`; from `lg` up the brief has a column of its own and
+           * the footer goes back to the bottom of it, unchanged.
+           */}
+          <div className="border-border bg-background shrink-0 border-t px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:hidden">
+            {briefAction}
           </div>
         </div>
       </div>

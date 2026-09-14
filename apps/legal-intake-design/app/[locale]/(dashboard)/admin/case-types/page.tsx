@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/design/design-system/button';
 import {
@@ -12,6 +13,8 @@ import { Plus } from '@repo/ui/icons';
 import { FormattedDate } from '@/components/formatted-date';
 import { H3, Muted } from '@/components/design/design-system/typography';
 import { MOCK_CASE_TYPES } from '@/lib/mocks/case-types';
+
+export const metadata: Metadata = { title: 'Case types' };
 
 export default function AdminCaseTypesPage() {
   return (

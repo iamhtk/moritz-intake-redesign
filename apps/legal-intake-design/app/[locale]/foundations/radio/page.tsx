@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldContent,
@@ -15,6 +16,8 @@ import {
 } from '@/components/design/foundations/components/radio-group';
 import { ControlledRadioExample } from '@/components/design/foundations/examples/radio-examples';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Radio · Foundations' };
 
 export default function RadioFoundationPage() {
   return (

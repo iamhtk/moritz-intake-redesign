@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { LegalHomepage } from '@/components/design/legal-homepage/legal-homepage';
 import { getMockUser } from '@/components/playground/auth-stubs';
+
+export const metadata: Metadata = { title: 'Home' };
 
 export default async function LegalHome() {
   const user = await getMockUser();

@@ -127,6 +127,12 @@ describe('colour restraint in the intake', () => {
         // tick for the same reason. Two files rather than one because the
         // layouts are genuinely different shapes, not because the meaning is.
         'journey-bar.tsx',
+        // The same progress bar as `brief-column.tsx`, moved up into the
+        // phone's collapsible header so it survives the brief being closed.
+        // One meaning, two places it has to be drawn — the panel is hidden
+        // below `lg` and the header is hidden above it, so only ever one of
+        // them is on screen.
+        'brief-summary-bar.tsx',
       ].sort(),
     );
   });

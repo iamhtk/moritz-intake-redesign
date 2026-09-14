@@ -22,11 +22,13 @@ import { modKeyLabel } from '@/lib/keyboard';
  * best feature, and nobody discovers a keyboard shortcut by looking at a
  * screen that does not mention it.
  *
- * So it is a real control on two viewports rather than a hint on one. On `sm+`
- * it reads as a search field with the shortcut printed in it, which teaches the
- * chord to anyone who clicks instead. On phones — where there is no ⌘ to press
- * and no room for the badge — it collapses to the magnifier alone, which is
- * still a way in.
+ * So it is a real control on every viewport rather than a hint on one. On
+ * `sm+` it reads as a search field with the shortcut printed in it, which
+ * teaches the chord to anyone who clicks instead. On phones it collapses to
+ * the magnifier alone — the badge would be a lie there, but the palette is
+ * not only a shortcut: it is the fastest route to any case, any person and
+ * any action in the app, and on the viewport with the *least* navigation on
+ * screen that is worth more, not less.
  */
 export function CommandPaletteTrigger() {
   const t = useTranslations('commandPalette');
@@ -51,18 +53,18 @@ export function CommandPaletteTrigger() {
           aria-keyshortcuts="Meta+K Control+K"
           aria-label={t('openHint')}
           /*
-           * Hidden on phones, deliberately.
+           * On phones too, as an icon, matching `AskTrigger` beside it.
            *
-           * The right cluster already carries the bell and the account menu,
-           * and Ask's trigger now sits there too; a fourth 44px target pushes
-           * the row past 390px and starts squeezing the breadcrumb, which is
-           * the overflow T35 tested for. The palette is a *keyboard*
-           * accelerator and there is no ⌘ to press on a phone, so it is the
-           * right one of the four to drop — navigation on small screens is
-           * already served by `TopNavMobileNav`'s drawer, and Ask, which is a
-           * real feature rather than a shortcut, stays tappable.
+           * It was hidden below `sm` on a width argument: four 44px targets
+           * plus a breadcrumb overflow a 390px row. That was true of the row
+           * as it was, and the row changed — the right cluster is `gap-1` on
+           * a phone now and the left zone is a 36px hamburger and a
+           * truncating label rather than a full ancestor trail. The
+           * overflow it was dodging is gone, and dropping the one control
+           * that reaches every case and every action was the expensive way
+           * to buy 44px.
            */
-          className="text-muted-foreground hover:text-foreground hidden justify-center sm:inline-flex sm:h-9 sm:w-auto sm:justify-start sm:gap-2 sm:px-2.5"
+          className="text-muted-foreground hover:text-foreground size-11 justify-center sm:h-9 sm:w-auto sm:justify-start sm:gap-2 sm:px-2.5"
         >
           <Search aria-hidden />
           {/* The field-like half, on sm+ only. */}

@@ -176,7 +176,23 @@ function AttachmentContent({
   );
 }
 
-function AttachmentTitle({ className, ...props }: React.ComponentProps<'p'>) {
+/**
+ * `wrap` turns the single truncated line into a wrapping block.
+ *
+ * A file name is not prose: "Employment_Agreement_Final_Signed_2026_v3.pdf"
+ * has no spaces in it, so its `min-content` width is the whole string. On a
+ * `w-fit` card inside a shrink-to-fit bubble that is a card as wide as the
+ * name, which is what pushed the transcript off the side of a phone.
+ * `[overflow-wrap:anywhere]` is the half that actually fixes the layout —
+ * it lets the browser break mid-token, which collapses `min-content` back to
+ * one character — and dropping `truncate` is what makes the rest of the name
+ * readable instead of hidden behind an ellipsis.
+ */
+function AttachmentTitle({
+  className,
+  wrap = false,
+  ...props
+}: React.ComponentProps<'p'> & { wrap?: boolean }) {
   const { state, size } = useAttachmentContext();
   const isStreaming = state === 'uploading' || state === 'processing';
 
@@ -184,7 +200,8 @@ function AttachmentTitle({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="attachment-title"
       className={cn(
-        'truncate font-medium',
+        'font-medium',
+        wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate',
         size === 'xs' ? 'text-xs' : 'text-sm',
         isStreaming && 'shimmer',
         className,
@@ -196,15 +213,17 @@ function AttachmentTitle({ className, ...props }: React.ComponentProps<'p'>) {
 
 function AttachmentDescription({
   className,
+  wrap = false,
   ...props
-}: React.ComponentProps<'p'>) {
+}: React.ComponentProps<'p'> & { wrap?: boolean }) {
   const { state } = useAttachmentContext();
 
   return (
     <p
       data-slot="attachment-description"
       className={cn(
-        'truncate text-xs',
+        'text-xs',
+        wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate',
         state === 'error' ? 'text-destructive' : 'text-muted-foreground',
         className,
       )}

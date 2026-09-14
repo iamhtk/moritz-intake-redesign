@@ -95,12 +95,16 @@ export function IntakeLawyerNote({
    */
   matterId: MatterId | undefined;
   /**
-   * Show the *Ask {firstName} something* control under the note (G6).
+   * Show the *Ask a human* / *Ask {firstName}* control under the note (G6).
    *
    * A flag rather than the old `onAsk` callback. The control used to own a
    * dialog and hand the message back for the caller to write into the
-   * transcript; it now navigates to `/client/talk`, so there is nothing to hand
-   * anywhere and nothing for a caller to implement.
+   * transcript; it now opens the shared `TalkOverlay`, so there is nothing to
+   * hand anywhere and nothing for a caller to implement.
+   *
+   * Which of the two labels it shows is not this component's decision to make
+   * twice: it passes down the face it is currently showing and whether the
+   * rotation has settled, and the trigger reads those. See `TalkToAPerson`.
    *
    * Still opt-in, for the reason the callback was optional: this note is also
    * used on surfaces where offering the exit is not appropriate, and a control
@@ -336,7 +340,20 @@ export function IntakeLawyerNote({
            * also used on surfaces where the exit does not belong.
            */}
           {askable ? (
-            <TalkToAPerson matterId={matterId} named className="mt-2" />
+            /*
+             * `lawyer` and `pinned` rather than the old `named` flag. The
+             * trigger used to resolve its own name from `matterId`, which is
+             * `undefined` for as long as this note is rotating, so it printed
+             * the default lead's first name under all eleven faces. The face
+             * on screen is known here and nowhere else, so it is passed.
+             */
+            <TalkToAPerson
+              matterId={matterId}
+              lawyer={lawyer}
+              pinned={isSettled}
+              variant="icon-badge"
+              className="mt-2"
+            />
           ) : null}
         </div>
       </div>

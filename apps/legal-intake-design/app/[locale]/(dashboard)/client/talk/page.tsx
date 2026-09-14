@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { TalkScreen } from '@/components/design/talk/talk-screen';
 import { isMatterId } from '@/components/design/new-case/intake-types';
+
+export const metadata: Metadata = { title: 'Talk' };
 
 interface PageProps {
   params: Promise<{ locale: string }>;

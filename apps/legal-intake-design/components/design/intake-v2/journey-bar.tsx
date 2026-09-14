@@ -41,11 +41,12 @@ import { JourneySteps } from './journey-rail';
  * the bar, so the panes keep their exact top edge whether it is open or shut.
  * Nothing below it reflows, ever. That was the brief for this component.
  *
- * **It carries the active step's sentence.** Two rows rather than one, and it
- * was chosen over the one-row version after looking at both: a client on a
- * phone should not have to tap to find out that the thing they are doing is
- * describing the matter, or — after they send — that a lawyer is reading it.
- * The sentence is the payload; the four names are the map around it.
+ * **It carries the active step's sentence from `lg` up, and the brief's
+ * percentage below it.** Two rows rather than one was chosen over the one-row
+ * version after looking at both, and then the phone took the other side of
+ * that trade: below `lg` the sentence is a caption for a stepper that is
+ * already legible, and the row is worth more as the one place the measure
+ * lives. Both are still a tap away in the panel. See `percent`.
  *
  * **It measures itself, not the window.** `@container`, not a media query, so
  * the bar reacts to the width it is actually given. Below 400px the labels
@@ -63,14 +64,37 @@ import { JourneySteps } from './journey-rail';
 export function JourneyBar({
   phase,
   accepted = false,
+  percent = null,
   className,
 }: {
   phase: IntakePhase;
   /** Whether the quote has been accepted, which ticks one more row. */
   accepted?: boolean;
+  /**
+   * How much of the brief is confirmed, or `null` where the bar should not
+   * report it (after submission, and from `lg` up where the brief has a
+   * column of its own that already says).
+   *
+   * ───────────────────────────────────────────────────────────────────────
+   * WHY THE NUMBER MOVED HERE.
+   * ───────────────────────────────────────────────────────────────────────
+   *
+   * A phone was showing three rows of status before a single word of
+   * content: this bar, then the brief's collapsible header with its own
+   * percentage and its own progress rail, then the transcript. Two of those
+   * rows were answering the same question in two vocabularies — "you are on
+   * Brief" and "you are 20% through the brief" — which is the same answer
+   * twice, and it cost about a fifth of a 390x844 screen to say.
+   *
+   * So the measure lives on the row that already tracks position, and the
+   * brief's header goes back to being what it is: the thing you tap to open
+   * the brief.
+   */
+  percent?: number | null;
   className?: string;
 }) {
   const t = useTranslations('intake.journey');
+  const tBrief = useTranslations('intake.brief');
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const wrapper = useRef<HTMLElement>(null);
@@ -104,7 +128,28 @@ export function JourneyBar({
       ref={wrapper}
       aria-label={t('label')}
       className={cn(
-        '@container bg-background border-border sticky top-0 z-20 shrink-0 border-b',
+        /*
+         * `z-30`, and the number is load-bearing rather than a round-up.
+         *
+         * This bar was `z-20`, and so is the sticky row directly beneath it
+         * that carries the brief summary on a phone (and the conversation once
+         * the case is sent). Two positioned siblings at the same z-index are
+         * painted in DOM order, and that row comes second — so it won.
+         *
+         * That would have been invisible, because the two never overlap while
+         * this bar is shut. Open it and they do: the disclosure below is
+         * `absolute top-full`, drawn *over* the page rather than pushing it
+         * down, and it landed underneath the very next bar. Its own `z-30`
+         * could not save it, because `sticky` plus a `z-index` here makes this
+         * element a stacking context and traps every descendant's z-index
+         * inside it. The child cannot climb past a ceiling its parent set.
+         *
+         * So the fix belongs on the parent. One step above the row below it,
+         * still far under the document overlay and the drop target at `z-50`.
+         */
+        '@container bg-background border-border sticky top-0 z-30 shrink-0 border-b',
+        // `relative` for the progress rule pinned to the bottom edge below.
+        'relative',
         className,
       )}
     >
@@ -142,6 +187,20 @@ export function JourneyBar({
               />
             ))}
           </span>
+          {/*
+           * The brief's measure, on the row that already reports position.
+           * `@max-[360px]` drops the word and keeps the figure: at that width
+           * "20% confirmed" is competing with four step names for the same
+           * line, and the number is the part that is news.
+           */}
+          {percent !== null ? (
+            <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums lg:hidden">
+              <span className="@max-[360px]:hidden">
+                {tBrief('percentDone', { percent })}
+              </span>
+              <span className="@max-[360px]:inline hidden">{percent}%</span>
+            </span>
+          ) : null}
           <ChevronDown
             className={cn(
               'text-muted-foreground/70 size-3.5 shrink-0 transition-transform duration-200 motion-reduce:transition-none',
@@ -165,13 +224,50 @@ export function JourneyBar({
          * move for, which is the whole thing this component exists to stop.
          * The full sentence is in the panel a tap below.
          */}
+        {/*
+         * Gone below `lg`, kept above it.
+         *
+         * "You are telling us about the matter" is a caption for a stepper
+         * the client can already read, directly under the word *Brief* with
+         * a ring around it. On a laptop that is a free sentence; on a phone
+         * it is 24px of the four hundred there are, spent restating the row
+         * above it. The full sentence is still one tap away in the panel,
+         * which is where a client who actually wants the detail goes.
+         */}
         <span
           aria-hidden="true"
-          className="text-muted-foreground @max-[400px]:text-[10px] block truncate text-[11px] leading-snug"
+          className="text-muted-foreground @max-[400px]:text-[10px] hidden truncate text-[11px] leading-snug lg:block"
         >
           {t(journeyLineKey(active, phase))}
         </span>
       </button>
+
+      {/*
+       * The fill, as the bar's own bottom edge.
+       *
+       * It used to be a separate 3px rule under the brief's header, one row
+       * down, measuring a number that was printed somewhere else again. Here
+       * it is the underline of the figure it belongs to, and it costs no
+       * height at all: it sits in the border the bar already had.
+       *
+       * The one green in the intake, under the same rule as everywhere else
+       * it appears — a quantity, not a judgement. See `brief-column.tsx`.
+       */}
+      {percent !== null ? (
+        <div
+          className="bg-border absolute inset-x-0 bottom-0 h-[2px] lg:hidden"
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={tBrief('progressLabel')}
+        >
+          <div
+            className="bg-success h-full transition-[width] duration-[550ms] ease-out motion-reduce:transition-none"
+            style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
+          />
+        </div>
+      ) : null}
 
       {/*
        * Over the page, not above it. `absolute` from the sticky bar, so the

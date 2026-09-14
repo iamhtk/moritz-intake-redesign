@@ -2549,6 +2549,7 @@
       "summaryNext": "Next: {field}",
       "summaryCheck": "Check: {field}",
       "summaryReady": "Everything confirmed",
+      "summarySettled": "Confirmed: {field}",
       "checkedInChat": "{count, plural, one {I have checked the {fields} on the brief and it is right.} other {I have checked these on the brief and they are right: {fields}.}}",
       "correctedInChat": "{count, plural, one {I have corrected the {changes} on the brief.} other {I have corrected these on the brief: {changes}.}}",
       "saved": "Saved just now",
@@ -2612,6 +2613,7 @@
     "quote": {
       "explanation": "When you send this, one of our lawyers reads it and prices the work, and you get a fixed quote back in this chat, usually within four hours. Nothing is charged until you accept it.",
       "action": "Review and send",
+      "blocked": "{count, plural, one {One more answer to continue} other {# more answers to continue}}",
       "arrivedHeading": "Your quote is ready",
       "arrivedBody": "{name} read your brief and priced the work. Nothing is charged until you accept.",
       "fee": "Fixed fee",
@@ -2678,22 +2680,16 @@
       "youAreHere": "You are here.",
       "footer": "Our agents do the first pass. Our lawyers finish it.",
       "description": {
-        "brief": "Tell us what happened, or drop in a document. Your brief builds as you talk, and you check anything we worked out.",
-        "quote": "Send it. A lawyer reads your brief and prices the work. A fixed quote comes back in this chat. Nothing is charged until you accept.",
-        "lawyer": "Accept, and your lawyer is assigned and takes over this chat.",
-        "document": "They draft it, we check it, you get the finished document."
-      },
-      "who": {
-        "brief": "You, with Moritz",
-        "quote": "A lawyer",
-        "lawyer": "Your lawyer",
-        "document": "Back to you"
+        "brief": "Tell us what happened, or drop in the document.",
+        "quote": "A lawyer reads it and puts a fixed price on the work.",
+        "lawyer": "Accept the price and they take over this chat.",
+        "document": "They write it and send you the finished document."
       },
       "when": {
-        "brief": "Now · a few minutes",
+        "brief": "A few minutes",
         "quote": "Within 24 hours",
         "lawyer": "When you accept",
-        "document": "No estimate. We would rather not guess."
+        "document": "No estimate"
       }
     },
     "demo": {
@@ -2835,7 +2831,8 @@
     },
     "person": {
       "trigger": "Talk to a person",
-      "triggerNamed": "Ask {firstName} something",
+      "triggerNamed": "Ask {firstName}",
+      "triggerAnyone": "Ask a human",
       "dialogTitle": "Talk to a person",
       "dialogDescription": "Write what you want a lawyer to know. It reaches them with your brief, so you do not have to explain the matter twice.",
       "who": "A lawyer like {firstName} reads these, alongside the brief you have been filling in.",
@@ -2858,7 +2855,16 @@
         "placeholder": "Choose a lawyer",
         "anyName": "Anyone at Moritz",
         "anyDetail": "Whoever is free first, and fits your matter",
-        "fitsYourMatter": "Fits your matter \u00b7 {school}"
+        "fitsYourMatter": "Fits your matter · {school}"
+      },
+      "overlay": {
+        "titleNamed": "Ask {firstName}",
+        "pickLabel": "Search for someone to ask",
+        "pickPlaceholder": "Search for a person by name, practice or school…",
+        "pickEmpty": "Nobody here by that name.",
+        "fits": "Fits your matter",
+        "back": "Ask somebody else",
+        "sendHint": "{key} + Enter to send"
       }
     },
     "email": {

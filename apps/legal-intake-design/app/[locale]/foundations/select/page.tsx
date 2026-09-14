@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldDescription,
@@ -25,6 +26,8 @@ import {
   ControlledSelectExample,
   PhoneNumberSelectExample,
 } from '@/components/design/foundations/examples/select-examples';
+
+export const metadata: Metadata = { title: 'Select · Foundations' };
 
 const TIMEZONES = [
   'Pacific Time (PT)',

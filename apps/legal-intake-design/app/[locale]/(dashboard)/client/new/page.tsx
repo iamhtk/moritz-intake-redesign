@@ -1,4 +1,7 @@
+import type { Metadata } from 'next';
 import { IntakeV2 } from '@/components/design/intake-v2/intake-v2';
+
+export const metadata: Metadata = { title: 'New case' };
 
 interface PageProps {
   params: Promise<{ locale: string }>;
