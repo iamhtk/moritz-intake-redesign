@@ -1,7 +1,11 @@
 import type { Transition } from 'motion/react';
+import { IconBook2 } from '@tabler/icons-react';
 
 import { isNavItemActive } from '@/components/navigation/sidebar-active';
-import type { NavItem } from '@/components/navigation/sidebar-nav-items';
+import {
+  buildNavMain,
+  type NavItem,
+} from '@/components/navigation/sidebar-nav-items';
 import { getCasesForRole } from '@/lib/mocks/cases';
 import { getVisiblePlaybooks } from '@/components/design/playbook-studio/playbook-studio-data';
 import { getPlaybooks as getAdminPlaybooks } from '@/components/design/playbook-studio-admin/playbook-studio-data';
@@ -21,6 +25,71 @@ export const ACTIVE_PILL_TRANSITION: Transition = {
   stiffness: 400,
   damping: 35,
 };
+
+/** The design flags that change which nav destinations exist. */
+export type NavFlags = {
+  usePlaybooks?: boolean;
+  usePlaybooksAdmin?: boolean;
+  useAiEvalsAdmin?: boolean;
+  useTabularPlaybooksAdmin?: boolean;
+};
+
+/**
+ * Inserts the flag-gated "Playbooks" destination immediately after "Cases" when
+ * the `usePlaybooks` design flag is on, leaving the nav untouched otherwise.
+ */
+function withPlaybooks(
+  items: NavItem[],
+  homePath: string,
+  enabled: boolean,
+): NavItem[] {
+  if (!enabled) return items;
+  const playbooks: NavItem = {
+    title: 'Playbooks',
+    url: `${homePath}/playbooks`,
+    icon: IconBook2,
+  };
+  const casesIndex = items.findIndex((item) => item.title === 'Cases');
+  if (casesIndex === -1) return [...items, playbooks];
+  return [
+    ...items.slice(0, casesIndex + 1),
+    playbooks,
+    ...items.slice(casesIndex + 1),
+  ];
+}
+
+/**
+ * Every destination a role can reach, with the design flags applied.
+ *
+ * **The single source of truth for "what is in the navigation".** It exists
+ * because there were briefly two: the top nav wrapped `buildNavMain()` in
+ * `withPlaybooks()` while the command palette called `buildNavMain()` directly,
+ * so with `usePlaybooks` on, the nav showed a Playbooks tab that ⌘K could not
+ * find. That is precisely the drift the palette's generated "Jump to" was
+ * supposed to make impossible, and it had already happened — because the
+ * *generation* was shared and the *flag wrapping* was not.
+ *
+ * So both callers come through here. Adding a flag-gated destination is now one
+ * edit, and the palette gets it for free.
+ */
+export function buildNavForRole(
+  companyType: CompanyType,
+  homePath: string,
+  flags: NavFlags,
+): NavItem[] {
+  return withPlaybooks(
+    buildNavMain(companyType, homePath, {
+      adminPlaybooks: Boolean(flags.usePlaybooksAdmin),
+      adminAiEvals: Boolean(flags.useAiEvalsAdmin),
+      adminTabularPlaybooks: Boolean(flags.useTabularPlaybooksAdmin),
+    }),
+    homePath,
+    // Playbooks is a client/lawyer destination only; the admin app never
+    // surfaces it even when the flag is on (admin has its own Playbook Studio).
+    Boolean(flags.usePlaybooks) &&
+      (companyType === 'NON_LEGAL' || companyType === 'LEGAL'),
+  );
+}
 
 /**
  * Badge counts for nav destinations, keyed by the item's full `title` (matched

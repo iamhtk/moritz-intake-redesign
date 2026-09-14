@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { CompaniesTable } from '@/components/companies/companies-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
 import { Button } from '@/components/design/design-system/button';
 import { Link } from '@/i18n/navigation';
 import { Building2 } from '@repo/ui/icons';
+
+export const metadata: Metadata = { title: 'Companies' };
 
 export default function AdminCompaniesPage() {
   return (

@@ -11,6 +11,7 @@ import { type MatterFlow } from '../intake-types';
 export const otherFlow: MatterFlow = {
   id: 'other',
   label: 'Something else',
+  chipHint: 'Not sure which of these it is',
   transition: () =>
     'Got it \u2014 tell me a bit more and I\u2019ll route it to the right lawyer as the brief fills in on the right.',
   questions: [

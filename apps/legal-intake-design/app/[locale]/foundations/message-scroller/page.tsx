@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   MessageScrollerAnchoringExample,
@@ -11,6 +12,8 @@ import {
   MessageScrollerStreamingExample,
   MessageScrollerVisibilityExample,
 } from '@/components/design/foundations/examples/message-scroller-examples';
+
+export const metadata: Metadata = { title: 'Message scroller · Foundations' };
 
 export default function MessageScrollerFoundationPage() {
   return (

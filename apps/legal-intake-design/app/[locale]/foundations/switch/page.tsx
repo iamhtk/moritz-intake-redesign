@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldContent,
@@ -13,6 +14,8 @@ import {
 import { Section } from '@/components/design/foundations/showcase/section';
 import { Switch } from '@/components/design/foundations/components/switch';
 import { ControlledSwitchExample } from '@/components/design/foundations/examples/switch-examples';
+
+export const metadata: Metadata = { title: 'Switch · Foundations' };
 
 export default function SwitchFoundationPage() {
   return (

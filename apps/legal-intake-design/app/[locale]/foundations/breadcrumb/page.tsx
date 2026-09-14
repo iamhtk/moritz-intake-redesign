@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -8,6 +9,8 @@ import {
   BreadcrumbSeparator,
 } from '@/components/design/foundations/components/breadcrumb';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Breadcrumb · Foundations' };
 
 export default function BreadcrumbFoundationPage() {
   return (

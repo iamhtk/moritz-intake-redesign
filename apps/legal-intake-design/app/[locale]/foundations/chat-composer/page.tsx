@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   AttachmentsComposerExample,
@@ -7,6 +8,8 @@ import {
   PlaceholderComposerExample,
   VoiceComposerExample,
 } from '@/components/design/foundations/examples/chat-composer-examples';
+
+export const metadata: Metadata = { title: 'Chat composer · Foundations' };
 
 export default function ChatComposerFoundationPage() {
   return (

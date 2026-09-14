@@ -16,6 +16,13 @@ import { cn } from '@repo/ui/lib/utils';
  * fill with a drop shadow, and an `after` pseudo adds the inner top highlight +
  * hover overlay. Plus the reference's `0.5rem` radius (matching the foundation
  * Input), border-compensated spacing, `font-semibold`, and outline-based focus.
+ *
+ * NOTE on the focus ring, because T34 found three places that had copied this
+ * pattern and dropped one class from it. `outline-none` sets `outline-style:
+ * none`; `focus-visible:outline-2` sets only a WIDTH. Without
+ * `focus-visible:outline-solid` to restore the style, the outline never
+ * renders and the control is a focus stop a keyboard user cannot see. Every
+ * ring hand-rolled outside this file needs all three.
  * Colors stay mapped to our design tokens.
  *
  * Size scale is mobile-first: each size's base classes are the larger

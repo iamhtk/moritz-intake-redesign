@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { CalendarDays } from '@repo/ui/icons';
 
 import { Button } from '@/components/design/foundations/components/button';
@@ -7,6 +8,8 @@ import {
   HoverCardTrigger,
 } from '@/components/design/foundations/components/hover-card';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Hover card · Foundations' };
 
 export default function HoverCardFoundationPage() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   AlignLeft,
   Bold,
@@ -9,6 +10,8 @@ import {
 import { Section } from '@/components/design/foundations/showcase/section';
 import { Toggle } from '@/components/design/foundations/components/toggle';
 import { ControlledToggleExample } from '@/components/design/foundations/examples/toggle-examples';
+
+export const metadata: Metadata = { title: 'Toggle · Foundations' };
 
 export default function ToggleFoundationPage() {
   return (

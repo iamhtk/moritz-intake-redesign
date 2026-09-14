@@ -10,6 +10,7 @@ import { type MatterFlow } from '../intake-types';
 export const corporateFlow: MatterFlow = {
   id: 'corporate',
   label: 'Corporate',
+  chipHint: 'Shares, the board, how the company is set up',
   transition: () =>
     'Got it \u2014 a corporate matter. Tell me a bit more and the brief will fill in on the right.',
   questions: [

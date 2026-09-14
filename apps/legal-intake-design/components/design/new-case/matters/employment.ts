@@ -10,6 +10,7 @@ import { type MatterFlow } from '../intake-types';
 export const employmentFlow: MatterFlow = {
   id: 'employment',
   label: 'Employment',
+  chipHint: 'Hiring, exits, a dispute with staff',
   transition: () =>
     'Got it \u2014 an employment matter. Tell me a bit more and the brief will fill in on the right.',
   questions: [

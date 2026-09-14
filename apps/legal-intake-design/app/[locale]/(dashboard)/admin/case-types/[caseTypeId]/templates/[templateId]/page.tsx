@@ -1,6 +1,9 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTemplateById } from '@/lib/mocks/case-types';
 import { TemplateEditor } from '@/components/admin/template-editor';
+
+export const metadata: Metadata = { title: 'Template' };
 
 interface PageProps {
   params: Promise<{ caseTypeId: string; templateId: string }>;

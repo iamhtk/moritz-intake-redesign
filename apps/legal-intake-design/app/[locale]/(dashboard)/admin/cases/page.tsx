@@ -1,6 +1,9 @@
+import type { Metadata } from 'next';
 import CasesTable from '@/components/cases/cases-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
 import { MOCK_CASES } from '@/lib/mocks/cases';
+
+export const metadata: Metadata = { title: 'Cases' };
 
 export default function AdminCasesPage() {
   return (

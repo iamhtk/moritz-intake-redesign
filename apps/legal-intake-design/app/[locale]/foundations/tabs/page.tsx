@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { FileText, Settings, Users } from '@repo/ui/icons';
 
 import { Section } from '@/components/design/foundations/showcase/section';
@@ -8,6 +9,8 @@ import {
   TabsTrigger,
 } from '@/components/design/foundations/components/tabs';
 import { ControlledTabsExample } from '@/components/design/foundations/examples/tabs-examples';
+
+export const metadata: Metadata = { title: 'Tabs · Foundations' };
 
 export default function TabsFoundationPage() {
   return (

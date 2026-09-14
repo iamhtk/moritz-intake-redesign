@@ -1,7 +1,10 @@
+import type { Metadata } from 'next';
 import { Globe, ImageIcon, Pencil, Sparkles } from '@repo/ui/icons';
 
 import { Chip } from '@/components/design/foundations/components/chip';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Chip · Foundations' };
 
 export default function ChipFoundationPage() {
   return (

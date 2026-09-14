@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Plus } from '@repo/ui/icons';
 
 import { Section } from '@/components/design/foundations/showcase/section';
@@ -18,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/design/foundations/components/dropdown-menu';
 import { getInitials } from '@/lib/utils';
+
+export const metadata: Metadata = { title: 'Avatar · Foundations' };
 
 const PEOPLE = [
   { name: 'Sofia Marchetti', image: '/onboarding-lawyers/sofia-marchetti.jpg' },

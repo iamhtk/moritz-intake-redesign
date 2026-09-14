@@ -26,10 +26,15 @@ export const MATTER_FLOWS: Record<MatterId, MatterFlow> = {
   other: otherFlow,
 };
 
-/** The matter-type chips, in the order shown to the client. */
+/**
+ * The matter-type chips, in the order shown to the client.
+ *
+ * Each carries its flow's `chipHint`, so the pill and the line under it are
+ * edited in one place and cannot drift apart.
+ */
 export const MATTER_CHIPS: SuggestionChip[] = (
   ['contract', 'employment', 'procurement', 'corporate', 'ma', 'other'] as const
-).map((id) => chip(id, MATTER_FLOWS[id].label));
+).map((id) => chip(id, MATTER_FLOWS[id].label, MATTER_FLOWS[id].chipHint));
 
 export {
   URGENCY_QUESTION,

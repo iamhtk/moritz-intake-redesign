@@ -11,6 +11,37 @@
 @import '@repo/ui/globals.css';
 @import '../components/design/tabular-playbook/tabular-playbook-theme.css';
 
+/*
+ * Viewport-*height* variants.
+ *
+ * Every breakpoint in this app is a width, which is the right default: almost
+ * everything here is a column of content that gets wider or narrower. The
+ * client homepage is the exception. It is meant to fit the window with no
+ * vertical scroll, so its spacing has to answer "how tall is the screen", and a
+ * 13in MacBook and a 27in monitor are the same `lg` while differing by 700px of
+ * height.
+ *
+ * Registered rather than written inline as `[@media(min-height:800px)]:`.
+ * Tailwind v4 does not pick that up from a class attribute, so the first
+ * version of this compiled to nothing at all and quietly left the page at its
+ * tightest spacing on every screen. Naming them also makes the intent legible
+ * at the call site: `tall:gap-10` says what it is for, an arbitrary media blob
+ * does not.
+ *
+ * Cutoffs are the two that matter in practice. Below 800px is a laptop with
+ * browser chrome and a dock; above 950px there is room to be generous.
+ */
+@custom-variant tall (@media (min-height: 800px));
+@custom-variant taller (@media (min-height: 950px));
+/*
+ * One more step, for a layout choice rather than a spacing one: the intake's
+ * "How this works" panel lies down into three columns until there is genuinely
+ * room to read it as a list. That switch needs more headroom than `taller`,
+ * because the vertical arrangement costs about 140px more than the horizontal
+ * one and `taller` is already spending its extra height on padding.
+ */
+@custom-variant tallest (@media (min-height: 1020px));
+
 :root {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
@@ -82,6 +113,19 @@
     #dcf2fd 100%
   );
 
+  /*
+   * The one lift in the palette, as a token rather than as a literal.
+   *
+   * Two `box-shadow` rules below carried a raw `rgb(0 0 0 / 0.25)`, which is
+   * the only hardcoded colour `notes/check-colours.sh` still reported and the
+   * one kind it is least able to forgive: a literal in a shadow is a colour
+   * nobody can find by searching for the thing it tints. Derived from
+   * `--mz-black` so the palette owns it, and named for the surface it lifts
+   * rather than for its opacity, so the next elevation reuses it instead of
+   * inventing 0.22.
+   */
+  --mz-shadow-raised: color-mix(in srgb, var(--mz-black) 25%, transparent);
+
   /* Status */
   --mz-green: #5eae8b;
   --mz-yellow: #e8a952;
@@ -123,6 +167,78 @@
   --success-foreground: var(--mz-gray-190);
   --warning: var(--mz-yellow);
   --warning-foreground: var(--mz-gray-190);
+  /*
+   * The brand amber as readable text: darker, and still orange.
+   *
+   * `--mz-yellow` (#e8a952) is a fill colour. Against white it is 2.05:1, the
+   * lowest-contrast text on the brief panel, which is the one place the reading
+   * actually has to be read.
+   *
+   * The first attempt at this mixed it straight toward black, and that was
+   * wrong in a way worth recording: mixing toward black in oklab scales `a` and
+   * `b` along with `L`, so it loses **chroma as fast as lightness** and lands
+   * on #a17436 — a brown. Contrast was fine and the colour was no longer the
+   * amber it was supposed to be, which on a green/amber/red ramp reads as a
+   * missing middle rather than a darker one.
+   *
+   * So the hue is pulled toward the brand red first — the ramp's own next stop,
+   * so the middle sits between its neighbours rather than off to one side —
+   * and only then darkened. That lands near #c0703d: 3.73:1 against white,
+   * unmistakably orange, and still nothing but two brand accents and black, so
+   * `notes/check-colours.sh` has no new hex to object to.
+   */
+  --warning-strong: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--mz-yellow) 60%, var(--mz-red)) 86%,
+    black
+  );
+
+  /*
+   * ───────────────────────────────────────────────────────────────────────────
+   * THE STATUS RAMP AS READABLE TEXT: `-ink`.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * The brand's three status swatches are fills, and as *text* on white all
+   * three fail WCAG AA: green #5eae8b is 2.66:1, yellow #e8a952 is 2.05:1, red
+   * #eb5444 is 3.57:1, against the 4.5:1 a sentence has to clear. That is why
+   * the brief panel's confidence readings were flattened to grey — the traffic
+   * light was unreadable, so it was spent nowhere.
+   *
+   * Flattening the ramp threw away the thing it was for. The reading beside a
+   * brief value is an ordered three-step scale, which is the one job a traffic
+   * light does better than words, and a column of identical grey makes the
+   * client read every row to find the one that needs them. So the ramp comes
+   * back, in a weight that can actually be read.
+   *
+   * Same recipe as `--warning-strong` above and for the same reason: darken in
+   * oklab from the brand swatch, so the hue is the brand's and the only thing
+   * added is black. No new hex enters the palette, and `check-colours.sh` has
+   * nothing to object to.
+   *
+   * Amber goes through the yellow/red mix rather than straight to black.
+   * Mixing a yellow toward black in oklab scales chroma with lightness and
+   * lands on a brown, which on a green/amber/red ramp reads as a *missing*
+   * middle rather than a darker one. Pulling the hue toward the ramp's own
+   * next stop first keeps it unmistakably orange. See the note above.
+   *
+   * Measured, against both surfaces a reading can land on:
+   *
+   *   --success-ink      #417c62   white 4.90:1   gold 4.55:1
+   *   --warning-ink      #a35e32   white 4.99:1   gold 4.64:1
+   *   --destructive-ink  #c04336   white 5.13:1   gold 4.76:1
+   *
+   * Gold as well as white because `--mz-gold` is the one tinted surface in the
+   * flow, and a token that is only safe on one background is a trap for
+   * whoever reuses it next. `colour-restraint.test.ts` recomputes all three
+   * from this file rather than trusting these numbers.
+   */
+  --success-ink: color-mix(in oklab, var(--mz-green) 78%, black);
+  --warning-ink: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--mz-yellow) 60%, var(--mz-red)) 76%,
+    black
+  );
+  --destructive-ink: color-mix(in oklab, var(--mz-red) 86%, black);
 
   /*
    * Cool-blue family approximated to the nearest brand swatch (the Foundation
@@ -166,6 +282,14 @@
 }
 
 @theme inline {
+  /* Text-weight amber, so `text-warning-strong` resolves. See above. */
+  --color-warning-strong: var(--warning-strong);
+
+  /* The status ramp at text weight, so `text-success-ink` and friends resolve. */
+  --color-success-ink: var(--success-ink);
+  --color-warning-ink: var(--warning-ink);
+  --color-destructive-ink: var(--destructive-ink);
+
   /*
    * Restore Tailwind's default font-weight scale. The shared `globals.css`
    * clamps weights to 400/500 because the production app only ships those two
@@ -349,6 +473,48 @@
   );
 }
 /*
+ * A 44x44 tap target that costs no pixels of layout.
+ *
+ * WCAG 2.5.8 asks for 24x24 and 2.5.5 (AAA, and the platform guidance both
+ * Apple and Google actually ship) asks for 44x44. Measured on a phone, thirty
+ * controls in the intake were under it, and a third of those were inline text
+ * affordances: the source link at 233x17, Undo at 29x17, "Show more" at 74x18,
+ * the source chevron at 12x12. Those cannot grow their ink without turning a
+ * quiet line of provenance into a row of buttons, which is the composition the
+ * whole brief panel is built to avoid.
+ *
+ * So the hit area grows and the ink does not. A transparent, absolutely
+ * positioned `::after` centred on the control stretches it to 44x44 in
+ * whichever dimension is short, leaving `width`/`height` — and therefore
+ * everything around it — untouched. The element needs a positioning context,
+ * which `relative` provides, and it must not be `overflow-hidden`.
+ *
+ * `pointer-events: auto` is explicit because the pseudo-element inherits from
+ * a parent that may have switched them off, and a hit area that does not take
+ * a press is decoration.
+ *
+ * Scoped to coarse pointers. On a mouse the ink *is* the target and a 44px
+ * invisible box around a 17px link starts swallowing presses meant for the row
+ * above — the failure this pattern is known for. `any-pointer: coarse` catches
+ * phones and tablets, including a laptop with a touchscreen, and leaves a
+ * trackpad alone.
+ */
+@media (any-pointer: coarse) {
+  .mz-tap::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+  }
+}
+
+/*
  * Onboarding completion: draw the success check on mount. The lucide Check path
  * is ~23 user units long in its 24-unit viewBox, so a 26-unit dash covers it.
  * stroke-dasharray / stroke-dashoffset are inherited SVG properties, so setting
@@ -507,7 +673,347 @@ main:has(> .case-workspace-wide) {
   max-width: none;
 }
 
+/*
+ * Autosave acknowledgement: fades up, holds long enough to be read, then fades
+ * out and stays gone (`both` parks it at the final frame).
+ *
+ * A self-clearing animation rather than a timer that unmounts the element. The
+ * intake's brief saves on every value that lands, which mid-conversation is
+ * every few seconds, and a line that removes itself from the document on a
+ * `setTimeout` reflows the panel underneath the rows the client is reading. This
+ * keeps the space reserved and only changes opacity, so nothing moves.
+ *
+ * The hold is the point of the 0/15/70/100 stops: an indicator that fades
+ * straight back out is a flicker, and a client who looks up a second late sees
+ * nothing and has no reason to believe their work was saved.
+ */
+@keyframes mz-saved {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.mz-animate-saved {
+  animation: mz-saved 3.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * The testimonial slideshow: one continuous right-to-left travel, looping
+ * forever (see `homepage-v2/testimonials.tsx`).
+ *
+ * `-50%` rather than `-100%` because the track renders its items twice. Half a
+ * track is exactly one full set, so when the animation restarts the second copy
+ * is sitting where the first one began and the seam is invisible. Translating
+ * the whole width would snap back to an empty rail once per cycle.
+ *
+ * `translate3d` keeps it on the compositor: this is the only thing in the app
+ * that animates continuously rather than for half a second, so a layout-bound
+ * transform here would be paid for on every frame for as long as the page is
+ * open. Duration comes from `--mz-marquee-duration` so the component sets the
+ * speed from the number of items rather than hardcoding a guess here.
+ */
+@keyframes mz-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.mz-animate-marquee {
+  animation: mz-marquee var(--mz-marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+/*
+ * Stopping is a feature, not a nicety: a quote that slides away mid-sentence is
+ * the specific way a testimonial rail loses the trust it was built to earn.
+ */
+.mz-marquee-host:hover .mz-animate-marquee,
+.mz-marquee-host:focus-within .mz-animate-marquee {
+  animation-play-state: paused;
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE INTAKE'S MOTION LAYER.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * One rule, from the brief: **one thing moves at a time, and it moves because
+ * something happened to the client's case.** Motion that tells the client
+ * nothing is decoration, and a law firm's intake is the last place for it.
+ *
+ * Two curves, and everything here uses one of them:
+ *
+ * - `--mz-ease-settle` is the curve the app already had, scattered as a
+ *   literal through five utilities above. It is an ease-out with no overshoot:
+ *   things arriving, fading, drawing. Named here so the sixth use is a token
+ *   rather than a sixth copy.
+ * - `--mz-ease-spring` overshoots slightly and comes back. Reserved for the
+ *   moments where something **lands** — a value arriving in the brief, a
+ *   confirmation taking. Overshoot on anything else reads as bounce, which is
+ *   the register this product must not be in.
+ *
+ * Durations are tokens for the same reason: `#9`'s 300ms is the flow's
+ * heartbeat and half a dozen things are meant to match it. Nothing here runs
+ * over 500ms; the two story transitions that are allowed to are the send
+ * (`#19`) and they set their own.
+ *
+ * Every utility in this block has a `prefers-reduced-motion` entry in the
+ * media query below. That is not politeness — a plain swap has to leave the
+ * element in its *final* state, and an animation that merely stops mid-flight
+ * leaves a half-drawn tick. Each fallback below is written to land on the
+ * finished frame.
+ */
+@layer base {
+  :root {
+    --mz-ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+    --mz-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --mz-duration-confirm: 300ms;
+    --mz-duration-arrive: 260ms;
+  }
+}
+
+/*
+ * #9. Confirming a brief value: the mark fills and the tick draws along its
+ * own path.
+ *
+ * The doc calls this "the most satisfying moment in the flow" and builds the
+ * rest of the list on its spring, so it is first and everything else matches
+ * it. 300ms: long enough to read as drawn rather than switched, short enough
+ * that a client confirming eight rows in a row is never waiting for it.
+ *
+ * Two animations on two elements rather than one on the parent. The disc
+ * scales from the ring it replaces and the stroke draws inside it, and the
+ * stroke has to start *after* the disc has something to draw on — hence the
+ * delay on the tick rather than a single keyframe doing both.
+ */
+@keyframes mz-confirm-fill {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mz-animate-confirm-fill {
+  animation: mz-confirm-fill var(--mz-duration-confirm) var(--mz-ease-spring)
+    both;
+}
+@keyframes mz-confirm-tick {
+  from {
+    stroke-dashoffset: -26;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mz-animate-confirm-tick {
+  stroke-dasharray: 26;
+  animation: mz-confirm-tick var(--mz-duration-confirm) 80ms
+    var(--mz-ease-settle) both;
+}
+
+/*
+ * #7. A value arrives in the brief: it slides 8px in from the left and
+ * settles.
+ *
+ * From the left because that is where it came from — the conversation is on
+ * that side of the screen, and a value that enters from the direction of the
+ * sentence that produced it is the whole of what this animation says. Eight
+ * pixels, because the claim is "Moritz put that there", not "look at this".
+ *
+ * On the spring rather than the settle curve: this is a landing.
+ */
+@keyframes mz-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.mz-animate-arrive {
+  animation: mz-arrive var(--mz-duration-arrive) var(--mz-ease-spring) both;
+}
+
+/*
+ * #11. A document that answers four fields fills them top to bottom, 100ms
+ * apart.
+ *
+ * The same arrival as #7, staggered. This is the argument of the whole
+ * product made visible in one gesture — "your contract moved four of these" —
+ * and it only reads if the rows go in sequence rather than together. The
+ * stagger is the caller's, via `--mz-cascade-index`, because only the caller
+ * knows which rows a given read actually touched.
+ *
+ * Capped at eight steps' worth of delay. A twelve-field document should not
+ * make the last row wait 1.2s to appear, and past about 800ms the sequence
+ * stops reading as one movement anyway.
+ */
+.mz-animate-cascade {
+  animation: mz-arrive var(--mz-duration-arrive) var(--mz-ease-spring) both;
+  animation-delay: calc(min(var(--mz-cascade-index, 0), 8) * 100ms);
+}
+
+/*
+ * #18. "Review and send" fills black from left to right the moment the last
+ * field is confirmed.
+ *
+ * A fill, not a flip. The button is already there and already pressable; what
+ * changed is that it is now the obvious thing to do. A colour swap says that
+ * in one frame and is missed by anyone not looking straight at it; a fill
+ * that travels says it over 400ms and is caught in peripheral vision, which
+ * is where a client who has just confirmed the last row is looking.
+ *
+ * `background-size` on a gradient rather than a pseudo-element, so the label
+ * on top never moves and the control stays one box for the layout.
+ */
+@keyframes mz-fill-lr {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+.mz-animate-fill-lr {
+  background-image: linear-gradient(
+    to right,
+    var(--primary) 0%,
+    var(--primary) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  animation: mz-fill-lr 400ms var(--mz-ease-settle) both;
+}
+
+/*
+ * #10, #31, #69. The breathing line.
+ *
+ * Three things in this flow are *ongoing* rather than *done*: a row waiting to
+ * be checked, the rail step you are on, and Moritz reading. All three used to
+ * be, or would otherwise have been, a spinner or three bouncing dots — the
+ * most generic mark on the internet, and one that says "the software is busy"
+ * where the honest statement is "a thing is in progress".
+ *
+ * So: one slow opacity breath, 3s, and it is the only looping motion the
+ * product allows itself (§6). Opacity only — no scale, no travel — because
+ * this runs forever in peripheral vision and anything that moves position
+ * there is a distraction rather than an ambience.
+ */
+@keyframes mz-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.mz-animate-breathe {
+  animation: mz-breathe 3s ease-in-out infinite;
+}
+
+/*
+ * #72. A rejected file shakes once, gently.
+ *
+ * The iOS password shake, softer: 4px rather than 10, once rather than three
+ * times, and the reason appears underneath it. The shake is not the error
+ * message — it is what makes somebody look at where the error message is.
+ */
+@keyframes mz-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.mz-animate-shake {
+  animation: mz-shake 300ms var(--mz-ease-settle) both;
+}
+
+/*
+ * #74. "Review and send" with a field still unconfirmed: the button does not
+ * disable, it points.
+ *
+ * A disabled button is a dead end that explains nothing — the client presses
+ * it, nothing happens, and there is no way to find out why. This is the
+ * opposite: the press works, and what it does is send them to the row that is
+ * missing. The pulse is what they see when they arrive, so the scroll has a
+ * destination rather than just a new scroll position.
+ */
+@keyframes mz-pulse-row {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  35% {
+    background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  }
+}
+.mz-animate-pulse-row {
+  animation: mz-pulse-row 900ms var(--mz-ease-settle) 2 both;
+}
+
+/*
+ * #14, #79. The source highlight sweeps across the quoted passage, then stays.
+ *
+ * The sweep is the whole point: a highlight that is simply *there* when the
+ * PDF opens is a highlight the client has to find, and one that travels
+ * across the text draws the eye along the passage and finishes by marking it.
+ * It ends at `both` so the mark persists — this is provenance, not a flash.
+ */
+@keyframes mz-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+.mz-animate-sweep {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--warning) 30%, transparent) 0%,
+    color-mix(in srgb, var(--warning) 30%, transparent) 100%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  animation: mz-sweep 450ms var(--mz-ease-settle) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /*
+   * No travel at all. The rail becomes a plain scrollable row, so the
+   * testimonials past the fold are reachable by drag, wheel or keyboard rather
+   * than lost with the animation.
+   */
+  .mz-animate-marquee {
+    animation: none;
+  }
   .mz-animate-check,
   .mz-animate-draw {
     animation: none;
@@ -518,6 +1024,15 @@ main:has(> .case-workspace-wide) {
   }
   .mz-animate-step {
     animation: none;
+  }
+  /*
+   * No fade, and no lingering line: `opacity: 0` keeps the acknowledgement out
+   * of a reduced-motion client's way entirely. They are not left without the
+   * information, the status region still announces it (see `brief-column`).
+   */
+  .mz-animate-saved {
+    animation: none;
+    opacity: 0;
   }
   .mz-word-in {
     animation: none;
@@ -531,5 +1046,310 @@ main:has(> .case-workspace-wide) {
     background-clip: border-box;
     -webkit-background-clip: border-box;
     color: var(--muted-foreground);
+  }
+
+  /*
+   * The intake motion layer, every utility landing on its finished frame.
+   *
+   * The distinction that matters here: `animation: none` on its own reverts
+   * the element to its *authored* styles, which for anything using `both` is
+   * the pre-animation frame — a tick at `stroke-dashoffset: -26` is an
+   * invisible tick, and a fill at `background-size: 0%` is an unfilled
+   * button. So each of these restates the end state explicitly. A plain swap
+   * means the client sees the result instantly, not that they see nothing.
+   */
+  .mz-animate-confirm-fill {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .mz-animate-confirm-tick {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+  .mz-animate-arrive,
+  .mz-animate-cascade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .mz-animate-fill-lr,
+  .mz-animate-sweep {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  /*
+   * The breath stops on the *visible* frame rather than the dim one. It marks
+   * where the client is; parking it mid-fade would leave the one thing on the
+   * page that needs finding as the faintest thing on it.
+   */
+  .mz-animate-breathe {
+    animation: none;
+    opacity: 1;
+  }
+  .mz-animate-shake {
+    animation: none;
+    transform: none;
+  }
+  /*
+   * No pulse, and the scroll that goes with it becomes instant rather than
+   * smooth at the call site. The row is still scrolled to and still focused,
+   * which is the part that does the work.
+   */
+  .mz-animate-pulse-row {
+    animation: none;
+  }
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * REDUCED MOTION, FOR THE ANIMATIONS NOBODY HAND-WROTE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The block above covers the five `.mz-animate-*` utilities this app defines
+ * itself. It was the smaller half of the problem: there are roughly ninety
+ * *other* movements on screen — every dialog, drawer, dropdown, popover,
+ * tooltip, toast and bottom sheet — and all of them come from
+ * `tw-animate-css` or from a library's own inline transition, so none of them
+ * were reached. The bottom sheets are the worst of it, because a full-height
+ * surface travelling up the screen is the largest single movement the product
+ * makes.
+ *
+ * ── WHAT THIS TURNS OFF, AND WHAT IT DELIBERATELY LEAVES ALONE ──
+ *
+ * It removes *travel*: translation, scale, rotation and blur. It keeps the
+ * opacity fade, because fading is the accepted substitute rather than another
+ * thing to suppress — WCAG 2.3.3 is about motion, and a surface that appears
+ * with no transition at all reads as a glitch rather than as a considered
+ * absence of animation.
+ *
+ * It also leaves the spinner spinning. A loading indicator is *informational*
+ * motion: it is the only thing on screen saying the wait is a wait rather
+ * than a hang, and freezing it trades a comfort problem for a comprehension
+ * one. Same reasoning as the `role="status"` regions above.
+ *
+ * ── WHY VARIABLES RATHER THAN `animation: none` ──
+ *
+ * `tw-animate-css` composes its `enter` / `exit` keyframes out of custom
+ * properties (`--tw-enter-translate-y` and friends, declared with
+ * `@property`), so zeroing those neutralises every `slide-in-from-*`,
+ * `zoom-in-*` and `spin-in-*` utility in the app at once — including ones
+ * added tomorrow — while the `--tw-*-opacity` half keeps working. Killing the
+ * animation outright would take the fade with it, and doing it per component
+ * would be ninety-odd places to keep in step.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    --tw-enter-blur: 0 !important;
+    --tw-exit-blur: 0 !important;
+  }
+
+  /*
+   * Vaul drives the sheets with an inline `transform` and its own transition
+   * rather than through a keyframe, so the variables above cannot reach it.
+   * The drag still works; it just arrives instantly instead of gliding.
+   */
+  [data-vaul-drawer],
+  [data-vaul-overlay] {
+    transition-duration: 1ms !important;
+  }
+
+  /* Sonner does the same thing for the toast stack. */
+  [data-sonner-toast] {
+    transition-duration: 1ms !important;
+  }
+
+  /*
+   * Height animations (accordion, collapsible). A box growing from zero is
+   * motion even though nothing slides across the screen, and Radix measures
+   * the height itself — so with the keyframe off the content simply is there.
+   */
+  [data-slot='collapsible-content'],
+  [data-state='open'][data-slot='accordion-content'],
+  [data-state='closed'][data-slot='accordion-content'] {
+    animation: none !important;
+  }
+}
+
+/*
+ * Toasts: white, with the status in a bar down the left edge.
+ *
+ * The brief was to stop colouring the whole notification and say what kind it
+ * is in one stripe instead — green for done, red for failed, amber for a
+ * caution — and it is the right instinct for this app. A toast is an
+ * interruption, it appears over a legal brief the client is in the middle of
+ * reading, and a full red or green panel spends the loudest colour on screen on
+ * a sentence that is about to disappear. A white card with a coloured edge is
+ * still read at a glance, because the eye finds the stripe before it reads the
+ * words, and it belongs to the same family as everything else on the page.
+ *
+ * **The stripe is an inset `box-shadow`, not a border and not a pseudo-element,
+ * and both of those were tried first.** A 3px left border makes the whole card
+ * 2px wider than its siblings and, at this radius, bends the stripe into a
+ * wedge at the corners. `::before` is not ours to use: sonner puts its own
+ * content in `::before` and `::after` while a toast is being swiped away or
+ * expanded, so a decorative one here disappears at exactly the moment a client
+ * touches it. An inset shadow is clipped by the card's own radius, costs no
+ * layout, and cannot collide with either.
+ *
+ * **Specificity is deliberate, not accidental.** Sonner injects its stylesheet
+ * into `<head>` at runtime, which puts it *after* this file, so an override at
+ * sonner's own `[data-sonner-toast][data-styled='true']` weight would lose on
+ * source order for no visible reason. Qualifying with the toaster element adds
+ * the third attribute selector that makes these win wherever they are loaded.
+ *
+ * **A toast with no type still gets a stripe**, in neutral grey. `toast()` with
+ * no variant is a real call in this app (a deleted draft is neither a success
+ * nor a failure), and the alternative is a card with a gap where every other
+ * card has an edge, which reads as a broken one.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  --mz-toast-accent: var(--mz-gray-60);
+  background: var(--mz-white);
+  border-color: var(--mz-gray-30);
+  color: var(--foreground);
+  /* 16px of padding plus the 3px the stripe takes, so the icon keeps its gap. */
+  padding-left: 19px;
+  box-shadow:
+    inset 3px 0 0 0 var(--mz-toast-accent),
+    0 10px 24px -12px var(--mz-shadow-raised);
+}
+
+/*
+ * The focus ring, restated rather than inherited.
+ *
+ * Sonner draws its own by putting a third layer on `box-shadow`, and the rule
+ * above replaces `box-shadow` outright to hang the stripe on it — so without
+ * this a keyboard user tabbing to a toast gets no focus indication at all.
+ * Same two layers as the resting state plus the ring, in the app's own token.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']:focus-visible {
+  box-shadow:
+    inset 3px 0 0 0 var(--mz-toast-accent),
+    0 10px 24px -12px var(--mz-shadow-raised),
+    0 0 0 2px var(--ring);
+}
+
+/*
+ * The icon carries the same colour as the stripe, and nothing else does.
+ *
+ * Two marks in one colour at two scales is the cheapest way to make the status
+ * legible without tinting the card: the stripe is found peripherally, the icon
+ * confirms it once the eye lands. The title and description stay in the text
+ * colours they have everywhere else, because coloured body copy on white is
+ * where "quiet card with a coloured edge" turns back into a coloured toast.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] {
+  color: var(--mz-toast-accent);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='success'] {
+  --mz-toast-accent: var(--mz-green);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='error'] {
+  --mz-toast-accent: var(--mz-red);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type='warning'] {
+  --mz-toast-accent: var(--mz-yellow);
+}
+
+/*
+ * Info and loading are told apart from a plain toast, but only just: both are
+ * "something is happening", neither is an outcome, and the brand has no fourth
+ * status colour that would not read as one of the three above.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-type='info'],
+[data-sonner-toaster] [data-sonner-toast][data-type='loading'] {
+  --mz-toast-accent: var(--mz-gray-130);
+}
+
+@layer components {
+  /*
+   * The invisible, selectable copy of a rendered PDF page.
+   *
+   * `PdfPage` draws the page to a canvas and then lays one span per pdf.js text
+   * run over the top of it, positioned in page points and scaled as a whole, so
+   * a client can select and copy a clause out of a document that is really a
+   * bitmap. Two things make that work and both live here rather than inline:
+   * the text has to be invisible while its selection is not (`color:
+   * transparent` leaves ::selection drawing the browser's own highlight), and
+   * every span has to scale from its own top-left corner, because the widths
+   * are calibrated with `scaleX` against what the embedded font actually
+   * measured.
+   *
+   * `white-space: pre` keeps a run's own spacing; without it a run of leading
+   * spaces collapses and every glyph after it sits left of the ink it belongs
+   * to. `pointer-events: none` on the layer with `text` back on the spans keeps
+   * the cursor over words and out of the margins, where a drag should scroll
+   * the document rather than start a selection.
+   */
+  .mz-pdf-text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    pointer-events: none;
+    line-height: 1;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+  }
+
+  .mz-pdf-text-layer span {
+    position: absolute;
+    white-space: pre;
+    transform-origin: 0 0;
+    color: transparent;
+    cursor: text;
+    pointer-events: auto;
+  }
+
+  /*
+   * A highlight on a page: a wash of the brand's palest blue, multiplied so the
+   * words stay on top of it rather than behind a film.
+   *
+   * `mix-blend-multiply` is the whole trick. A translucent overlay of the
+   * primary ink greys out the very sentence it is pointing at, which on a
+   * document somebody is checking is the one thing a highlight must not do.
+   * Multiplying a light tint darkens the paper and leaves the type alone — the
+   * same thing a highlighter pen does to a printed page.
+   *
+   * The current match is the same colour with a hairline around it rather than
+   * a second hue. "Which of these six is the one I am on" is a question about
+   * position, not about severity, and a warning colour would answer a question
+   * nobody asked on a page full of contractual language.
+   */
+  .mz-pdf-highlight {
+    position: absolute;
+    /*
+     * The same corner the brief's own `<mark>` uses on the same quotation
+     * (`brief-field-row.tsx`), because they are two views of one highlight and
+     * L13 allows three radii in the whole intake, not three plus one for this.
+     */
+    border-radius: 0.5rem;
+    background-color: var(--mz-sky);
+    mix-blend-mode: multiply;
+    transition: box-shadow 150ms ease-out;
+  }
+
+  .mz-pdf-highlight-active {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+
+  .mz-pdf-text-layer ::selection {
+    background: color-mix(in oklab, var(--color-primary) 30%, transparent);
   }
 }

@@ -104,7 +104,109 @@ const baseDescription = `Northwind Ltd. is a renewable-energy operator headquart
 Specifically, we're looking for a second-opinion review of the renewal clause and the surrounding terms, a drafted notice of dispute we can serve on the supplier, and — if you think it's warranted — a short strategy memo weighing litigation against arbitration.
 To support the review we've provided the signed Master Services Agreement from April 2024, the renewal notice we received on 19 April 2026, and an internal memo describing the operational impact if the clause is enforced.`;
 
+const OPPOSING_ACME: ParticipantRef = {
+  id: 'opp_003',
+  name: 'Acme Technologies Ltd.',
+  email: 'contracts@acmetech.example',
+  image: null,
+  actor: 'opposing',
+  companyName: 'Acme Technologies Ltd.',
+};
+
+/**
+ * Where "Go to case" lands (Decision 8, and §3's Decision 1).
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS WAS `case_009` AND THE SWITCH BACK WAS DELIBERATE. READ BOTH SIDES.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Moritz's own confirmation card links to `case_006`, and matching that
+ * exactly is the point: a reviewer comparing the old flow with this one sees
+ * the same handoff, and `case_006` is the page where the quote and the
+ * payment actually happen in their product — which is what the reframed quote
+ * card is meant to be read against.
+ *
+ * What that costs, stated rather than discovered. `case_009` was written for
+ * this job: submitted today, no quote, no lawyer, which puts their five-step
+ * client timeline at step one and lets it do the "where am I" work for free.
+ * `case_006` is three weeks old, `IN_PROGRESS`, priced at US$5,600 and has
+ * Aélita assigned since 27 May. So a client who presses "Go to case" seconds
+ * after a confirmation saying *nobody is assigned until you accept the quote*
+ * lands on a case with a lawyer and a price on it. The rail says a lawyer is
+ * pricing the work; that page says one was assigned in May.
+ *
+ * `applySubmission` in `lib/mocks/submitted-cases.ts` covers the half of this
+ * that it can: the title, the description, the documents and the dates are
+ * overlaid with what the client actually sent, so the page is at least about
+ * their matter. It deliberately does not touch status, quote or lawyer — a
+ * submission has no business deciding where a case sits in the firm's queue —
+ * so those three stay as the fixture has them.
+ *
+ * `case_009` keeps its own id below and stays in the list. Nothing points at
+ * it now; retiring it is a fixture cleanup rather than part of this change.
+ */
+export const SUBMITTED_CASE_ID = 'case_006';
+
+/**
+ * Today, at a fixed time of day.
+ *
+ * "Created today" has to be relative or the case reads as stale the day after
+ * anyone looks at it, but a literal `new Date()` would differ between the
+ * server render and the client bundle. Pinning to a UTC date and a fixed hour
+ * makes both evaluate to the same string for the whole of a UTC day.
+ */
+function todayAt(hour: number): string {
+  const now = new Date();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  const at = String(hour).padStart(2, '0');
+  return `${now.getUTCFullYear()}-${month}-${day}T${at}:00:00.000Z`;
+}
+
 export const MOCK_CASES: LegalCase[] = [
+  {
+    /*
+     * Its own id, not `SUBMITTED_CASE_ID`, and that is load-bearing now.
+     *
+     * This fixture used to *be* the submitted case and named itself after the
+     * constant. Once the constant moved to `case_006` that spelling would
+     * have given the list two cases with the same id, and `getCaseById` would
+     * have returned this one — so the switch would have silently changed
+     * nothing except the name of the target.
+     */
+    id: 'case_009',
+    caseNumber: 'M-2026-0126',
+    title: 'MSA review and early exit: Acme Technologies',
+    description: `We signed a master services agreement with Acme Technologies for warehousing and last-mile distribution, and we now want to understand what it would take to get out of it early.
+Service levels have been missed repeatedly and we would like a practical read on the termination and notice provisions — whether we have grounds to exit for cause, what notice we owe, and what the exposure looks like if we simply give notice.
+We have attached the signed agreement. A short list of the clauses that actually matter here would be more useful to us than a full review.`,
+    anonDescription:
+      'A non-legal company wants advice on exiting a warehousing and distribution MSA early after repeated service-level failures.',
+    status: 'READY_FOR_SUBMISSION_REVIEW',
+    unreadCount: 0,
+    quoteAmount: null,
+    currency: 'USD',
+    caseTypeId: 'ct_contract_review',
+    country: 'US',
+    client: CLIENT_ALEX,
+    opposingParty: OPPOSING_ACME,
+    assignedLawyer: null,
+    ownerCompanyId: 'cmp_client_001',
+    ownerCompanyName: 'Northwind Ltd.',
+    legalCompanyId: null,
+    legalCompanyName: null,
+    claimableCompanyIds: [],
+    participants: [CLIENT_ALEX],
+    documents: [],
+    draftDocuments: [],
+    draftResponseMarkdown: null,
+    claimDeadline: null,
+    receivedAt: todayAt(9),
+    sentToFirmsAt: null,
+    lawyerAssignedAt: null,
+    createdAt: todayAt(9),
+    updatedAt: todayAt(9),
+  },
   {
     id: 'case_007',
     caseNumber: 'M-2026-0125',
@@ -384,6 +486,24 @@ export function getCaseById(id: string): LegalCase | undefined {
   return MOCK_CASES.find((c) => c.id === id || c.caseNumber === id);
 }
 
+/**
+ * Cases for a role's *list view*. Not a privacy boundary — see below.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DO NOT USE THIS FOR ASK OR FOR THE COMMAND PALETTE. Use
+ * `buildAskScope()` in `lib/ask/scope.ts`.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The `NON_LEGAL` branch returns every mock case on purpose, so the client
+ * table can demonstrate all five statuses rather than only Northwind's two.
+ * That is right for a table whose job is to show the range of states, and
+ * wrong for anything that reads a case *back* to someone: a grounded answer
+ * built on this would name other companies' matters, which in a legal product
+ * reads as a confidentiality breach rather than as generous seed data.
+ *
+ * `lib/ask/scope.ts` is the strict version and carries the matching comment.
+ * The two look similar enough to invite merging; they must not be merged.
+ */
 export function getCasesForRole(role: Role): LegalCase[] {
   switch (role) {
     case 'NON_LEGAL':

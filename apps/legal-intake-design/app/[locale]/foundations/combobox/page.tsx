@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   AutoHighlightComboboxExample,
@@ -19,6 +20,8 @@ import {
   WithFlagsComboboxExample,
   WithIconComboboxExample,
 } from '@/components/design/foundations/examples/combobox-examples';
+
+export const metadata: Metadata = { title: 'Combobox · Foundations' };
 
 export default function ComboboxFoundationPage() {
   return (

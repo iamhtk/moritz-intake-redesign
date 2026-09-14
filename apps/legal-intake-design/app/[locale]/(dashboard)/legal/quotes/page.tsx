@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { QuoteRoundsTable } from '@/components/quotes/quote-rounds-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Quotes' };
 
 export default function LegalQuotesPage() {
   return (

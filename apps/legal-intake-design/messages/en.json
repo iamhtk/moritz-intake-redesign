@@ -215,7 +215,7 @@
       "consent": "I agree to Moritz's <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>."
     },
     "registration": {
-      "heading": "Welcome — Complete your registration",
+      "heading": "Welcome, Complete your registration",
       "steps": {
         "progress": "Screen {current} of {total}",
         "personalDescription": "We need to verify the mail address to continue",
@@ -507,7 +507,7 @@
       "savePreferredLegalCompanies": "Save Preferences"
     },
     "guard": {
-      "complete": "All set — you'll be redirected or shown a review message once approved.",
+      "complete": "All set, you'll be redirected or shown a review message once approved.",
       "incomplete": "Complete both: verify email and fill company details.",
       "companyIncomplete": "Please complete company details to continue."
     },
@@ -534,7 +534,7 @@
     "emailVerification": {
       "verifiedAt": "Email verified {date}",
       "verified": "Email verified",
-      "sent": "Verification email sent — check your inbox.",
+      "sent": "Verification email sent, check your inbox.",
       "notVerified": "Email not verified.",
       "missingEmailTooltip": "Add and save an email first",
       "resendTooltip": "Resend verification email",
@@ -706,7 +706,7 @@
         "emailCtaTooltip": "Send an email to this address to start a case automatically.",
         "emailDialogTitle": "Submit new case through email",
         "emailDialogDescription": "Copy the address below and send your case details to it.",
-        "emailDialogHintUnique": "This address is personal to you — do not share it.",
+        "emailDialogHintUnique": "This address is personal to you, do not share it.",
         "emailDialogHintSender": "Send from the email address you signed up with.",
         "emailDialogHintSave": "Save it to your contacts for easy access later.",
         "emailCopyButton": "Copy address",
@@ -732,17 +732,12 @@
           "startWithIronclad": "Start a case with Ironclad",
           "startWithIroncladToast": "Starting a case with Ironclad…"
         },
-        "trustBar": {
-          "headline": "Real lawyers review every case",
-          "schools": "Trained at Harvard, Stanford, Yale, Columbia & Oxford",
-          "mattersValue": "500+",
-          "mattersLabel": "Matters handled",
-          "ratingValue": "4.9/5",
-          "ratingLabel": "Client rating"
-        },
         "team": {
           "title": "Your legal team",
           "cta": "Start a case"
+        },
+        "testimonials": {
+          "title": "What clients say"
         }
       }
     },
@@ -852,7 +847,8 @@
         "percentDone": "{percent}% Done",
         "close": "Close",
         "continue": "Go to case"
-      }
+      },
+      "dropzoneLabel": "Choose files to upload, or drag them onto this area"
     },
     "close": {
       "button": "Close case",
@@ -882,7 +878,7 @@
     },
     "confirmation": {
       "successTitle": "Case Successfully Submitted",
-      "successDescription": "Thanks — we've received your case and started reviewing it. Here's what to expect next.",
+      "successDescription": "Thanks, we've received your case and started reviewing it. Here's what to expect next.",
       "seeDetails": "See Case Details",
       "goToCases": "Go to my cases",
       "whatHappensNext": "What happens next?",
@@ -2165,7 +2161,7 @@
     "countries": {
       "title": "Countries",
       "description": "Configure per-country waitlist behavior and Stripe market mapping.",
-      "explanation": "These settings control who skips the waitlist during onboarding. When enabled, new companies from that country are approved automatically instead of being placed on the waitlist. Legal companies still require manual whitelisting even when their waitlist is skipped — this only controls whether they enter the waitlist in the first place.",
+      "explanation": "These settings control who skips the waitlist during onboarding. When enabled, new companies from that country are approved automatically instead of being placed on the waitlist. Legal companies still require manual whitelisting even when their waitlist is skipped, this only controls whether they enter the waitlist in the first place.",
       "loading": "Loading countries...",
       "searchPlaceholder": "Search by country name or code...",
       "table": {
@@ -2504,5 +2500,569 @@
       "confirm": "Record override"
     },
     "cancel": "Cancel"
+  },
+  "intake": {
+    "start": {
+      "heading": "Hello, {firstName}.",
+      "subheading": "Tell me what happened. I do not need legal language, just the facts.",
+      "orStartWith": "Not sure where to begin? Start with",
+      "headingAnonymous": "Hello.",
+      "reassurance": "Take your time. You can stop and come back whenever you like, everything is saved as we go."
+    },
+    "brief": {
+      "title": "Your case brief",
+      "progressLabel": "Fields you have confirmed",
+      "progressValueText": "{confirmed} of {total} confirmed",
+      "editLabel": "Edit {field}",
+      "label": "Case brief",
+      "stateWord": {
+        "missing": "not yet"
+      },
+      "sourceFromDocument": "Read from {where}",
+      "sourceFromConversation": "From what you said",
+      "optional": "(optional)",
+      "confidence": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Check this",
+        "userConfirmed": "You confirmed"
+      },
+      "percentDone": "{percent}% confirmed",
+      "readMore": "Read more",
+      "showLess": "Show less",
+      "accept": "Accept",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "receipt": {
+        "accepted": "Accepted",
+        "edited": "Edited",
+        "by": "you",
+        "justNow": "just now",
+        "minutesAgo": "{minutes, plural, one {a minute ago} other {# minutes ago}}",
+        "undo": "Undo",
+        "undoLabel": "Undo {field}"
+      },
+      "sourceShow": "Show this in the document",
+      "sourceHide": "Hide the document",
+      "sourcePassageLabel": "From {where}, with what comes before and after it",
+      "sourcePassageQuoted": "The line this value was read from",
+      "summaryNext": "Next: {field}",
+      "summaryCheck": "Check: {field}",
+      "summaryReady": "Everything confirmed",
+      "summarySettled": "Confirmed: {field}",
+      "checkedInChat": "{count, plural, one {I have checked the {fields} on the brief and it is right.} other {I have checked these on the brief and they are right: {fields}.}}",
+      "correctedInChat": "{count, plural, one {I have corrected the {changes} on the brief.} other {I have corrected these on the brief: {changes}.}}",
+      "saved": "Saved just now",
+      "writingNotes": "Writing up your case notes",
+      "workLeft": "That covered {count} more of the {total} things I needed. {remaining, plural, one {One question left.} other {# questions left.}}",
+      "workDone": "That covered {count} more of the {total} things I needed, which is all of them. Nothing left to ask.",
+      "workDoneAsking": "That covered {count} more of the {total} things I needed, which is all of them. Anything else is optional.",
+      "preparedWith": "Prepared with {name} · {timestamp}",
+      "askingNow": "asking now",
+      "observationLabel": "Noted for the lawyer",
+      "foldedFields": "{count, plural, one {Your brief · # field} other {Your brief · # fields}}",
+      "foldedShow": "Show",
+      "foldedHide": "Hide"
+    },
+    "chat": {
+      "placeholderFirst": "Describe your matter, or attach a document…",
+      "placeholderExampleOne": "A supplier has missed three deliveries and I want out of the contract…",
+      "placeholderExampleTwo": "I need to let someone go and I want to do it properly…",
+      "placeholderExampleThree": "We are buying a small competitor and need the paperwork checked…",
+      "placeholder": "Reply to Moritz…",
+      "waitFirst": "Reading what you have told me",
+      "waitReply": "Checking that against the rest of your case",
+      "waitDocuments": "{count, plural, one {Reading your document} other {Reading all {count} documents}}",
+      "retry": "Try again",
+      "waitSent": "Looking that up on your case"
+    },
+    "timeline": {
+      "traced": "{count, plural, =0 {nothing I could trace back to a line in the text} one {one value traced back to a line in the text} other {# values traced back to a line in the text}}",
+      "filled": "{count, plural, one {one field written onto your brief} other {# fields written onto your brief}}",
+      "summary": "{count, plural, one {One step} other {# steps}}",
+      "show": "Show the {count, plural, one {step} other {# steps}} behind this reply",
+      "hide": "Hide the {count, plural, one {step} other {# steps}} behind this reply",
+      "doneLabel": "done",
+      "runningLabel": "happening now"
+    },
+    "upload": {
+      "found": "I read {documents, plural, one {{names}} other {all {documents}: {names}}} and filled in what I could, {verified, plural, =0 {though I could not trace any of it back to a line in the text, so read those rows carefully} one {and one value traces back to a line in the text} other {and # values trace back to a line in the text}}. Have a look on the right and correct anything I got wrong.",
+      "nothingFound": "I read {names}, but I could not pull anything useful out. Tell me about the matter and I will fill the brief in as we go.",
+      "wrongType": "{count, plural, one {I cannot read {names}.} other {I cannot read these: {names}.}} I can take PDFs and photos. Send {count, plural, one {it} other {them}} as a PDF, or just tell me about the matter instead.",
+      "wordFile": "{count, plural, one {I cannot read Word files yet, so {names} did not go in.} other {I cannot read Word files yet, so these did not go in: {names}.}} In Word, use File then Save as and pick PDF, and I will read {count, plural, one {it} other {them}} straight away.",
+      "imageFormat": "{count, plural, one {I cannot read that photo format, so {names} did not go in.} other {I cannot read those photo formats, so these did not go in: {names}.}} iPhone photos are usually HEIC: in Settings, Camera, Formats, choose Most Compatible, or send a PDF.",
+      "tooBig": "{count, plural, one {{names} is too big for me to read.} other {These are too big for me to read: {names}.}} The limit is {limit} MB each. A smaller export usually works, or tell me about {count, plural, one {it} other {them}} instead.",
+      "emptyFile": "{count, plural, one {{names} came through empty, so there was nothing in it to read.} other {These came through empty, so there was nothing in them to read: {names}.}} Try sending again, or tell me about the matter instead.",
+      "tooMany": "I can read {limit} documents at a time, so these are waiting: {names}. Send them once I have read these and I will add them to the case.",
+      "tooMuch": "That is more than {limit} MB in one go, so these are waiting: {names}. Send them next and I will read them too.",
+      "alsoUseful": {
+        "employment": "If you still have the original offer letter and the email where you told them about your visa, those matter more here than anything else. No rush, you can add them after you send this.",
+        "contract": "If you still have the signed agreement itself and the order form or schedule that goes with it, those matter more here than anything else. No rush, you can add them after you send this.",
+        "procurement": "If you still have the supplier’s terms and the purchase order or tender response, those matter more here than anything else. No rush, you can add them after you send this.",
+        "corporate": "If you still have the shareholders agreement and the latest cap table, those matter more here than anything else. No rush, you can add them after you send this.",
+        "ma": "If you still have the share purchase agreement and the disclosure letter, those matter more here than anything else. No rush, you can add them after you send this.",
+        "other": "If you still have the document at the centre of this and anything the other side put in writing, those matter more here than anything else. No rush, you can add them after you send this."
+      },
+      "failedBusy": "I could not get to your {count, plural, one {document} other {documents}} just now. Try again in a moment, or tell me about the matter and I will fill the brief in as we go.",
+      "failedOurs": "Something at our end stopped me reading {count, plural, one {your document} other {your documents}}, and trying again will not help until we have fixed it. Tell me about the matter instead and I will fill the brief in as we go. Your {count, plural, one {file has} other {files have}} still gone to the firm.",
+      "failedDeclined": "I was not able to make anything of {count, plural, one {that one} other {those}}. Tell me about the matter and I will fill the brief in as we go. {count, plural, one {It is} other {They are}} still with the firm either way."
+    },
+    "leave": {
+      "savedTitle": "Saved as draft",
+      "savedDescription": "Your in-progress case stays here on this device.",
+      "deletedTitle": "Case deleted",
+      "deletedDescription": "Your in-progress intake has been cleared."
+    },
+    "quote": {
+      "explanation": "When you send this, one of our lawyers reads it and prices the work, and you get a fixed quote back in this chat, usually within 24 hours. Nothing is charged until you accept it.",
+      "explanationSending": "A lawyer is reading it and pricing the work. A fixed quote comes back in this chat within 24 hours. Nothing is charged until you accept it.",
+      "action": "Review and send",
+      "blocked": "{count, plural, one {One more answer to continue} other {# more answers to continue}}",
+      "arrivedHeading": "Your quote is ready",
+      "arrivedBody": "{name} read your brief and priced the work. Nothing is charged until you accept.",
+      "fee": "Fixed fee",
+      "covers": "What it covers",
+      "expires": "Hold until",
+      "exampleNote": "Example figure, from this prototype’s own case data. The live flow never shows a price it has not been given by a person.",
+      "response": {
+        "approve": "Accept and start",
+        "question": "I have a question about it",
+        "too-high": "This seems high",
+        "part-only": "Quote me for part of it"
+      },
+      "responseHint": {
+        "question": "Goes to the lawyer who wrote the quote. The hold stays in place while you wait.",
+        "too-high": "Say which of these it is. Three of the four are things they can do something about.",
+        "part-only": "Pick the parts you want priced on their own. They re-quote just those."
+      },
+      "tooHigh": {
+        "over-budget": "More than I can spend on this",
+        "unexpected": "More than I expected for this kind of work",
+        "compared": "I have a lower quote elsewhere",
+        "thinking": "Nothing is wrong, I want to think about it"
+      },
+      "tooHighDetail": "Anything else they should know? (optional)",
+      "partDetail": "Anything else about what you need? (optional)",
+      "questionDetail": "What would you like to ask?",
+      "send": "Send this to the lawyer",
+      "back": "Back",
+      "approved": "Accepted. {name} has been told and will be in touch about getting started.",
+      "sentActionable": "Passed to {name} with your quote. They will come back with options, usually the same day.",
+      "sentHolding": "Passed to {name}. Your quote is held, and nobody will chase you. Come back to it when you are ready.",
+      "sentQuestion": "Passed to {name}. Your quote is held while they answer.",
+      "sentPart": "Passed to {name} with the parts you picked. They will re-quote just those.",
+      "partNone": "Pick at least one part.",
+      "noQuote": {
+        "heading": "We cannot put a fixed price on this one",
+        "out-of-practice": {
+          "title": "This is not the kind of law we do",
+          "body": "We handle commercial and corporate work: contracts, employment, company matters. Criminal, family and immigration work needs a specialist, and taking it on would not be doing you a favour.",
+          "instead": "Say the word and we will name two firms who do this properly, with a note of what you have already told us so you are not starting again."
+        },
+        "out-of-jurisdiction": {
+          "title": "We have nobody admitted where this sits",
+          "body": "Advice on the law of a place none of our lawyers is qualified in would be worth less than nothing to you, whatever it cost.",
+          "instead": "We work with firms in most places. We can make the introduction and send your brief across, or hold this until you tell us not to."
+        },
+        "not-fixed-fee": {
+          "title": "This is real work, and we cannot honestly fix a price on it yet",
+          "body": "A fixed fee only works when the shape of the job is knowable up front. Here it depends on things nobody can see yet, and a number invented now would be one of us absorbing the difference later.",
+          "instead": "Two options: a paid first read at a fixed price, which usually makes the rest quotable, or an hourly engagement with a cap you set."
+        },
+        "reasonLabel": "Why",
+        "talkToUs": "Tell us how you want to proceed"
+      },
+      "decisionAbove": "Your quote is above, with what it covers and how long it is held. Nothing is charged until you accept it, and accepting is not the only thing you can do.",
+      "arrivedChat": "Your fixed quote is ready, {name} priced it. It is in the panel beside this chat. Nothing is charged until you accept it.",
+      "accepted": {
+        "heading": "Quote accepted",
+        "body": "{name} has been told and will be in touch. Payment happens on your case page, and your lawyer is assigned once it clears."
+      }
+    },
+    "howItWorks": {
+      "title": "How this works",
+      "youAreHere": "You are here.",
+      "footer": "Our agents do the first pass. Our lawyers finish it.",
+      "description": {
+        "brief": "Tell us what happened, or drop in the document.",
+        "quote": "A lawyer reads it and puts a fixed price on the work.",
+        "lawyer": "Accept the price and they take over this chat.",
+        "document": "They write it, we check it, and you get the finished document."
+      },
+      "when": {
+        "brief": "A few minutes",
+        "quote": "Within 24 hours",
+        "lawyer": "When you accept",
+        "document": "No estimate"
+      }
+    },
+    "demo": {
+      "seeded": "Here is the brief part-way through, with one value I am not confident about. Have a look on the right and correct anything I got wrong.",
+      "seededComplete": "Here is the brief with everything filled in and checked, ready to send. I have put Acme Holdings Ltd as the other side, since the agreement names your own company as well.",
+      "seededQuoted": "Your quote is back. It is on the right, with what it covers and how long it is held. Accepting is not the only thing you can do with it."
+    },
+    "review": {
+      "heading": "{count, plural, one {One value needs your eye} other {# values need your eye}}",
+      "body": "Moritz worked {count, plural, one {this} other {these}} out rather than hearing {count, plural, one {it} other {them}} from you: {fields}{more, plural, =0 {} one {, and one more} other {, and # more}}. Change anything that is wrong, or accept {count, plural, one {it if it looks right} other {them if they look right}}.",
+      "confirmAll": "{count, plural, one {This looks right} other {These all look right}}",
+      "allConfirmed": "Everything here is confirmed. Read it over once more, then send it.",
+      "confirmAllCost": "You can still change {count, plural, one {it} other {any of them}} afterwards."
+    },
+    "send": {
+      "action": "Send to Moritz",
+      "sending": "Sending your case",
+      "blocked": "{count, plural, one {One value still needs checking} other {# values still need checking}} before this can be sent.",
+      "sendingTitle": "Sending your case",
+      "sendingStep": {
+        "checklist": "Checking nothing is missing",
+        "notes": "Writing up your case notes",
+        "handover": "Handing it to the team who draft it"
+      },
+      "sendingNote": "This takes a couple of minutes. You do not have to stay on this screen. We will email you either way."
+    },
+    "sent": {
+      "heading": "Case sent",
+      "reference": "Reference",
+      "status": "Status",
+      "statusValue": "Awaiting quote",
+      "estimatedResponse": "Estimated response",
+      "nextStep": "Next step",
+      "nextStepValue": "One of our lawyers reads this and prices the work, then sends you a fixed quote. Nobody is assigned to the case until you have accepted it.",
+      "quoteHere": "Your quote arrives here, in this chat, usually within 24 hours. Nothing is charged until you accept it, and the lawyer is assigned after that.",
+      "goToCase": "Go to case",
+      "showcaseLabel": "The people who price and handle work like this",
+      "disagreementsTitle": "Worth knowing",
+      "disagreement": "You gave a different {label} to the one in {where}, which said “{documentValue}”. We have kept both.",
+      "theDocument": "the document",
+      "humanNote": "A person writes your quote, not a machine. If anything about the case changes before it arrives, say so in this chat.",
+      "addMoreTitle": "Something else to add?",
+      "addMoreLabel": "Drop more documents here, or",
+      "addMoreHint": "They go straight to the team pricing your case.",
+      "addMoreButton": "choose a file",
+      "oneMore": {
+        "document": {
+          "title": "One thing would help most",
+          "hint": "We do not have the agreement itself. A draft is already being written from what we have, so the file is worth more to it than any description."
+        },
+        "outcome": {
+          "title": "One thing would help most",
+          "body": "You skipped what a good result would look like. It is the difference between pricing a review and pricing a negotiation, so it moves the quote more than anything else you could tell us.",
+          "label": "What would a good result look like?",
+          "placeholder": "A sentence is plenty. Skip it if you are still not sure.",
+          "button": "Add this to my case",
+          "done": "Added. That goes to the lawyer pricing your case, with your brief."
+        }
+      },
+      "documentReceived": "{count, plural, one {Got {names}. I have added it to your case} other {Got all {count}: {names}. I have added them to your case}} and passed {count, plural, one {it} other {them}} to the team drafting your quote. Anything else you send here reaches them the same way.",
+      "estimatedResponseValue": "Within 24 hours",
+      "reviewer": "Reviewer",
+      "reviewerValue": "{more, plural, =0 {A qualified lawyer, trained at {schools}} other {A qualified lawyer, trained at {schools} or one of # other schools}}",
+      "canClose": "You can close this tab. Your quote comes to your email and to the bell at the top of this page.",
+      "startAnother": "Start another case",
+      "announce": "Case sent. Your case is with us as {reference}. Your fixed quote arrives in this chat.",
+      "readMore": "Read about {name}",
+      "profileClose": "Close",
+      "chatIntro": "That is with us. I am still here while you wait, so ask me anything about your case, the quote, or how we work. If you would rather not wait around, close the tab and I will email you.",
+      "ask": {
+        "label": "Or ask me",
+        "question": {
+          "timing": "How long does this take?",
+          "covers": "What will the quote cover?",
+          "document": "Can I still send a document?"
+        }
+      },
+      "nothingCharged": "Nothing is charged until you accept it.",
+      "copySentTo": "Copy sent to",
+      "summaryShow": "Show more",
+      "summaryHide": "Show less"
+    },
+    "drop": {
+      "heading": "Drop it anywhere on this page",
+      "hint": "I will read them and fill in what I can. PDF or a photo, several at once.",
+      "sentHeading": "Drop it anywhere to add it to the case",
+      "sentHint": "They go to the team working on your quote. PDF or a photo, several at once.",
+      "composer": "Drop to attach"
+    },
+    "human": {
+      "note": "A lawyer like {firstName} reads your brief and prices the work. Nobody is assigned until you accept the quote.",
+      "practice": {
+        "contract": "{firstName} handles service agreements and NDAs like this one.",
+        "procurement": "{firstName} handles supplier terms and tenders like this one.",
+        "corporate": "{firstName} handles shareholder arrangements and funding rounds like this one.",
+        "ma": "{firstName} handles share purchases and acquisitions like this one.",
+        "employment": "{firstName} handles employment disputes, from dismissals to withdrawn offers.",
+        "general": "{firstName} has run legal teams in house and reads what does not fit a box."
+      }
+    },
+    "journey": {
+      "label": "Where you are",
+      "step": {
+        "brief": "Brief",
+        "quote": "Quote",
+        "lawyer": "Lawyer",
+        "document": "Document",
+        "documentShort": "Doc"
+      },
+      "line": {
+        "brief": "You are telling us about the matter.",
+        "sending": "Your case is on its way to us.",
+        "quote": "A lawyer is reading it and pricing the work.",
+        "lawyer": "A lawyer takes the case and talks to you here.",
+        "document": "Your finished document arrives."
+      },
+      "stage": {
+        "sent": "Your case reached us",
+        "pricing": "A lawyer prices the work",
+        "quote": "Your price arrives here",
+        "paid": "You accept it and pay",
+        "lawyer": "A lawyer takes over this chat",
+        "revision": "Your lawyer edits it, then it is checked",
+        "delivered": "You get the finished document"
+      },
+      "detail": {
+        "pricing": "A first draft is already being written. 20 to 50 minutes."
+      },
+      "note": {
+        "quote": "Usually within 24 hours. Nothing is charged until you accept."
+      },
+      "state": {
+        "done": "Done",
+        "current": "Happening now",
+        "future": "Still to come"
+      },
+      "expand": "Show what happens in this step",
+      "collapse": "Hide what happens in this step"
+    },
+    "person": {
+      "trigger": "Talk to a person",
+      "triggerNamed": "Ask {firstName}",
+      "triggerAnyone": "Ask a human",
+      "dialogTitle": "Talk to a person",
+      "dialogDescription": "Write what you want a lawyer to know. It reaches them with your brief, so you do not have to explain the matter twice.",
+      "who": "A lawyer like {firstName} reads these, alongside the brief you have been filling in.",
+      "label": "What should they know?",
+      "placeholder": "I would rather explain this on a call…",
+      "send": "Send this to a person",
+      "cost": "It goes with your case, not into the conversation with Moritz. Somebody reads it within 24 hours.",
+      "cancel": "Not now",
+      "acknowledgement": "I have passed that to a person and it goes with your case, so you will not have to explain it again. Somebody reads it within 24 hours. We can carry on here in the meantime, or leave it there and I will keep what you have written.",
+      "sentTitle": "Passed to a person",
+      "sentDescription": "It is on your case now. Somebody reads it within 24 hours.",
+      "cardTitle": "Handed to a person",
+      "cardPromise": "Somebody reads this within 24 hours.",
+      "cardWhoUnknown": "A lawyer reads these, alongside the brief you have been filling in.",
+      "screenTitle": "Talk to a person",
+      "screenBody": "Write what you want a lawyer to know and pick who should read it. It reaches them with your case, so you do not have to explain the matter twice.",
+      "backToCases": "Back to your cases",
+      "picker": {
+        "label": "Who should read this?",
+        "placeholder": "Choose a lawyer",
+        "anyName": "Anyone at Moritz",
+        "anyDetail": "Whoever is free first, and fits your matter",
+        "fitsYourMatter": "Fits your matter · {school}"
+      },
+      "overlay": {
+        "titleNamed": "Ask {firstName}",
+        "pickLabel": "Search for someone to ask",
+        "pickPlaceholder": "Search for a person by name, practice or school…",
+        "pickEmpty": "Nobody here by that name.",
+        "fits": "Fits your matter",
+        "back": "Ask somebody else",
+        "sendHint": "{key} + Enter to send"
+      }
+    },
+    "email": {
+      "trigger": "A copy is on its way to {address}. Read it",
+      "from": "From",
+      "fromValue": "Moritz (cases@moritz.legal)",
+      "to": "To",
+      "subjectLabel": "Subject",
+      "subject": "We have your case: {name} ({reference})",
+      "appName": "Moritz",
+      "copyright": "© 2026 Moritz. All rights reserved.",
+      "footer": "You are getting this because you sent a case to Moritz. Replies to this address are not monitored, so use the case chat.",
+      "fallbackName": "Contract review",
+      "heading": "We have your case",
+      "opening": "Hello {firstName}, your case is with us. It is called “{name}” and its reference is {reference}. Quote that reference in anything you send us about it.",
+      "unconfirmedNote": "not yet checked by you",
+      "nextTitle": "What happens next",
+      "nextBody": "One of our lawyers reads this and prices the work, then sends you a fixed quote. The quote covers the work described above and says what it does not cover. Nobody is assigned to your case until you have accepted it.",
+      "whereBody": "The quote arrives in your case chat, which is the same conversation you just had. That chat stays open, so you can add documents or tell us something changed at any point.",
+      "cta": "Open your case",
+      "changeNote": "If anything in the brief above is wrong, say so in the case chat before the quote is written and we will put it right.",
+      "turnaroundNote": "Quotes usually come back within 24 hours. Nothing is charged until you accept it.",
+      "signOff": "Yours,",
+      "signature": "{name}",
+      "signaturePractice": "{title}, Moritz",
+      "queue": "{count, plural, =0 {Yours is first in the queue to be priced.} one {There is one matter ahead of yours in the queue to be priced.} other {There are # matters ahead of yours in the queue to be priced.}}",
+      "observationNote": "Noted for the lawyer: {observation}",
+      "read": "Read it"
+    },
+    "notification": {
+      "receivedTitle": "We have your case",
+      "receivedBody": "Your case is with us as {reference}. A lawyer is pricing the work, and your fixed quote arrives in the case chat.",
+      "quoteTitle": "Your quote is ready",
+      "quoteBody": "A fixed price for {reference} is waiting in your case chat. Nothing is charged until you accept it."
+    },
+    "voice": {
+      "start": "Dictate your message",
+      "stop": "Stop dictating",
+      "cost": "Your browser is doing the transcribing, and it may send the audio to whoever makes it. Typing stays on this page.",
+      "denied": "I do not have permission to use your microphone. Allow it in your browser settings and press the microphone again, or just type.",
+      "noSpeech": "I did not catch anything. Press the microphone again when you are ready.",
+      "noMicrophone": "I could not find a microphone. Check it is plugged in and selected in your system settings, or just type.",
+      "network": "Speech recognition needs a connection and it dropped. Try again, or just type.",
+      "failed": "Dictation stopped working. Press the microphone to try again, or just type."
+    },
+    "error": {
+      "offline": "That did not reach me. Check your connection and send it again.",
+      "unauthorized": "Something at our end is not working, and it is not something you can fix by trying again. Everything you have written is saved. We are on it.",
+      "busy": "I am getting more right now than I can keep up with. Everything you have written is saved. Give it a moment and send it again.",
+      "refused": "I cannot help with that one. Tell me about the legal matter itself and I will pick it up from there.",
+      "truncated": "I lost my train of thought partway through that. Say it again, a little shorter, and I will get it down properly.",
+      "unreadable": "Something went wrong at my end writing that down. Nothing on your brief has changed. Send it again.",
+      "unknown": "Something went wrong. Everything you have written is saved. Send it again."
+    },
+    "composer": {
+      "field": "Tell Moritz about your matter",
+      "attach": "Attach a document",
+      "removeAttachment": "Remove {name}",
+      "send": "Send",
+      "stop": "Stop Moritz replying"
+    },
+    "documents": {
+      "railLabel": "{count, plural, one {# document} other {# documents}}",
+      "tabsLabel": "Open documents",
+      "closeTab": "Close {name}",
+      "close": "Close documents",
+      "maximise": "Expand",
+      "minimise": "Collapse to panel",
+      "resize": "Drag to resize the document, or double click to reset it",
+      "download": "Download",
+      "print": "Print",
+      "find": "Find",
+      "findPlaceholder": "Find in document",
+      "closeFind": "Close find",
+      "searching": "Searching…",
+      "matchOf": "{index}/{total}",
+      "nextMatch": "Next match",
+      "previousMatch": "Previous match",
+      "nextPage": "Next page",
+      "previousPage": "Previous page",
+      "pageOf": "{page}/{total}",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "fitWidth": "Fit to width",
+      "about": {
+        "label": "About",
+        "kind": "Type",
+        "pdf": "PDF document",
+        "image": "Image",
+        "size": "Size",
+        "pages": "Pages",
+        "added": "Attached",
+        "opened": "Opened",
+        "citedBy": "Used in the brief",
+        "citedByNone": "Nothing on the brief was read from this document. It is still on the case."
+      },
+      "error": {
+        "openTitle": "This document cannot be shown here",
+        "openBody": "It may be damaged, or use a format this browser cannot draw. It has still been sent to the firm, and you can download it below.",
+        "passwordTitle": "This document is password protected",
+        "passwordBody": "It cannot be opened for viewing without the password. The firm has the file and will ask you for it if they need it."
+      },
+      "sourceNotFound": "Those words could not be found in {name}. The document is open, so the passage may be in an image rather than in the text.",
+      "sourceUnavailable": "{name} is not open in this browser any more. It was sent with your case."
+    },
+    "prototype": {
+      "label": "Prototype only",
+      "skipToQuote": "Skip ahead to the quote arriving",
+      "backToConfirmation": "Back to the confirmation"
+    }
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "description": "Search destinations, cases and actions, then press Enter.",
+    "placeholder": "Search or jump to something",
+    "fieldLabel": "Search destinations, cases and actions",
+    "empty": "Nothing matches that.",
+    "results": "{count, plural, =1 {# result} other {# results}}",
+    "open": "Search",
+    "openHint": "Search and jump to anything",
+    "showMore": "Show {count} more",
+    "groupJumpTo": "Jump to",
+    "groupCases": "Cases",
+    "groupCompanies": "Companies",
+    "groupPeople": "People",
+    "groupQuoteRounds": "Quote rounds",
+    "groupCaseTypes": "Case types",
+    "groupActions": "Actions",
+    "actionNewCase": "Start a new case",
+    "actionShareCase": "Share a case",
+    "actionExportAuditLog": "Export the audit log",
+    "actionOpenSettings": "Open settings",
+    "actionAskNora": "Ask Nora",
+    "actionOpenNotifications": "Open notifications",
+    "pickCaseTitle": "Pick a case",
+    "pickCasePlaceholder": "Pick a case to share",
+    "pickCaseLabel": "Pick a case to share",
+    "pickCaseEmpty": "You have no cases to share yet.",
+    "back": "Back",
+    "backHint": "Back to everything",
+    "groupPlayground": "Design playground",
+    "actionSwitchRole": "View the app as another role",
+    "pickRoleTitle": "View as",
+    "pickRolePlaceholder": "Pick a role to view the app as",
+    "pickRoleLabel": "Pick a role to view the app as",
+    "pickRoleEmpty": "No other roles to switch to.",
+    "roleCurrent": "Current",
+    "roleClient": "Client",
+    "roleLawyer": "Lawyer",
+    "roleAdmin": "Admin",
+    "roleAssistant": "Assistant",
+    "roleClientHint": "Alex Morgan at Northwind Ltd.",
+    "roleLawyerHint": "Priya Shah at Moritz",
+    "roleAdminHint": "Jordan Pierce, Moritz operations",
+    "roleAssistantHint": "Sam Rivera, Moritz internal"
+  },
+  "ask": {
+    "name": "Nora",
+    "title": "Ask Nora",
+    "description": "Ask about your cases. Nora reads your own cases and documents, and nothing else.",
+    "open": "Ask Nora",
+    "openHint": "Ask Nora about your cases",
+    "placeholder": "Ask about your cases",
+    "placeholderGeneral": "Ask how something usually works",
+    "fieldLabel": "Ask Nora a question",
+    "stop": "Stop Nora replying",
+    "close": "Close Ask Nora",
+    "clear": "Start again",
+    "retry": "Try again",
+    "thinking": "Nora is reading your cases",
+    "thinkingGeneral": "Nora is thinking",
+    "emptyTitle": "What would you like to know?",
+    "emptyBody": "Nora can tell you where a case has got to, what you are being charged and which documents we have. She says so when she does not know, she cannot give you legal advice, and she never changes anything.",
+    "emptyBodyGeneral": "Ask what a term means or how a step usually works, and Nora will explain it in plain words. She is not looking at your cases on this tab, and this is not advice about your situation.",
+    "quiet": "There is nothing in your cases that answers that.",
+    "basis": "Based on {count, plural, =1 {one of your cases} other {# of your cases}}",
+    "basisNone": "Not based on any of your cases",
+    "actionsLabel": "Go to",
+    "modeLabel": "What Nora answers from",
+    "modeCases": "Your cases",
+    "modeGeneral": "Legal basics",
+    "modeCasesHint": "Answers from your {count, plural, =1 {# case} other {# cases}} and the documents you have sent us.",
+    "modeCasesHintEmpty": "You have no cases yet, so there is nothing here for Nora to read.",
+    "modeGeneralHint": "General information only. Nora does not look at your cases here, and this is not advice.",
+    "suggestionsLabel": "You could ask",
+    "error": {
+      "offline": "That did not reach Nora. Check your connection and ask again.",
+      "unauthorized": "Something at our end is not working, and it is not something you can fix by trying again. Your question is still in the box. We are on it.",
+      "busy": "Nora is getting more questions right now than she can keep up with. Give it a moment and ask again.",
+      "refused": "Nora cannot answer that one. Ask about your cases and she will pick it up from there.",
+      "truncated": "That answer got too long to finish. Ask for one part of it and Nora will get it down properly.",
+      "unreadable": "Something went wrong at our end writing that answer. Nothing has been changed. Ask again.",
+      "unknown": "Something went wrong. Nothing has been changed. Ask again."
+    }
   }
 }

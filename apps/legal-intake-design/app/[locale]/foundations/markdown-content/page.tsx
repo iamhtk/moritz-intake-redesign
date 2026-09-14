@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   MarkdownContentInChatExample,
@@ -5,6 +6,8 @@ import {
   MarkdownContentSanitizationExample,
   MarkdownContentStreamingExample,
 } from '@/components/design/foundations/examples/markdown-content-examples';
+
+export const metadata: Metadata = { title: 'Markdown content · Foundations' };
 
 export default function MarkdownContentFoundationPage() {
   return (

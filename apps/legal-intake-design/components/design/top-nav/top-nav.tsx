@@ -4,21 +4,22 @@ import { Fragment } from 'react';
 import Logo from '@/components/logo';
 import { Button } from '@/components/design/design-system/button';
 import { useIntakeProgressPanel } from '@/components/design/intake/intake-progress-panel-context';
+import { AskTrigger } from '@/components/design/ask/ask-trigger';
+import { useAskAvailable } from '@/components/design/ask/use-ask-available';
+import { CommandPaletteTrigger } from '@/components/design/command-palette/command-palette-trigger';
 import { NotificationMenu } from '@/components/design/top-nav/notification-menu';
 import { TopNavMobileNav } from '@/components/design/top-nav/top-nav-mobile-nav';
 import { TopNavSegmented } from '@/components/design/top-nav/top-nav-segmented';
 import { TopNavUser } from '@/components/design/top-nav/top-nav-user';
 import {
-  buildNavMain,
   findActiveNavItem,
   homePathByCompanyType,
-  type NavItem,
 } from '@/components/navigation/sidebar-nav-items';
 import { useNavigationGuard } from '@/components/navigation/navigation-guard-context';
 import { useDesignFlags } from '@/components/design/feature-flags/design-flags-context';
-import { IconBook2 } from '@tabler/icons-react';
 import {
   buildNavBadges,
+  buildNavForRole,
   getBackTarget,
 } from '@/components/design/top-nav/top-nav-shared';
 import { useTabularPlaybooksByArchiveState } from '@/components/design/tabular-playbook/tabular-playbook-archive';
@@ -53,30 +54,6 @@ type TopNavProps = {
 };
 
 /**
- * Inserts the flag-gated "Playbooks" destination immediately after "Cases" when
- * the `usePlaybooks` design flag is on, leaving the nav untouched otherwise.
- */
-function withPlaybooks(
-  items: NavItem[],
-  homePath: string,
-  enabled: boolean,
-): NavItem[] {
-  if (!enabled) return items;
-  const playbooks: NavItem = {
-    title: 'Playbooks',
-    url: `${homePath}/playbooks`,
-    icon: IconBook2,
-  };
-  const casesIndex = items.findIndex((item) => item.title === 'Cases');
-  if (casesIndex === -1) return [...items, playbooks];
-  return [
-    ...items.slice(0, casesIndex + 1),
-    playbooks,
-    ...items.slice(casesIndex + 1),
-  ];
-}
-
-/**
  * Top navigation bar for the client and lawyer areas. A single calm, balanced
  * row with three zones: the brand (plus a contextual back affordance) on the
  * left, a centered segmented control of section destinations in the middle, and
@@ -89,22 +66,17 @@ function withPlaybooks(
 export function TopNav({ user }: TopNavProps) {
   const pathname = usePathname();
   const companyType = user.company.type;
+  /*
+   * The same hook `DashboardOverlays` mounts the panel from. Not a condition
+   * written out again here: that is twice now that a second copy of this rule
+   * drifted from the first and took Ask down with it.
+   */
+  const askAvailable = useAskAvailable(companyType);
   const homePath = homePathByCompanyType[companyType];
   const { flags } = useDesignFlags();
-  // Playbooks is a client/lawyer destination only; the admin app never surfaces
-  // it even when the flag is on.
-  const playbooksEnabled =
-    Boolean(flags.usePlaybooks) &&
-    (companyType === 'NON_LEGAL' || companyType === 'LEGAL');
-  const navMain = withPlaybooks(
-    buildNavMain(companyType, homePath, {
-      adminPlaybooks: Boolean(flags.usePlaybooksAdmin),
-      adminAiEvals: Boolean(flags.useAiEvalsAdmin),
-      adminTabularPlaybooks: Boolean(flags.useTabularPlaybooksAdmin),
-    }),
-    homePath,
-    playbooksEnabled,
-  );
+  // One shared builder, so the command palette's generated "Jump to" cannot
+  // drift from this list. See `buildNavForRole`.
+  const navMain = buildNavForRole(companyType, homePath, flags);
   const { active: activeTabularPlaybooks } =
     useTabularPlaybooksByArchiveState();
   const navBadges = buildNavBadges(companyType, activeTabularPlaybooks.length);
@@ -203,6 +175,23 @@ export function TopNav({ user }: TopNavProps) {
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6 lg:px-8">
           {/* Left zone: brand + contextual back affordance. */}
           <div className="flex min-w-0 flex-1 items-center gap-2">
+            {/*
+             * The phone's way to the other sections, on every page.
+             *
+             * It used to be an either/or with the back chevron: the drawer on
+             * top-level pages, a back arrow on detail flows. So on a case page
+             * — the deepest place in the app, and the likeliest place to want
+             * to be somewhere else — there was no route to another section
+             * without first going back. A hamburger says nothing about where
+             * you are, so it does not have to compete with the label beside
+             * it, and it can simply always be there.
+             */}
+            <TopNavMobileNav
+              className="-ms-1.5 sm:hidden"
+              items={navMain}
+              badges={navBadges}
+              onNavigate={handleGuardedNavigation}
+            />
             <Link
               href={homePath}
               aria-label="Moritz"
@@ -288,50 +277,38 @@ export function TopNav({ user }: TopNavProps) {
                         it stays the static current page. */}
                     {currentCrumb ? (
                       <BreadcrumbItem className="min-w-0">
-                        {parentCrumb?.href ? (
-                          <>
-                            <BreadcrumbLink
-                              asChild
-                              className="text-foreground truncate font-medium sm:hidden"
-                            >
-                              <Link
-                                href={parentCrumb.href}
-                                aria-label={`Back to ${parentCrumb.label}`}
-                                onClick={(event) =>
-                                  handleGuardedNavigation(
-                                    event,
-                                    parentCrumb.href as string,
-                                  )
-                                }
-                              >
-                                {currentCrumb.label}
-                              </Link>
-                            </BreadcrumbLink>
-                            <BreadcrumbPage className="hidden truncate font-medium sm:block">
-                              {currentCrumb.label}
-                            </BreadcrumbPage>
-                          </>
-                        ) : (
-                          <BreadcrumbPage className="truncate font-medium">
-                            {currentCrumb.label}
-                          </BreadcrumbPage>
-                        )}
+                        {/*
+                         * The current page, and on a phone that is *all* it
+                         * is now.
+                         *
+                         * It used to double as a second tap target back to
+                         * the parent, sitting immediately beside the back
+                         * chevron that already does that — two controls, one
+                         * destination, in 40px of each other. With the
+                         * hamburger now on the row as well, three of the four
+                         * things in the left zone were navigation and none of
+                         * them said where you were. The chevron keeps *back*;
+                         * this keeps *here*.
+                         */}
+                        <BreadcrumbPage className="truncate font-medium">
+                          {currentCrumb.label}
+                        </BreadcrumbPage>
                       </BreadcrumbItem>
                     ) : null}
                   </BreadcrumbList>
                 </Breadcrumb>
               </>
             ) : (
-              // Phone-only primary nav trigger. Mirrors the desktop rule where
-              // the segmented nav and back affordance are mutually exclusive:
-              // the drawer trigger shows on top-level pages, the back button on
-              // detail flows.
-              <TopNavMobileNav
-                className="sm:hidden"
-                items={navMain}
-                badges={navBadges}
-                onNavigate={handleGuardedNavigation}
-              />
+              /*
+               * Top-level pages have no trail, so the section name is the
+               * whole answer to "where am I". Phone-only: from `sm` up the
+               * centred segmented nav marks the active section already, and a
+               * second copy of the same word on the left would be the two-top-
+               * bars problem in miniature.
+               */
+              <span className="text-foreground truncate text-sm font-medium sm:hidden">
+                {pageTitle || 'Home'}
+              </span>
             )}
           </div>
 
@@ -347,7 +324,34 @@ export function TopNav({ user }: TopNavProps) {
           {/* Right zone: notifications, intake panel toggle, account. The panel
               toggle is mobile-only — on md+ the progress panel is docked open at
               all times, so the button is hidden there. */}
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+          {/*
+           * `gap-1` on a phone. Four 44px targets at `gap-3` is 212px of a
+           * 358px content box, which leaves the page name about six
+           * characters. The targets themselves stay 44px — the spacing is
+           * what gives, not the tap area.
+           */}
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-3">
+            {/*
+             * K6 — the palette's discoverability affordance, first in the right
+             * cluster so it reads as a search field rather than as one more
+             * icon button. Ask's own entry point (N9) sits beside it.
+             */}
+            {flags.useCommandPalette ? <CommandPaletteTrigger /> : null}
+            {/*
+             * N9 / decision 2 — Ask beside the bell, not a floating bubble.
+             *
+             * Client-only, and flag-gated, both decided by `useAskAvailable`
+             * rather than restated here. The ⌘J chord is bound inside the
+             * trigger, so not mounting it is also what unbinds the shortcut: a
+             * lawyer pressing ⌘J gets nothing rather than a panel with no
+             * entry point.
+             *
+             * Every screen, including the intake. The route term that used to
+             * be the third condition here is gone on purpose — see the long
+             * note in `use-ask-available.ts` for why it cost Nora two
+             * disappearances and is not coming back to a call site.
+             */}
+            {askAvailable ? <AskTrigger /> : null}
             <NotificationMenu />
             {intakePanel?.isAvailable ? (
               <Tooltip>

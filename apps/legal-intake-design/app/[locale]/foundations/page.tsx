@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import {
   Card,
@@ -6,6 +7,8 @@ import {
   CardTitle,
 } from '@/components/design/foundations/components/card';
 import { FOUNDATION_ITEMS } from '@/components/design/foundations/showcase/foundations-nav';
+
+export const metadata: Metadata = { title: 'Foundations' };
 
 export default function FoundationsIndexPage() {
   return (

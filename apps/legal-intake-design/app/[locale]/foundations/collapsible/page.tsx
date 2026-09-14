@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ChevronsUpDown } from '@repo/ui/icons';
 
 import { Button } from '@/components/design/foundations/components/button';
@@ -7,6 +8,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/design/foundations/components/collapsible';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Collapsible · Foundations' };
 
 export default function CollapsibleFoundationPage() {
   return (

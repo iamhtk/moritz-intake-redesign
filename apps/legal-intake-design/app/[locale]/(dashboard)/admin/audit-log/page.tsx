@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { AuditLogTable } from '@/components/audit-log/audit-log-table';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Audit log' };
 
 export default function AdminAuditLogPage() {
   return (

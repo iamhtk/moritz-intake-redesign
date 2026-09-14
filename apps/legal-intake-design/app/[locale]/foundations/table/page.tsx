@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Skeleton } from '@repo/ui/components/skeleton';
 
 import { Badge } from '@/components/design/foundations/components/badge';
@@ -23,6 +24,8 @@ import {
   StripedTableExample,
 } from '@/components/design/foundations/examples/table-examples';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Table · Foundations' };
 
 export default function TableFoundationPage() {
   return (

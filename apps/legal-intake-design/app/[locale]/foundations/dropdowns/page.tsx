@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   ChevronDown,
   ChevronsUpDown,
@@ -38,6 +39,8 @@ import {
   RadioGroupExample,
 } from '@/components/design/foundations/examples/dropdown-examples';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Dropdowns · Foundations' };
 
 export default function DropdownsFoundationPage() {
   return (

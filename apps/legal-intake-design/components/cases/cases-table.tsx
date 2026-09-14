@@ -264,156 +264,272 @@ export default function CasesTable({
         </form>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-24">{t('columns.caseNumber')}</TableHead>
-            {showStatus && (
-              <TableHead className="w-44" aria-sort={ariaSort('status')}>
-                <SortButton
-                  label={t('columns.status')}
-                  active={order === 'status'}
-                  onClick={() => handleSort('status')}
-                  icon={renderSortIcon('status')}
-                />
-              </TableHead>
-            )}
-            <TableHead aria-sort={ariaSort('title')}>
-              <SortButton
-                label={t('columns.case')}
-                active={order === 'title'}
-                onClick={() => handleSort('title')}
-                icon={renderSortIcon('title')}
-              />
-            </TableHead>
-            {showQuoteAmount && (
-              <TableHead className="w-32">{t('columns.quote')}</TableHead>
-            )}
-            {showCompany && (
-              <TableHead className="w-48">{t('columns.company')}</TableHead>
-            )}
-            {showCounsel && (
-              <TableHead className="w-48">{t('columns.counsel')}</TableHead>
-            )}
-            {showCustomer && (
-              <TableHead className="w-48">{t('columns.customer')}</TableHead>
-            )}
-            {showCreatedAt && (
-              <TableHead className="w-28" aria-sort={ariaSort('createdAt')}>
-                <SortButton
-                  label={t('columns.created')}
-                  active={order === 'createdAt'}
-                  onClick={() => handleSort('createdAt')}
-                  icon={renderSortIcon('createdAt')}
-                />
-              </TableHead>
-            )}
-            <TableHead className="w-28" aria-sort={ariaSort('lastActivityAt')}>
-              <SortButton
-                label={t('columns.updated')}
-                active={order === 'lastActivityAt'}
-                onClick={() => handleSort('lastActivityAt')}
-                icon={renderSortIcon('lastActivityAt')}
-              />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pageRows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={20}
-                className="text-muted-foreground py-10 text-center"
-              >
-                {tCaseList('noCases')}
-              </TableCell>
-            </TableRow>
-          ) : (
-            pageRows.map((legalCase) => {
-              const isProposal = legalCase.status === 'READY_FOR_CLAIM';
-              const path =
-                isProposal && proposalBasePath ? proposalBasePath : basePath;
-              const href = `/${locale}${path}/${legalCase.id}`;
-              return (
-                <TableRow
-                  key={legalCase.id}
+      {/*
+       * ─────────────────────────────────────────────────────────────────────
+       * THE SAME LIST, TWICE: CARDS ON A PHONE, A TABLE FROM `md` UP.
+       * ─────────────────────────────────────────────────────────────────────
+       *
+       * The table has up to eight columns and `whitespace-nowrap`, so on a
+       * phone it became a sideways scroller. That is not broken — everything
+       * is reachable — but a horizontal scrollbar inside a vertically
+       * scrolling page is the affordance people miss most reliably, and what
+       * they miss here is the status and the date, which are the two things
+       * they came to check. The visible column ends up being the case
+       * number.
+       *
+       * So below `md` the same rows are stacked cards, ordered the way the
+       * question is actually asked: what is it, where has it got to, and
+       * when did it last move. No column is dropped — the ones that were
+       * off-screen are now a wrapped meta row under the title.
+       *
+       * Two renderings of one list rather than a responsive table, because
+       * the honest mobile shape for tabular data is not a table: it has no
+       * column headers to align to, and forcing one produces either a
+       * two-column squeeze or the scroller this replaces. The filters, the
+       * sort and the pagination above and below are shared, so there is one
+       * source of rows and no second state to keep in step.
+       */}
+      <ul className="flex flex-col gap-2 md:hidden">
+        {pageRows.length === 0 ? (
+          <li className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-10 text-center text-sm">
+            {tCaseList('noCases')}
+          </li>
+        ) : (
+          pageRows.map((legalCase) => {
+            const isProposal = legalCase.status === 'READY_FOR_CLAIM';
+            const path =
+              isProposal && proposalBasePath ? proposalBasePath : basePath;
+            const href = `/${locale}${path}/${legalCase.id}`;
+            return (
+              <li key={legalCase.id}>
+                <a
                   href={href}
-                  title={legalCase.title}
-                  className="cursor-pointer"
+                  className="border-border hover:bg-foreground/[0.02] focus-visible:ring-ring block rounded-xl border p-3.5 outline-none transition-colors focus-visible:ring-2"
                 >
-                  <TableCell className="text-muted-foreground">
-                    <span>{legalCase.caseNumber}</span>
-                  </TableCell>
-                  {showStatus && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CaseStatusBadge status={legalCase.status} />
-                        {isProposal && legalCase.claimDeadline ? (
-                          <DeadlineBadge deadline={legalCase.claimDeadline} />
-                        ) : legalCase.unreadCount > 0 ? (
-                          <Badge variant="destructive" className="shrink-0">
-                            {legalCase.unreadCount}
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <span className="text-foreground font-medium">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-foreground min-w-0 flex-1 font-medium">
                       {legalCase.title}
                     </span>
-                  </TableCell>
-                  {showQuoteAmount && (
-                    <TableCell className="text-muted-foreground">
-                      {legalCase.quoteAmount
-                        ? formatCurrency(
-                            legalCase.quoteAmount,
-                            legalCase.currency,
-                          )
-                        : 'None'}
-                    </TableCell>
-                  )}
-                  {showCompany && (
-                    <TableCell className="text-muted-foreground">
-                      <span className="block max-w-48 truncate">
+                    {isProposal && legalCase.claimDeadline ? (
+                      <DeadlineBadge deadline={legalCase.claimDeadline} />
+                    ) : legalCase.unreadCount > 0 ? (
+                      <Badge variant="destructive" className="shrink-0">
+                        {legalCase.unreadCount}
+                      </Badge>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                    {showStatus && (
+                      <CaseStatusBadge status={legalCase.status} />
+                    )}
+                    <span className="text-muted-foreground font-mono text-[11.5px]">
+                      {legalCase.caseNumber}
+                    </span>
+                  </div>
+
+                  {/*
+                   * The columns a phone had no room for, as label/value
+                   * pairs. A `<dl>` because that is what they are, and
+                   * because the label has to travel with the value once the
+                   * column header is gone — "Unassigned" on its own says
+                   * nothing.
+                   */}
+                  <dl className="text-muted-foreground mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                    {showQuoteAmount && (
+                      <CardMeta label={t('columns.quote')}>
+                        {legalCase.quoteAmount
+                          ? formatCurrency(
+                              legalCase.quoteAmount,
+                              legalCase.currency,
+                            )
+                          : 'None'}
+                      </CardMeta>
+                    )}
+                    {showCompany && (
+                      <CardMeta label={t('columns.company')}>
                         {legalCase.ownerCompanyName}
-                      </span>
-                    </TableCell>
-                  )}
-                  {showCounsel && (
-                    <TableCell className="text-muted-foreground">
-                      <span className="block max-w-48 truncate">
+                      </CardMeta>
+                    )}
+                    {showCounsel && (
+                      <CardMeta label={t('columns.counsel')}>
                         {legalCase.legalCompanyName ?? 'Unassigned'}
-                      </span>
-                    </TableCell>
-                  )}
-                  {showCustomer && (
-                    <TableCell className="text-muted-foreground">
-                      <span className="block max-w-48 truncate">
+                      </CardMeta>
+                    )}
+                    {showCustomer && (
+                      <CardMeta label={t('columns.customer')}>
                         {legalCase.client.name}
+                      </CardMeta>
+                    )}
+                    <CardMeta label={t('columns.updated')}>
+                      <FormattedDate
+                        date={legalCase.updatedAt}
+                        options={{ dateStyle: 'short' }}
+                      />
+                    </CardMeta>
+                  </dl>
+                </a>
+              </li>
+            );
+          })
+        )}
+      </ul>
+
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-24">{t('columns.caseNumber')}</TableHead>
+              {showStatus && (
+                <TableHead className="w-44" aria-sort={ariaSort('status')}>
+                  <SortButton
+                    label={t('columns.status')}
+                    active={order === 'status'}
+                    onClick={() => handleSort('status')}
+                    icon={renderSortIcon('status')}
+                  />
+                </TableHead>
+              )}
+              <TableHead aria-sort={ariaSort('title')}>
+                <SortButton
+                  label={t('columns.case')}
+                  active={order === 'title'}
+                  onClick={() => handleSort('title')}
+                  icon={renderSortIcon('title')}
+                />
+              </TableHead>
+              {showQuoteAmount && (
+                <TableHead className="w-32">{t('columns.quote')}</TableHead>
+              )}
+              {showCompany && (
+                <TableHead className="w-48">{t('columns.company')}</TableHead>
+              )}
+              {showCounsel && (
+                <TableHead className="w-48">{t('columns.counsel')}</TableHead>
+              )}
+              {showCustomer && (
+                <TableHead className="w-48">{t('columns.customer')}</TableHead>
+              )}
+              {showCreatedAt && (
+                <TableHead className="w-28" aria-sort={ariaSort('createdAt')}>
+                  <SortButton
+                    label={t('columns.created')}
+                    active={order === 'createdAt'}
+                    onClick={() => handleSort('createdAt')}
+                    icon={renderSortIcon('createdAt')}
+                  />
+                </TableHead>
+              )}
+              <TableHead
+                className="w-28"
+                aria-sort={ariaSort('lastActivityAt')}
+              >
+                <SortButton
+                  label={t('columns.updated')}
+                  active={order === 'lastActivityAt'}
+                  onClick={() => handleSort('lastActivityAt')}
+                  icon={renderSortIcon('lastActivityAt')}
+                />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pageRows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={20}
+                  className="text-muted-foreground py-10 text-center"
+                >
+                  {tCaseList('noCases')}
+                </TableCell>
+              </TableRow>
+            ) : (
+              pageRows.map((legalCase) => {
+                const isProposal = legalCase.status === 'READY_FOR_CLAIM';
+                const path =
+                  isProposal && proposalBasePath ? proposalBasePath : basePath;
+                const href = `/${locale}${path}/${legalCase.id}`;
+                return (
+                  <TableRow
+                    key={legalCase.id}
+                    href={href}
+                    title={legalCase.title}
+                    className="cursor-pointer"
+                  >
+                    <TableCell className="text-muted-foreground">
+                      <span>{legalCase.caseNumber}</span>
+                    </TableCell>
+                    {showStatus && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <CaseStatusBadge status={legalCase.status} />
+                          {isProposal && legalCase.claimDeadline ? (
+                            <DeadlineBadge deadline={legalCase.claimDeadline} />
+                          ) : legalCase.unreadCount > 0 ? (
+                            <Badge variant="destructive" className="shrink-0">
+                              {legalCase.unreadCount}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <span className="text-foreground font-medium">
+                        {legalCase.title}
                       </span>
                     </TableCell>
-                  )}
-                  {showCreatedAt && (
+                    {showQuoteAmount && (
+                      <TableCell className="text-muted-foreground">
+                        {legalCase.quoteAmount
+                          ? formatCurrency(
+                              legalCase.quoteAmount,
+                              legalCase.currency,
+                            )
+                          : 'None'}
+                      </TableCell>
+                    )}
+                    {showCompany && (
+                      <TableCell className="text-muted-foreground">
+                        <span className="block max-w-48 truncate">
+                          {legalCase.ownerCompanyName}
+                        </span>
+                      </TableCell>
+                    )}
+                    {showCounsel && (
+                      <TableCell className="text-muted-foreground">
+                        <span className="block max-w-48 truncate">
+                          {legalCase.legalCompanyName ?? 'Unassigned'}
+                        </span>
+                      </TableCell>
+                    )}
+                    {showCustomer && (
+                      <TableCell className="text-muted-foreground">
+                        <span className="block max-w-48 truncate">
+                          {legalCase.client.name}
+                        </span>
+                      </TableCell>
+                    )}
+                    {showCreatedAt && (
+                      <TableCell className="text-muted-foreground">
+                        <FormattedDate
+                          date={legalCase.createdAt}
+                          options={{ dateStyle: 'short' }}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="text-muted-foreground">
                       <FormattedDate
-                        date={legalCase.createdAt}
+                        date={legalCase.updatedAt}
                         options={{ dateStyle: 'short' }}
                       />
                     </TableCell>
-                  )}
-                  <TableCell className="text-muted-foreground">
-                    <FormattedDate
-                      date={legalCase.updatedAt}
-                      options={{ dateStyle: 'short' }}
-                    />
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground shrink-0 text-sm">
@@ -462,6 +578,22 @@ export default function CasesTable({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** One label/value pair in a phone card's meta row. */
+function CardMeta({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-baseline gap-1">
+      <dt className="text-muted-foreground/70">{label}</dt>
+      <dd className="text-foreground/80 truncate">{children}</dd>
     </div>
   );
 }

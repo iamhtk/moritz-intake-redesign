@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Card,
   CardContent,
@@ -7,6 +8,8 @@ import {
 } from '@/components/design/design-system/card';
 import { Button } from '@/components/design/design-system/button';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Sentry test' };
 
 export default function SentryTestPage() {
   return (

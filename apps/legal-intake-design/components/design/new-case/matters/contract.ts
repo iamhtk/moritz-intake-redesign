@@ -10,6 +10,7 @@ import { type MatterFlow } from '../intake-types';
 export const contractFlow: MatterFlow = {
   id: 'contract',
   label: 'Contract',
+  chipHint: 'Terms, NDAs, anything you sign',
   transition: () =>
     'Got it \u2014 a contract matter. Tell me a bit more and the brief will fill in on the right.',
   questions: [

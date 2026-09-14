@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+
+import { toastUndo } from '@/lib/toast-undo';
 import { Button } from '@/components/design/design-system/button';
 import { Fingerprint, Trash2, Plus } from '@repo/ui/icons';
 import { useTranslations } from 'next-intl';
@@ -52,9 +54,25 @@ export function PasskeyManager() {
     }, 400);
   };
 
+  /*
+   * Removed, with a way back. The row and its position are captured before
+   * the filter, so undo restores it where it was rather than dropping it at
+   * the top of the list — a passkey that reappears somewhere else reads as a
+   * different passkey.
+   */
   const handleDelete = (credentialID: string) => {
+    const index = passkeys.findIndex((p) => p.credentialID === credentialID);
+    const removed = passkeys[index];
+    if (!removed) return;
+
     setPasskeys((prev) => prev.filter((p) => p.credentialID !== credentialID));
-    toast.success('Passkey removed (mock).');
+    toastUndo('Passkey removed', () => {
+      setPasskeys((prev) => {
+        const next = [...prev];
+        next.splice(index, 0, removed);
+        return next;
+      });
+    });
   };
 
   return (

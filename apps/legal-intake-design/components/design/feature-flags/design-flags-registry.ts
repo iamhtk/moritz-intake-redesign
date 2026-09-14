@@ -23,13 +23,6 @@ export type DesignFlagDefinition = {
 
 export const DESIGN_FLAGS: readonly DesignFlagDefinition[] = [
   {
-    key: 'useSimplifiedMatterIntake',
-    label: 'Case intake',
-    description:
-      'Moritz-style conversational case intake (chat + suggestion chips + live case brief). Off falls back to the form-based case intake.',
-    defaultValue: true,
-  },
-  {
     key: 'useSidebar',
     label: 'New sidebar layout',
     description: 'Dashboard-01 sidebar chrome.',
@@ -152,6 +145,39 @@ export const DESIGN_FLAGS: readonly DesignFlagDefinition[] = [
     description:
       'Adds an account-level Engagement Letter task to the client home screen and requires signing before a case can be submitted.',
     defaultValue: false,
+  },
+  {
+    key: 'useCommandPalette',
+    label: 'Command palette (⌘K)',
+    description:
+      'One keyboard entry point to everything the current role can reach: jump to any section, find a case, company, user or quote round by name, and run the same actions the rows themselves offer. Destinations are generated from the navigation, so they cannot drift from the sidebar.',
+    /*
+     * On by default. It was shipped off, which made it invisible everywhere —
+     * the flag gates the trigger in the top nav *and* the palette itself, so
+     * a reviewer had to find this screen and flip a switch before the feature
+     * existed at all. A discoverability affordance nobody can discover is the
+     * exact failure the trigger was built to prevent (§8.10, task K6).
+     */
+    defaultValue: true,
+  },
+  {
+    key: 'useAskNora',
+    label: 'Ask Nora (⌘J)',
+    description:
+      'A question box in the top nav that answers a client from their own cases and documents, scoped server-side. Client-only for now: the lawyer, admin and assistant projections are built and tested but switched off in lib/ask/availability.ts, so the panel, the ⌘J chord, the palette’s Ask row and the API all decline for those roles. Gives information rather than advice, proposes actions that already exist elsewhere in the UI, and never acts on its own. Replaces the floating support launcher wherever it appears, so one screen never carries two chat surfaces.',
+    /*
+     * On by default, for the same reason as the palette above: off meant the
+     * ⌘J trigger, the panel and the palette's *Ask Nora* row were all absent
+     * on every page and every viewport.
+     *
+     * Two narrower gates still apply and are deliberate, not oversights.
+     * `isAskAvailableFor` keeps it to the client role (see
+     * `lib/ask/availability.ts` — the server reads the same list, so opening
+     * it here alone would offer a control the API declines), and
+     * `DashboardOverlays` stands it down on `/client/new`, where the intake
+     * already owns the screen's one AI conversation.
+     */
+    defaultValue: true,
   },
   {
     key: 'useLawyerQa',

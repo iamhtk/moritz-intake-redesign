@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Button } from '@/components/design/foundations/components/button';
 import {
   Popover,
@@ -8,6 +9,8 @@ import {
   PopoverTrigger,
 } from '@/components/design/foundations/components/popover';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Popover · Foundations' };
 
 export default function PopoverFoundationPage() {
   return (

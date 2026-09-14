@@ -3,12 +3,15 @@
 import {
   type ChangeEvent,
   type ComponentType,
+  type DragEvent,
   type KeyboardEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Attachment,
   AttachmentAction,
@@ -20,13 +23,25 @@ import {
   AttachmentTitle,
 } from '@/components/design/foundations/components/attachment';
 import { Spinner } from '@/components/design/foundations/components/spinner';
+import { Button } from '@/components/design/design-system/button';
+import { buttonVariants } from '@/components/design/foundations/components/button';
 import {
-  Button,
-  buttonVariants,
-} from '@/components/design/design-system/button';
-import { VoiceWaveform } from '@/components/design/intake/chat/voice-waveform';
-import { ArrowUp, FileText, Mic, Paperclip, Square, X } from '@repo/ui/icons';
+  ArrowUp,
+  FileText,
+  Mic,
+  Paperclip,
+  Square,
+  UploadCloud,
+  X,
+} from '@repo/ui/icons';
 import { cn } from '@repo/ui/lib/utils';
+import {
+  createDropGuard,
+  type DragLike,
+  type DropGuard,
+} from '@/lib/intake/drop-guard';
+import { VoiceWaveform } from './voice-waveform';
+import { useDictation } from './use-dictation';
 
 /** A file docked in the composer's attachment row. */
 export type ComposerAttachment = {
@@ -72,26 +87,101 @@ type ChatComposerProps = {
   /** Remove a docked attachment by id (renders the per-card X control). */
   onRemoveAttachment?: (id: string) => void;
   /**
+   * Opens a staged file.
+   *
+   * A document is attached here before it is sent, and the client's next
+   * thought is often to check they attached the right one. Optional: the older
+   * intake flows that share this composer have no viewer to open it in.
+   */
+  onOpenAttachment?: (attachment: ComposerAttachment) => void;
+  /**
    * Whether docked `attachments` on their own enable sending (ChatGPT/Claude
    * style). Set `false` when the dock is a persistent, display-only collection
    * so an empty text field can't send a message. Defaults to `true`.
    */
   attachmentsEnableSend?: boolean;
+  /**
+   * Extra controls for the toolbar's left cluster, beside the paperclip.
+   *
+   * A slot rather than a prop per control, because what belongs here is
+   * caller business: the intake puts its documents button here, and no other
+   * surface that mounts this composer has one. Same `gap-2` as the mic/send
+   * pair on the right, so the row reads as one set of controls at one rhythm.
+   */
+  toolbarLeading?: ReactNode;
+  /**
+   * A file is being held over the composer.
+   *
+   * For a surface that also has a page-wide target: the intake's "drop
+   * anywhere" overlay (Decision 9) covers the composer too, so without this
+   * both would light up for the same drag — and the page-wide wash sits over
+   * the composer, hiding the more specific answer. The caller stands its own
+   * overlay down while this is true, which reads as the target snapping to the
+   * thing under the cursor.
+   */
+  onDraggingChange?: (dragging: boolean) => void;
+  /**
+   * Whether this composer is a drop target in its own right. Defaults to
+   * `true`.
+   *
+   * Off for a surface that already has a page-wide target. The intake has one
+   * (Decision 9), and two targets for one drag is two animations for one
+   * gesture: the composer's own hint fired when the file crossed the textarea
+   * and the page's wash fired everywhere else, so a client moving a contract
+   * across the screen watched the feedback change shape under their cursor and
+   * read it as the page not knowing what it wanted. One drag, one answer.
+   *
+   * With this off the composer installs no drag listeners at all, so `dragging`
+   * never becomes true and `onDraggingChange` never fires — the drop lands on
+   * the window guard instead (`lib/intake/drop-guard.ts`), which cancels the
+   * browser's navigate-to-the-file default wherever the file is let go and
+   * routes it to the same handler the paperclip uses. Nothing about where a
+   * file ends up changes; only how many things light up on the way.
+   */
+  dropTarget?: boolean;
+  /**
+   * Whether the paperclip is rendered. Defaults to `true`.
+   *
+   * Off for a surface where attaching a file would do nothing — Ask reads case
+   * data and cannot take an upload, and a paperclip there would be exactly the
+   * dead control T34 spent its time removing.
+   */
+  showAttach?: boolean;
+  /**
+   * Overrides for the three accessible names that describe *this* composer's
+   * purpose rather than the composer as a control.
+   *
+   * The defaults come from `intake.composer.*` and say "Tell Moritz about your
+   * matter" and "Stop Moritz replying", which are right for the intake and
+   * wrong anywhere else. A screen-reader user on the Ask panel would otherwise
+   * be told to describe a legal matter to a box that answers questions about
+   * case data. Each falls back to the intake copy when not given, so every
+   * existing call site is unchanged.
+   */
+  labels?: { field?: string; send?: string; stop?: string };
+  /**
+   * The id of a visible error message this composer's field should point at.
+   *
+   * Optional, because the error does not belong to the composer: the intake
+   * renders it above, in the transcript column, where it sits next to the
+   * client's own words and a Retry that can put them back. The composer is
+   * simply the control the error is *about*, and `aria-describedby` is how a
+   * field says so across a DOM boundary. Absent, nothing changes.
+   */
+  errorId?: string;
 };
 
 const MAX_LINES = 6;
-
-/** Placeholder text inserted when a (prototyped) voice recording is stopped. */
-const SAMPLE_TRANSCRIPT =
-  "I'd like to understand my options before deciding how to proceed.";
 
 /**
  * Sticky bottom composer. Auto-grows up to ~6 lines, then scrolls with a soft
  * top/bottom fade over scrolled-away content (instead of a hard clip). Enter
  * (without shift) or the send button submits. A paperclip opens the native file
- * picker (or `onAttachClick`). Pressing the mic enters a (prototyped) recording
- * state — an animated waveform + stop button — and stopping inserts a sample
- * transcript. While `busy`, the Send button morphs into a Stop control.
+ * picker (or `onAttachClick`). Pressing the mic dictates into the field using
+ * the browser's own speech recognition, and stopping leaves the words there to
+ * be read and edited; it never sends. The control is not rendered at all where
+ * the browser cannot transcribe. While `busy`, the Send button morphs into a Stop
+ * control.
  *
  * Any `attachments` dock in a scrollable row above the input (built from the
  * foundation Attachment primitives), each with a remove control; a non-empty
@@ -111,7 +201,14 @@ export function ChatComposer({
   onStop,
   attachments = [],
   onRemoveAttachment,
+  onOpenAttachment,
   attachmentsEnableSend = true,
+  toolbarLeading,
+  onDraggingChange,
+  dropTarget = true,
+  showAttach = true,
+  labels,
+  errorId,
 }: ChatComposerProps) {
   const [internalValue, setInternalValue] = useState('');
   const isControlled = valueProp !== undefined;
@@ -125,8 +222,51 @@ export function ChatComposer({
   );
 
   const [fade, setFade] = useState({ top: false, bottom: false });
-  const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  /*
+   * Dictation (Decision 19, revisited).
+   *
+   * `interim` is held separately from the field's value and rendered after it,
+   * because it is not the client's text yet: recognition revises it until it
+   * settles. Committing it would mean the field rewriting itself under the
+   * cursor, and it would survive a stop that the client made precisely because
+   * the transcription was wrong.
+   */
+  /*
+   * Every string a client can read or hear comes from `en.json` (T26, D25).
+   *
+   * That now includes the five `aria-label`s on the field, the paperclip, the
+   * remove control and Send. They were hardcoded English, and being invisible
+   * is exactly why: they are the only copy a client using a screen reader gets
+   * from those controls, and "Message Moritz" on the field was the least
+   * useful of the five. The placeholder default in the props above stays
+   * hardcoded, because every caller in the app passes one.
+   */
+  /*
+   * Bound to `intake` rather than `intake.voice`, because the drop hint below
+   * is not voice copy. A second translator on a second namespace would have
+   * been the smaller edit and the wrong one: `copy-keys.test.ts` collects the
+   * namespaces a file asks for and checks every key this `t` is given, and a
+   * differently-named translator's keys are outside the only check that can see
+   * a typo in them.
+   */
+  const t = useTranslations('intake');
+
+  const [interim, setInterim] = useState('');
+
+  /*
+   * `onresult` fires from a listener installed once per session, so a closure
+   * over `value` would append to whatever the field held when dictation
+   * started and drop every sentence but the first.
+   */
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
+  const dictation = useDictation({
+    onText: (append) => setValue(append(valueRef.current)),
+    onInterim: setInterim,
+  });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Once the textarea hits the MAX_LINES cap it scrolls; show a soft fade on
@@ -177,6 +317,66 @@ export function ChatComposer({
     event.target.value = '';
   };
 
+  /*
+   * Drag a file onto the composer to attach it.
+   *
+   * The same state machine the intake installs on the window
+   * (`lib/intake/drop-guard.ts`), mounted on this one element instead. Nothing
+   * about it is window-specific: `dragenter`/`dragleave` fire once per element
+   * crossed either way, so the depth counting is what stops the highlight
+   * flickering as the cursor passes over the textarea and the buttons inside.
+   *
+   * Reusing it also settles the overlap with "drop anywhere" for free. A drop
+   * here cancels the event, and the window guard skips any drop that a zone
+   * nearer the file has already claimed — so the file is taken once, not read
+   * twice.
+   *
+   * The guard is built once and reads the live handler through refs: rebuilding
+   * it on a render would reset its drag depth mid-drag, which is the flicker it
+   * exists to prevent.
+   */
+  const canDropRef = useRef(!disabled);
+  canDropRef.current = !disabled;
+  const onAttachRef = useRef(onAttach);
+  onAttachRef.current = onAttach;
+
+  const [dragging, setDragging] = useState(false);
+  const guardRef = useRef<DropGuard | null>(null);
+  if (!guardRef.current) {
+    guardRef.current = createDropGuard({
+      onFiles: (files) => onAttachRef.current?.(files),
+      isEnabled: () => canDropRef.current,
+      setDragging,
+    });
+  }
+  const guard = guardRef.current;
+
+  // Nothing to hand a file to: no target, and no cancelling of the browser's
+  // default either, because a surface with no attach handler has made no
+  // promise about files. `dropTarget` is the second way to be a non-target —
+  // a surface whose page already owns the drag (see the prop).
+  const droppable = Boolean(onAttach) && dropTarget;
+
+  const onDraggingChangeRef = useRef(onDraggingChange);
+  onDraggingChangeRef.current = onDraggingChange;
+  useEffect(() => {
+    onDraggingChangeRef.current?.(dragging);
+  }, [dragging]);
+
+  /** A React `DragEvent` is a `DragLike`; the guard is typed for the narrower one. */
+  const onDrag =
+    (handler: (event: DragLike) => void) => (event: DragEvent<HTMLElement>) =>
+      handler(event as unknown as DragLike);
+
+  const dropHandlers = droppable
+    ? {
+        onDragEnter: onDrag(guard.dragenter),
+        onDragOver: onDrag(guard.dragover),
+        onDragLeave: onDrag(guard.dragleave),
+        onDrop: onDrag(guard.drop),
+      }
+    : {};
+
   const handleAttachClick = () => {
     if (onAttachClick) {
       onAttachClick();
@@ -185,23 +385,28 @@ export function ChatComposer({
     fileInputRef.current?.click();
   };
 
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    setValue(
-      value.trim()
-        ? `${value.trimEnd()} ${SAMPLE_TRANSCRIPT}`
-        : SAMPLE_TRANSCRIPT,
-    );
-    requestAnimationFrame(() => textareaRef.current?.focus());
-  };
-
   return (
+    // The mouse-target widening below is not an interaction this element
+    // owns; see the note on `onMouseDown`.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <form
       data-slot="control"
+      {...dropHandlers}
       onSubmit={(event) => {
         event.preventDefault();
         handleSubmit();
       }}
+      /*
+       * jsx-a11y reads a `<form>` with a mouse handler as an interactive
+       * element that is not keyboard-reachable. It is not one. This adds no
+       * behaviour and removes none: the composer's keyboard route is the
+       * textarea inside it, which is a real control in the tab order, and
+       * every button in the toolbar is its own tab stop. What the handler
+       * does is widen the *mouse* target to the padding around them, which is
+       * how every native text field behaves and which a keyboard never needs.
+       * A `role` here would be a lie and a `tabIndex` would be a second stop
+       * on the way to the field.
+       */
       onMouseDown={(event) => {
         // Clicking the composer's empty padding/toolbar space should focus the
         // textarea, like a real input. Ignore clicks on interactive controls
@@ -224,11 +429,64 @@ export function ChatComposer({
         // Radius is the field `0.5rem` (matching the foundation Input/Textarea),
         // not the card `rounded-2xl`, so the composer reads as one of the fields.
         'bg-background border-field relative rounded-[0.5rem] border shadow',
-        'focus-within:after:ring-primary after:pointer-events-none after:absolute after:-inset-px after:rounded-[inherit] after:ring-inset after:ring-transparent focus-within:after:ring-2',
+        /*
+         * `after:content-['']` is why this ring renders at all (T34).
+         *
+         * It was missing, and an `::after` with no `content` generates no box,
+         * so the whole rule was dead: measured at the ring's own computed
+         * style, `box-shadow` came back `none` with the textarea focused, and
+         * a screenshot of the focused composer showed a plain grey field. The
+         * composer is the one control the entire flow runs through, and it was
+         * the only focus stop on the screen with no focus indication.
+         */
+        "focus-within:after:ring-primary after:pointer-events-none after:absolute after:-inset-px after:rounded-[inherit] after:ring-inset after:ring-transparent after:content-[''] focus-within:after:ring-2",
         'has-[textarea:enabled]:hover:border-field-strong',
         'has-[textarea:disabled]:bg-muted has-[textarea:disabled]:cursor-not-allowed has-[textarea:disabled]:opacity-50 has-[textarea:disabled]:shadow-none',
+        // A held file gets the field's own focus treatment, dashed: the same
+        // "this is the thing that will take it" the ring says on click, in the
+        // one vocabulary the composer already has.
+        dragging && 'border-primary border-dashed',
       )}
     >
+      {/*
+       * What a held file will do, said inside the thing that will do it.
+       *
+       * Covers the composer rather than sitting beside it, because the text
+       * underneath is the client's half-written message and reading a hint over
+       * a sentence is reading neither. `pointer-events-none` is load-bearing:
+       * an overlay that takes pointer events becomes the drop's target, and the
+       * drag events the form is listening for stop arriving.
+       *
+       * One visual language at two scales (L2). The page-wide target
+       * (`intake-v2/drop-overlay.tsx`) is a wash, a backdrop blur, a reveal and
+       * a circled upload mark; this is the same four things scoped to the
+       * composer's own rounded rect, plus the dashed border on the form itself.
+       * The wash, the blur and the icon treatment were the three that were
+       * missing, so the handoff between the two scales used to change look as
+       * well as size.
+       *
+       * Deliberately *not* done by simply letting the page-wide overlay show
+       * here. Both fire for one drag, and the page-wide version is fixed to the
+       * viewport at `z-50` with an 80% wash — so it paints over the composer
+       * and the more specific answer becomes the one the client cannot see.
+       * That was a real bug once; the caller still stands the page overlay down
+       * while this one is up (`onDraggingChange`).
+       *
+       * `bg-background/80` rather than the `/95` it had: at 95% the blur behind
+       * it does nothing, which is how you end up with a blur declaration that
+       * is real in the CSS and invisible on screen.
+       */}
+      {dragging ? (
+        <div
+          aria-hidden="true"
+          className="bg-background/80 text-foreground mz-animate-reveal pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-[inherit] text-sm font-medium supports-[backdrop-filter]:backdrop-blur-[2px]"
+        >
+          <span className="border-border bg-background flex size-6 items-center justify-center rounded-full border">
+            <UploadCloud className="size-3.5" strokeWidth={1.75} />
+          </span>
+          {t('drop.composer')}
+        </div>
+      ) : null}
       {attachments.length > 0 ? (
         // Docked attachment row (ChatGPT/Claude style): compact foundation
         // Attachment cards in a horizontally-scrolling group with edge fade,
@@ -246,7 +504,14 @@ export function ChatComposer({
                   key={attachment.id}
                   size="sm"
                   state={attachment.state ?? 'done'}
-                  className="bg-muted/50 max-w-56 gap-0.5 border-transparent"
+                  /*
+                   * `max-w-56` caps the chip, `min-w-0` lets it fall below
+                   * that on a 390px phone, and the wrapped title below is what
+                   * makes both safe: a 60-character file name used to set the
+                   * card's own `min-content` width and push the composer past
+                   * the edge of the screen.
+                   */
+                  className="bg-muted/50 min-w-0 max-w-56 items-start gap-0.5 border-transparent"
                 >
                   {attachment.previewUrl ? (
                     <AttachmentMedia variant="image">
@@ -261,14 +526,53 @@ export function ChatComposer({
                       )}
                     </AttachmentMedia>
                   )}
-                  <AttachmentContent>
-                    <AttachmentTitle>{attachment.name}</AttachmentTitle>
-                    {attachment.meta ? (
-                      <AttachmentDescription>
-                        {attachment.meta}
-                      </AttachmentDescription>
-                    ) : null}
-                  </AttachmentContent>
+                  {/*
+                   * The name is the button when there is somewhere to open it,
+                   * and plain text when there is not. Never the whole chip:
+                   * the remove × sits in the same chip, and the two would be
+                   * competing for one click.
+                   */}
+                  {onOpenAttachment && !isStreaming ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenAttachment(attachment)}
+                      title={attachment.name}
+                      className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -mx-0.5 flex min-w-0 flex-1 cursor-pointer items-start rounded-[0.5rem] px-0.5 text-left outline-none transition-colors focus-visible:outline-2"
+                    >
+                      <AttachmentContent>
+                        {/*
+                         * Wrapped over up to three lines rather than
+                         * ellipsised on one. The `title` above still carries
+                         * the whole string for the hover, and the clamp is
+                         * what stops a pathological name turning the dock
+                         * into half the composer.
+                         */}
+                        <AttachmentTitle wrap className="line-clamp-3">
+                          {attachment.name}
+                        </AttachmentTitle>
+                        {attachment.meta ? (
+                          <AttachmentDescription>
+                            {attachment.meta}
+                          </AttachmentDescription>
+                        ) : null}
+                      </AttachmentContent>
+                    </button>
+                  ) : (
+                    <AttachmentContent>
+                      <AttachmentTitle
+                        wrap
+                        className="line-clamp-3"
+                        title={attachment.name}
+                      >
+                        {attachment.name}
+                      </AttachmentTitle>
+                      {attachment.meta ? (
+                        <AttachmentDescription>
+                          {attachment.meta}
+                        </AttachmentDescription>
+                      ) : null}
+                    </AttachmentContent>
+                  )}
                   {onRemoveAttachment ? (
                     <AttachmentActions className="self-center">
                       <AttachmentAction
@@ -276,7 +580,9 @@ export function ChatComposer({
                         className="size-5"
                         disabled={disabled}
                         onClick={() => onRemoveAttachment(attachment.id)}
-                        aria-label={`Remove ${attachment.name}`}
+                        aria-label={t('composer.removeAttachment', {
+                          name: attachment.name,
+                        })}
                       >
                         <X aria-hidden="true" />
                       </AttachmentAction>
@@ -300,12 +606,37 @@ export function ChatComposer({
           ref={textareaRef}
           rows={1}
           value={value}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => {
+            setValue(event.target.value);
+            // Typing is the client moving on. A failure line left sitting over
+            // a message they are already writing is just noise.
+            if (dictation.error) dictation.clearError();
+          }}
           onKeyDown={handleKeyDown}
           onScroll={updateFades}
-          placeholder={isRecording ? 'Listening… speak now' : placeholder}
+          placeholder={placeholder}
           disabled={disabled}
-          aria-label="Message Moritz"
+          aria-label={labels?.field ?? t('composer.field')}
+          /*
+           * The failure above this field is *about* this field, and until now
+           * nothing said so.
+           *
+           * The message was announced — it sits in a `role="alert"` — but a
+           * client who tabbed back into the composer afterwards, or who
+           * arrived at it by any route other than hearing the alert, got a
+           * textarea that reported itself as perfectly fine. WCAG 3.3.1 wants
+           * the error identified *on the control*, which is what these two
+           * attributes do: `aria-invalid` marks the field, `aria-describedby`
+           * hands the reader the sentence explaining why.
+           *
+           * Spread rather than written as `|| undefined` so a composer with
+           * no error carries neither attribute, instead of `aria-invalid
+           * ="false"` — which some readers announce, and "edit, not invalid"
+           * is a strange thing to be told about a message you have not sent.
+           */
+          {...(errorId
+            ? { 'aria-describedby': errorId, 'aria-invalid': true }
+            : {})}
           className="placeholder:text-field-placeholder selection:bg-accent selection:text-accent-foreground min-h-10 w-full resize-none bg-transparent text-base/6 outline-none disabled:cursor-not-allowed sm:text-sm/6"
         />
         {fade.top ? (
@@ -315,157 +646,183 @@ export function ChatComposer({
           <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t to-transparent" />
         ) : null}
       </div>
+
+      {/*
+       * What is being heard right now, shown muted and outside the field.
+       *
+       * Deliberately not written into the textarea. Recognition revises interim
+       * text until it settles, so putting it in the field would have the
+       * client's own message rewriting itself under their cursor, and a stop
+       * pressed *because* the transcription was going wrong would leave the
+       * wrong words behind. Muted and separate says "this is not yours yet".
+       */}
+      {interim ? (
+        <p
+          aria-live="polite"
+          className="text-muted-foreground px-3 pt-1 text-sm italic"
+        >
+          {interim}
+        </p>
+      ) : null}
+
+      {/*
+       * What dictation actually costs, said while it is running (L17).
+       *
+       * This is the one control in the intake whose cost was genuinely unstated,
+       * and it is not a convenience cost. The mic uses the browser's own
+       * `SpeechRecognition` (`lib/intake/dictation.ts`), and in Chrome that is
+       * not on-device: the audio goes to the vendor's servers to be transcribed.
+       * On a screen where the client is describing a confidential dispute, a
+       * control that quietly ships their voice to a third party is the sort of
+       * thing they would want told, and the label "Dictate your message" does
+       * not tell them.
+       *
+       * Shown while recording rather than as a permanent line under the
+       * composer, which is what "in the same breath" means here: it is the
+       * answer to a question the client only has once they have pressed the
+       * button, and a warning parked under an idle control is read once and
+       * then never again.
+       *
+       * Not framed as a scare. It names the trade and the alternative in one
+       * sentence, because the point is to let someone choose rather than to
+       * discourage them — dictation is the right input for a client who would
+       * rather talk, and most matters are not that sensitive.
+       */}
+      {dictation.recording ? (
+        <p className="text-muted-foreground px-3 pt-1 text-xs leading-relaxed">
+          {t('voice.cost')}
+        </p>
+      ) : null}
+
+      {/*
+       * Why dictation stopped, next to the control that stopped it. Each case
+       * has its own line because a denied permission, a silent room and a
+       * dropped connection need three different things from the client, and one
+       * shared "voice input failed" would help with none of them.
+       */}
+      {dictation.error ? (
+        <p role="alert" className="text-muted-foreground px-3 pt-1 text-sm">
+          {t(`voice.${dictation.error}`)}
+        </p>
+      ) : null}
       <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-1">
         <div className="flex items-center gap-2">
-          {/*
-           * Attach stays mounted and fades out in place when recording starts
-           * (rather than unmounting) so it has a calm exit and re-entry. Opacity
-           * only — no transform — to avoid the scale-based jitter. `pointer-
-           * events-none` + `tabIndex=-1` + `aria-hidden` take it out of
-           * interaction while it's transparent; we avoid toggling `disabled`
-           * here because the button's own `disabled:opacity-50` would fight the
-           * `opacity-0` transition.
-           */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={disabled}
-            onClick={handleAttachClick}
-            aria-label="Attach a file"
-            aria-hidden={isRecording}
-            tabIndex={isRecording ? -1 : undefined}
-            className={cn(
-              'rounded-full transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-              isRecording && 'pointer-events-none opacity-0',
-            )}
-          >
-            <Paperclip aria-hidden="true" />
-          </Button>
-          {onAttachClick ? null : (
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          )}
-        </div>
-        {/*
-         * Right cluster: the mic ⇄ stop control morphs (grows) while the send
-         * button simply fades in place (like attach) — no slide. Trick: an
-         * invisible width spacer holds the send's slot when idle and collapses
-         * while recording, so the morph extends rightward to the composer edge
-         * with no jump, and the send (absolutely pinned to the right edge) just
-         * cross-fades over it. Everything is width + opacity — no transforms, so
-         * no jitter. Cluster width stays ~constant (idle 36+spacer ≈ recording
-         * pill), so the rest of the row doesn't shift.
-         */}
-        <div className="relative flex items-center">
-          {/*
-           * Mic ⇄ stop morph. Reuses the outline button treatment (focus ring,
-           * cursor, hover) but overrides the layout to a 2-column grid: a fixed
-           * circle holding the mic ⇄ waveform crossfade, and a collapsible column
-           * that reveals the stop square as the pill expands. Toggles recording.
-           * Disabled while the assistant is generating (`busy`).
-           */}
-          <button
-            type="button"
-            disabled={disabled || busy}
-            onClick={
-              isRecording ? handleStopRecording : () => setIsRecording(true)
-            }
-            aria-label={isRecording ? 'Stop recording' : 'Use voice'}
-            className={cn(
-              buttonVariants({ variant: 'outline' }),
-              // Override the size variant's padding/gap so we fully control the
-              // morph. Idle: a true circle (no padding, no column gap, collapsed
-              // 2nd track). Recording: a pill with symmetric `px-2.5` insets and
-              // a `gap-1.5` between the waveform and the stop square. `py` is
-              // zeroed in both states so the content height stays the full h-9
-              // (the size variant's `py`/`sm:py` would otherwise shrink it).
-              'grid h-9 items-center rounded-full duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-              isRecording
-                ? 'grid-cols-[auto_1fr] gap-1.5 px-2.5 py-0 sm:px-2.5 sm:py-0'
-                : 'grid-cols-[auto_0fr] gap-0 p-0 sm:p-0',
-            )}
-          >
-            {/*
-             * Mic icon and waveform are stacked in the same grid cell (both at
-             * col/row 1) so `place-items-center` centers each. We avoid `absolute`
-             * here: an absolutely-positioned child is NOT a grid item, so it would
-             * ignore `place-items-center` and pin to the cell's top-left — tucking
-             * the waveform into the pill's rounded corner.
-             */}
-            <span className="grid aspect-square h-full place-items-center">
-              <Mic
-                aria-hidden="true"
-                className={cn(
-                  'col-start-1 row-start-1 transition-opacity',
-                  isRecording && 'opacity-0',
-                )}
-              />
-              <span
-                className={cn(
-                  'col-start-1 row-start-1 transition-opacity',
-                  isRecording ? 'opacity-100' : 'opacity-0',
-                )}
+          {showAttach ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={disabled}
+                onClick={handleAttachClick}
+                aria-label={t('composer.attach')}
+                className="rounded-full max-lg:size-11"
               >
-                <VoiceWaveform active={isRecording} />
-              </span>
-            </span>
-            <span className="grid min-w-0 place-items-center overflow-hidden">
-              <Square
-                aria-hidden="true"
-                className={cn(
-                  'fill-current transition-opacity',
-                  isRecording ? 'opacity-100' : 'opacity-0',
-                )}
-              />
-            </span>
-          </button>
+                <Paperclip aria-hidden="true" />
+              </Button>
+              {onAttachClick ? null : (
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              )}
+            </>
+          ) : null}
+          {toolbarLeading}
+        </div>
+        <div className="flex items-center gap-2">
           {/*
-           * Invisible spacer reserving the send button's slot (size-9 + 8px gap)
-           * when idle. It collapses to 0 while recording so the morph can extend
-           * to the right edge smoothly (no jump). Being invisible, its collapse
-           * isn't perceived as a slide — the send itself fades in place below.
+           * The voice control, back in the composer (Decision 19, revisited).
+           *
+           * The morph is the original: a circle holding a mic that crossfades
+           * into the live waveform, expanding rightward into a pill that
+           * reveals a stop square. That part was always good work and the
+           * waveform was always real audio; what was indefensible was the old
+           * button pasting a fixed sentence the client never said. It now
+           * transcribes what they actually say.
+           *
+           * Not rendered at all where the browser has no recognition. A
+           * microphone that cannot hear is the original defect wearing a
+           * `disabled` attribute, and Firefox would have shown one.
            */}
-          <div
-            aria-hidden="true"
-            className={cn(
-              'transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-              isRecording ? 'w-0' : 'w-11',
-            )}
-          />
+          {dictation.supported ? (
+            <button
+              type="button"
+              disabled={disabled || busy}
+              onClick={dictation.recording ? dictation.stop : dictation.start}
+              aria-label={
+                dictation.recording ? t('voice.stop') : t('voice.start')
+              }
+              aria-pressed={dictation.recording}
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                // Idle: a true circle with the second track collapsed.
+                // Recording: a pill with symmetric insets and a gap between
+                // the waveform and the stop square. `py` is zeroed in both so
+                // the height stays the full h-9.
+                'grid h-9 items-center rounded-full duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none max-lg:h-11',
+                dictation.recording
+                  ? 'grid-cols-[auto_1fr] gap-1.5 px-2.5 py-0 sm:px-2.5 sm:py-0'
+                  : 'grid-cols-[auto_0fr] gap-0 p-0 sm:p-0',
+              )}
+            >
+              {/*
+               * Mic and waveform share one grid cell so `place-items-center`
+               * centres each. Not absolute: an absolutely-positioned child is
+               * not a grid item, so it would pin to the cell's top-left and
+               * tuck the waveform into the pill's rounded corner.
+               */}
+              <span className="grid aspect-square h-full place-items-center">
+                <Mic
+                  aria-hidden="true"
+                  className={cn(
+                    'col-start-1 row-start-1 transition-opacity',
+                    dictation.recording && 'opacity-0',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'col-start-1 row-start-1 transition-opacity',
+                    dictation.recording ? 'opacity-100' : 'opacity-0',
+                  )}
+                >
+                  <VoiceWaveform active={dictation.recording} />
+                </span>
+              </span>
+              <span className="grid min-w-0 place-items-center overflow-hidden">
+                <Square
+                  aria-hidden="true"
+                  className={cn(
+                    'size-3 fill-current transition-opacity',
+                    dictation.recording ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+              </span>
+            </button>
+          ) : null}
+
           {/*
-           * Send is pinned to the right edge and fades out/in (like the attach
-           * button) rather than sliding. While recording it's inert (transparent,
-           * non-interactive); the morph grows underneath it to the same edge.
-           * While `busy` it becomes a Stop control (square icon → `onStop`),
-           * enabled regardless of the (empty) input.
+           * Send. While `busy` it becomes a Stop control (square icon ->
+           * `onStop`), enabled regardless of the (empty) input.
            */}
           <Button
             type={busy ? 'button' : 'submit'}
             size="icon"
             onClick={busy ? onStop : undefined}
-            className={cn(
-              'absolute end-0 top-1/2 -translate-y-1/2 rounded-full transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
-              // `disabled:opacity-0` too: when the composer is empty the Send
-              // button is `disabled`, and the base `disabled:opacity-50` selector
-              // outranks a plain `opacity-0` (higher specificity), leaving the
-              // arrow half-visible over the recording pill. This override hides
-              // it in the empty state as well.
-              isRecording && 'pointer-events-none opacity-0 disabled:opacity-0',
-            )}
+            className="rounded-full max-lg:size-11"
             disabled={
               busy
                 ? false
                 : disabled || (value.trim().length === 0 && !attachmentsCanSend)
             }
-            tabIndex={isRecording ? -1 : undefined}
-            aria-hidden={isRecording}
-            aria-label={busy ? 'Stop generating' : 'Send'}
+            aria-label={
+              busy
+                ? (labels?.stop ?? t('composer.stop'))
+                : (labels?.send ?? t('composer.send'))
+            }
           >
             {busy ? (
               <Square aria-hidden="true" className="size-3 fill-current" />

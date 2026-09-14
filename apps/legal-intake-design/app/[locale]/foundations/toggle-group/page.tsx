@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   AlignCenter,
   AlignLeft,
@@ -11,6 +12,8 @@ import {
   ToggleGroupItem,
 } from '@/components/design/foundations/components/toggle-group';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Toggle group · Foundations' };
 
 export default function ToggleGroupFoundationPage() {
   return (

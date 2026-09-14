@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldContent,
@@ -15,6 +16,8 @@ import {
   ControlledCheckboxExample,
 } from '@/components/design/foundations/examples/checkbox-examples';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Checkbox · Foundations' };
 
 export default function CheckboxFoundationPage() {
   return (

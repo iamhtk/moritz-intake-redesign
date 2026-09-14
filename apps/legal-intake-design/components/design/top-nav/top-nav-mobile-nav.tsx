@@ -1,7 +1,7 @@
 'use client';
 
-import { IconCheck, IconChevronDown } from '@tabler/icons-react';
-import { XIcon } from '@repo/ui/icons';
+import { IconCheck } from '@tabler/icons-react';
+import { Menu, XIcon } from '@repo/ui/icons';
 
 import { Heading } from '@/components/design/foundations/components/heading';
 import {
@@ -31,9 +31,26 @@ type TopNavMobileNavProps = {
 /**
  * Phone-only primary navigation. The desktop segmented pill row collapses at
  * `<sm` (see `TopNav`); here the destinations move into a bottom-sliding drawer
- * opened from a header control that reads the current section name. Listing
- * every destination in a scrollable sheet scales to the admin app's larger set
- * without the desktop "More" overflow.
+ * opened from a hamburger in the top bar. Listing every destination in a
+ * scrollable sheet scales to the admin app's larger set without the desktop
+ * "More" overflow.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A HAMBURGER, NOT A SECTION NAME.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The trigger used to read the current section and open on a chevron, which
+ * made it two things at once: the label that says where you are, and the
+ * control that takes you elsewhere. That is fine until the page is a *detail*
+ * page — a case, a playbook — where the section name is no longer where you
+ * are, and the whole control was therefore swapped out for a back chevron. So
+ * on exactly the pages with the deepest navigation there was no way to reach
+ * another section at all without going back first.
+ *
+ * Split in two: this is the way *out* to the other sections and says nothing
+ * about the current page, so it can be on every page unconditionally. `TopNav`
+ * renders the *where you are* half beside it, from the breadcrumb it already
+ * builds.
  *
  * Notifications are intentionally dropped (the bell stays in the right cluster),
  * mirroring the desktop segmented nav. Account, settings, and support live in
@@ -49,25 +66,32 @@ export function TopNavMobileNav({
 
   const destinations = items;
   const activeUrl = resolveActiveNavUrl(pathname, destinations);
-  const activeTitle =
-    destinations.find((item) => item.url === activeUrl)?.title ?? 'Menu';
+
+  /*
+   * Unread-style badge on the hamburger itself, so a count living inside the
+   * drawer is not invisible until it is opened. A dot rather than a number:
+   * which section it belongs to is the drawer's job to say, and a numeral on
+   * a 36px control at this size is unreadable anyway.
+   */
+  const hasBadge = destinations.some((item) => (badges[item.title] ?? 0) > 0);
 
   return (
     <Drawer>
       <DrawerTrigger
         className={cn(
-          'text-foreground inline-flex items-center gap-1 rounded-lg text-base font-medium outline-none',
-          'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2',
-          'data-[state=open]:[&_svg]:rotate-180',
+          'text-foreground relative inline-flex size-9 shrink-0 items-center justify-center rounded-lg outline-none transition-colors',
+          'hover:bg-foreground/5 focus-visible:ring-ring focus-visible:ring-2',
           className,
         )}
         aria-label="Open navigation menu"
       >
-        <span className="truncate">{activeTitle}</span>
-        <IconChevronDown
-          className="size-4 transition-transform duration-200"
-          aria-hidden
-        />
+        <Menu className="size-5" aria-hidden />
+        {hasBadge ? (
+          <span
+            aria-hidden
+            className="bg-foreground ring-background absolute right-1.5 top-1.5 size-1.5 rounded-full ring-2"
+          />
+        ) : null}
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="flex-row items-center justify-between text-left">

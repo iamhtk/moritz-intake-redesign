@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldDescription,
@@ -10,6 +11,8 @@ import { Button } from '@/components/design/foundations/components/button';
 import { Section } from '@/components/design/foundations/showcase/section';
 import { Textarea } from '@/components/design/foundations/components/textarea';
 import { ControlledExample } from '@/components/design/foundations/examples/textarea-examples';
+
+export const metadata: Metadata = { title: 'Textareas · Foundations' };
 
 export default function TextareasFoundationPage() {
   return (

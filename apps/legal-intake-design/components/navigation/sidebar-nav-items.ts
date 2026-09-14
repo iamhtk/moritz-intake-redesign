@@ -192,16 +192,27 @@ export function buildNavSecondary(
   return navSecondaryItems;
 }
 
-type ExtraRoute = { title: string; url: string; exact?: boolean };
+export type ExtraRoute = { title: string; url: string; exact?: boolean };
 
 /**
  * Page-specific titles for routes that don't appear as a sidebar nav item.
  * Matched with the same startsWith/exact logic as the nav items, and ranked
  * by URL specificity (longest match wins) so e.g. `/client/new/receipt`
  * outranks `/client/cases` and the home path.
+ *
+ * Exported as `EXTRA_ROUTES` for the command palette's "Jump to" group (K2),
+ * which is generated from `buildNavMain()` plus this list rather than from a
+ * hardcoded set. That is what keeps the palette's destinations from drifting
+ * away from the navigation's: there is one list, and both read it.
  */
 const extraRoutes: ExtraRoute[] = [
   { title: 'New case', url: '/client/new' },
+  /*
+   * Its own title, which is the whole reason this is a separate route. A client
+   * who asked to speak to a human would otherwise have sat under "New case" —
+   * the page title and the command palette's "Jump to" both read this list.
+   */
+  { title: 'Talk to a person', url: '/client/talk' },
   { title: 'Playbook Studio', url: '/admin/playbooks' },
   { title: 'AI Evals', url: '/admin/ai-evals' },
   { title: 'Playbooks', url: '/admin/tabular-playbook' },
@@ -211,6 +222,9 @@ const extraRoutes: ExtraRoute[] = [
   { title: 'Verify email', url: '/verify-email' },
   { title: 'Settings', url: '/user' },
 ];
+
+/** Public name for `extraRoutes`. See the comment on it for why it is shared. */
+export const EXTRA_ROUTES: readonly ExtraRoute[] = extraRoutes;
 
 /**
  * Returns the nav item that matches the given pathname.

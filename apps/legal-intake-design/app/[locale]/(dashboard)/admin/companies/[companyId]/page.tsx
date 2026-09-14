@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from '@repo/ui/icons';
@@ -24,6 +25,8 @@ import CasesTable from '@/components/cases/cases-table';
 import { getCompanyById, MOCK_COMPANY_MEMBERS } from '@/lib/mocks/companies';
 import { getCasesForCompany } from '@/lib/mocks/cases';
 import { Archive, Trash2, RotateCcw, Merge } from '@repo/ui/icons';
+
+export const metadata: Metadata = { title: 'Company' };
 
 interface PageProps {
   params: Promise<{ companyId: string }>;

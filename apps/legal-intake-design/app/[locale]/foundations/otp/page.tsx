@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Field,
   FieldDescription,
@@ -17,6 +18,8 @@ import {
   ControlledOTPExample,
   FormOTPExample,
 } from '@/components/design/foundations/examples/otp-examples';
+
+export const metadata: Metadata = { title: 'Otp · Foundations' };
 
 // Mirror input-otp's `REGEXP_ONLY_DIGITS` / `REGEXP_ONLY_DIGITS_AND_CHARS`
 // constants inline: this is a server component, and importing them from the

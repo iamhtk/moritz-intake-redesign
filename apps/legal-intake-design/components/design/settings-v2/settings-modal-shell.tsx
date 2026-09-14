@@ -22,6 +22,7 @@ import {
   Subheading,
 } from '@/components/design/foundations/components/heading';
 import { useMediaQuery } from './use-media-query';
+import { DESKTOP_QUERY } from '@/lib/breakpoints';
 
 export type SettingsTabDefinition = {
   id: string;
@@ -53,7 +54,10 @@ export function SettingsModalShell({
   open,
   onOpenChange,
 }: SettingsModalShellProps) {
-  const isDesktop = useMediaQuery('(min-width: 640px)');
+  // The shared threshold, not a local 640. This used to switch a full page
+  // earlier than every other overlay in the app, so a 700px tablet got a
+  // centred settings dialog beside a bottom-sheet account menu.
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
   if (!activeTab) {

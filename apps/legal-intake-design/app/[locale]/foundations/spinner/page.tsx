@@ -1,6 +1,9 @@
+import type { Metadata } from 'next';
 import { Button } from '@/components/design/foundations/components/button';
 import { Spinner } from '@/components/design/foundations/components/spinner';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Spinner · Foundations' };
 
 export default function SpinnerFoundationPage() {
   return (

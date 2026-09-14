@@ -4,6 +4,7 @@ import type { ComponentType } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
+  BadgeDollarSign,
   Bell,
   Briefcase,
   CheckCircle2,
@@ -56,6 +57,10 @@ import type { InboxNotificationType, Notification } from '@/lib/types';
 // notification has no actor image.
 const TYPE_ICONS: Record<InboxNotificationType, ComponentType<LucideProps>> = {
   NEW_MESSAGE: MessageSquare,
+  // The two moments Decision 23 added. An inbox row is the only place a client
+  // learns either of them happened while they are not looking at the product.
+  CASE_RECEIVED: Inbox,
+  QUOTE_CREATED: BadgeDollarSign,
   CASE_READY_FOR_CLAIM: Briefcase,
   CASE_COLLABORATOR_ADDED: UserPlus,
   CASE_COLLABORATOR_REMOVED: UserMinus,

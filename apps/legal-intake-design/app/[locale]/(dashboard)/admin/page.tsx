@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Card,
   CardAction,
@@ -11,6 +12,8 @@ import { AlertTriangle, Building2, FilePlus, Wand2 } from '@repo/ui/icons';
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import { MOCK_CASES } from '@/lib/mocks/cases';
+
+export const metadata: Metadata = { title: 'Admin' };
 
 export default async function AdminOverviewPage() {
   const tOverview = await getTranslations('admin.overview');

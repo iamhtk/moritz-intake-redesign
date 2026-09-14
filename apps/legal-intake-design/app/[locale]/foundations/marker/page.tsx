@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Section } from '@/components/design/foundations/showcase/section';
 import {
   MarkerBorderExample,
@@ -9,6 +10,8 @@ import {
   MarkerStatusExample,
   MarkerVariantsExample,
 } from '@/components/design/foundations/examples/marker-examples';
+
+export const metadata: Metadata = { title: 'Marker · Foundations' };
 
 export default function MarkerFoundationPage() {
   return (

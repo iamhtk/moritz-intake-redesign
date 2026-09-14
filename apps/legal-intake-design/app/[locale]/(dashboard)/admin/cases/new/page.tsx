@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import { AdminCaseCreationSection } from '@/components/cases/admin-case-creation-section';
 import { H3, Muted } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'New case' };
 
 export default function NewAdminCasePage() {
   return (

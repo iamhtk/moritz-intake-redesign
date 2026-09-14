@@ -61,6 +61,21 @@ const MIGRATIONS: { id: string; apply: (state: DesignFlagsState) => void }[] = [
       delete state.useTabularPlaybooksAdmin;
     },
   },
+  {
+    /*
+     * Both of the keyboard surfaces shipped off, so neither existed on any
+     * page until somebody found the flags screen. Flipping `defaultValue`
+     * alone would not have reached anyone who had already loaded the app —
+     * `loadFromStorage` writes every known flag into `localStorage`, so a
+     * stored `false` outranks the new default forever. Dropping the keys is
+     * what lets the default win.
+     */
+    id: 'command-palette-and-ask-default-on-2026-09',
+    apply(state) {
+      delete state.useCommandPalette;
+      delete state.useAskNora;
+    },
+  },
 ];
 
 type DesignFlagsContextValue = {

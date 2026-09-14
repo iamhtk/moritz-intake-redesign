@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { AlertCircle } from '@repo/ui/icons';
 import {
   Banner,
@@ -7,6 +8,8 @@ import {
 import { Button } from '@/components/design/design-system/button';
 import { Link } from '@/i18n/navigation';
 import { H3, InlineCode } from '@/components/design/design-system/typography';
+
+export const metadata: Metadata = { title: 'Sign-in problem' };
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

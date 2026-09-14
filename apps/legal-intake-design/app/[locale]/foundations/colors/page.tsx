@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { CodeBlock } from '@/components/design/foundations/showcase/code-block';
 import { ColorSwatch } from '@/components/design/foundations/showcase/color-swatch';
 import { GradientSwatch } from '@/components/design/foundations/showcase/gradient-swatch';
@@ -9,6 +10,8 @@ import {
   TINTS,
 } from '@/components/design/foundations/tokens/colors';
 import { Section } from '@/components/design/foundations/showcase/section';
+
+export const metadata: Metadata = { title: 'Colors · Foundations' };
 
 const DEFINE_SNIPPET = `:root {
   --mz-gray-10: #f1f2f2; /* lightest */
