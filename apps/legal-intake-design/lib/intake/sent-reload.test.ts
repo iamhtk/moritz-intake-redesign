@@ -86,3 +86,64 @@ describe('sent-session is not orphaned again', () => {
     expect(INTAKE).toContain("from '@/lib/intake/sent-session'");
   });
 });
+
+/**
+ * And "New case" means a new case.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE BUG THE RESTORE ABOVE CAUSED BY WORKING TOO WELL.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The restore ran on every mount of `/client/new`, and a mount is all a
+ * refresh and a deliberate "New case" have in common. So for the twelve hours
+ * a receipt lives, this happened:
+ *
+ *   send it → Go to case → Home → New case → the case they just sent
+ *
+ * Every route in was affected, because all four of them — the sidebar item,
+ * the dashboard card, the command palette and the gated button — are plain
+ * `<Link href="/client/new">` and none goes through the navigation guard that
+ * `onLeaveSent` hangs off.
+ *
+ * The fix is the address: submission writes the case id into the URL, and the
+ * restore happens only when it is there. These assertions are the same shape
+ * as the ones above and exist for the same reason — the failure is silent.
+ * Delete the gate and nothing breaks, no test fails, and the flow quietly
+ * stops being able to start a second case.
+ */
+describe('a new case is a new case', () => {
+  it('marks the address when the case goes', () => {
+    expect(CODE).toContain('SENT_PARAM');
+    expect(CODE).toContain('window.history.replaceState');
+    /*
+     * The mark has to be written after the record, not before: a reload
+     * landing between the two would find an address asking for a
+     * confirmation and no confirmation to show.
+     */
+    expect(CODE.indexOf('writeSentSession(')).toBeLessThan(
+      CODE.indexOf('window.history.replaceState'),
+    );
+  });
+
+  it('restores only when the address asks for that case', () => {
+    expect(CODE).toContain('sentCaseIdOf(window.location.search)');
+    /*
+     * Gated, and gated *before* the restore. The check existing somewhere in
+     * the file is not the property; the property is that nothing is restored
+     * without it.
+     */
+    expect(CODE.indexOf('sentCaseIdOf(window.location.search)')).toBeLessThan(
+      CODE.indexOf('replace(sent.brief)'),
+    );
+  });
+
+  it('drops a receipt reached from a link that meant to start fresh', () => {
+    // Otherwise the record sits there for twelve hours, and the defect is
+    // only ever one forgotten URL away from coming back.
+    const gate = CODE.slice(
+      CODE.indexOf('sentCaseIdOf(window.location.search)'),
+      CODE.indexOf('replace(sent.brief)'),
+    );
+    expect(gate).toContain('clearSentSession()');
+  });
+});

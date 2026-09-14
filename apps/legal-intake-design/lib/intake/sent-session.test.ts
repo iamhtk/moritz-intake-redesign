@@ -4,6 +4,8 @@ import { fieldsForMatter } from './matter-fields';
 import {
   clearSentSession,
   readSentSession,
+  SENT_PARAM,
+  sentCaseIdOf,
   SENT_STORAGE_KEY,
   SENT_TTL_MS,
   writeSentSession,
@@ -132,5 +134,60 @@ describe('the sent session', () => {
     // bytes by looking for the draft keys. Writing one here would keep the
     // bytes of a case that has already gone.
     expect([...store.keys()]).toEqual([SENT_STORAGE_KEY]);
+  });
+});
+
+/**
+ * The address, which is the half that decides *whether* to restore at all.
+ *
+ * The record answers "what was sent". This answers "did the client ask to see
+ * it", and without the second question the first one hijacked every route into
+ * the intake for twelve hours: send a case, press Home, press New case, and
+ * the finished case came back. See the note on `SENT_PARAM`.
+ */
+describe('whether the address is asking for a confirmation', () => {
+  it('reads the case id out of a confirmation URL', () => {
+    expect(sentCaseIdOf('?sent=case_006')).toBe('case_006');
+    expect(sentCaseIdOf('sent=case_006')).toBe('case_006');
+  });
+
+  it('is nothing for the bare path, which is what New case asks for', () => {
+    expect(sentCaseIdOf('')).toBeNull();
+    expect(sentCaseIdOf('?')).toBeNull();
+  });
+
+  it('is nothing for any other parameter, including a demo link', () => {
+    expect(sentCaseIdOf('?demo=review')).toBeNull();
+    expect(sentCaseIdOf('?matter=contract&demo=1')).toBeNull();
+  });
+
+  it('treats an empty value as no confirmation, not as a case named ""', () => {
+    // `?sent=` is what a hand-trimmed URL leaves behind, and an empty string
+    // must not match a stored `caseId` of `''` if one ever existed.
+    expect(sentCaseIdOf('?sent=')).toBeNull();
+  });
+
+  it('finds it beside other parameters, in either order', () => {
+    expect(sentCaseIdOf('?locale=en&sent=case_006')).toBe('case_006');
+    expect(sentCaseIdOf('?sent=case_006&locale=en')).toBe('case_006');
+  });
+
+  it('names the parameter the submission writes', () => {
+    // The constant and the reader have to agree, or submission marks the URL
+    // with a key nothing reads and every reload starts a new case.
+    expect(sentCaseIdOf(`?${SENT_PARAM}=case_006`)).toBe('case_006');
+  });
+
+  /*
+   * The pairing the restore actually performs: a record, plus an address that
+   * names the same case. Either alone is not a confirmation.
+   */
+  it('matches the stored case, so a stale mark restores nothing', () => {
+    writeSentSession(sentAt(Date.now()));
+    const stored = readSentSession();
+
+    expect(sentCaseIdOf(`?sent=${stored!.caseId}`)).toBe(stored!.caseId);
+    expect(sentCaseIdOf('?sent=case_001')).not.toBe(stored!.caseId);
+    expect(sentCaseIdOf('')).not.toBe(stored!.caseId);
   });
 });
