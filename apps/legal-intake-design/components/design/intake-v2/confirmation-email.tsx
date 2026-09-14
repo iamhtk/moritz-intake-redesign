@@ -213,6 +213,7 @@ export function ConfirmationEmailTrigger({
      */
     <button
       type="button"
+      data-tour="email-trigger"
       onClick={() =>
         onOpen({
           // Fixed, not generated: one case has one confirmation email, and

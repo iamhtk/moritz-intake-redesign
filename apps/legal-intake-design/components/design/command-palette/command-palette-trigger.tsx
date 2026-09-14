@@ -49,6 +49,7 @@ export function CommandPaletteTrigger() {
         <Button
           type="button"
           variant="ghost"
+          data-tour="command-palette"
           onClick={openPalette}
           aria-keyshortcuts="Meta+K Control+K"
           aria-label={t('openHint')}

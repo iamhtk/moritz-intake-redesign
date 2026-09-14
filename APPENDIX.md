@@ -11,7 +11,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 
 ## Start
 
-![Start](docs/screenshots/a1-start.png)
+![Start](apps/legal-intake-design/public/screenshots/a1-start.png)
 
 - One composer: type in your own words, drop a file, or dictate. The
   placeholder rotates through three real examples until you focus it.
@@ -27,14 +27,14 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 - One lawyer's face, name, role and school, and one way to reach them:
   _Talk to a person_.
 
-  ![Talk to a person](docs/screenshots/f5-talk-to-a-person.png)
+  ![Talk to a person](apps/legal-intake-design/public/screenshots/f5-talk-to-a-person.png)
 
 - Dictation says what the microphone costs — the audio leaves the browser —
   in one sentence, while it is running.
 
 ## Describe
 
-![Describe](docs/screenshots/a2-describe.png)
+![Describe](apps/legal-intake-design/public/screenshots/a2-describe.png)
 
 - The model runs the conversation; the code owns the brief. The per-matter
   field lists are data. The model chooses what to ask next; the code decides
@@ -49,7 +49,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
   text layer, the quoted line highlighted, never more than three sentences.
   Click it and the document opens at that page with the passage marked.
 
-  ![The document panel, opened at the passage](docs/screenshots/f1-document-panel.png)
+  ![The document panel, opened at the passage](apps/legal-intake-design/public/screenshots/f1-document-panel.png)
 
 - A value the model inferred carries one line of why, in the second person.
 - Every value is confirmed or edited before it can leave. Confirm draws a
@@ -66,7 +66,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 
 ## Upload
 
-![Upload](docs/screenshots/a3-upload.png)
+![Upload](apps/legal-intake-design/public/screenshots/a3-upload.png)
 
 - Drop anywhere on the page; the whole page dims and a border draws itself.
   Or the paperclip, or paste.
@@ -82,15 +82,15 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 
 ## Progress
 
-![Progress](docs/screenshots/a4-progress.png)
+![Progress](apps/legal-intake-design/public/screenshots/a4-progress.png)
 
 - One rail, always visible: Brief, Quote, Lawyer, Document. No step numbers.
   The active step opens to its substeps; the rest stay one line.
 - On a big screen it is its own column at the far left. Below 1280px it lies
   down into a bar at the top and opens on a tap. On a phone it is a sheet.
 
-  ![The rail, Quote step open](docs/screenshots/f2-rail-open.png)
-  ![The rail on a phone](docs/screenshots/f8-phone-rail.png)
+  ![The rail, Quote step open](apps/legal-intake-design/public/screenshots/f2-rail-open.png)
+  ![The rail on a phone](apps/legal-intake-design/public/screenshots/f8-phone-rail.png)
 
 - The progress bar counts confirmed facts. A document that answers four
   fields moves it four.
@@ -100,7 +100,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 - The three ticking lines after Send are your own three steps: checking
   nothing is missing, writing up the notes, handing them over.
 
-  ![The wait](docs/screenshots/f3-sending-wait.png)
+  ![The wait](apps/legal-intake-design/public/screenshots/f3-sending-wait.png)
 
 - "Review and send" fills black left to right when the last field is
   confirmed. Pressed early, it points: the unconfirmed row pulses and scrolls
@@ -110,7 +110,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 
 ## Sent
 
-![Sent](docs/screenshots/a5-sent.png)
+![Sent](apps/legal-intake-design/public/screenshots/a5-sent.png)
 
 - A receipt: reference, status, estimated response, reviewer, and where the
   copy was emailed. Focus moves to it; a screen reader hears "Case sent" once.
@@ -121,7 +121,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 - "You can close this tab. Your quote comes to your email and to the bell."
   True because both exist.
 
-  ![The email](docs/screenshots/f4-email.png)
+  ![The email](apps/legal-intake-design/public/screenshots/f4-email.png)
 
 - The people who price and handle work like this: three faces, readable on
   press — name, role, credential, school.
@@ -136,7 +136,7 @@ Part A is what a client would notice, grouped by moment. Part B is why.
 
 ## After
 
-![After](docs/screenshots/a6-after.png)
+![After](apps/legal-intake-design/public/screenshots/a6-after.png)
 
 - The agent stays available, on a second prompt that collects nothing,
   answers where the case is and what the quote covers, refuses to price or
@@ -148,12 +148,12 @@ Part A is what a client would notice, grouped by moment. Part B is why.
   them are briefs for the lawyer's next move. "Quote me for part of it" offers
   the brief's own filled fields.
 
-  !["This seems high" — four reasons](docs/screenshots/f6-seems-high.png)
+  !["This seems high" — four reasons](apps/legal-intake-design/public/screenshots/f6-seems-high.png)
 
 - The no-quote screen: a product decision, not an error. Every reason says
   what is possible instead.
 
-  ![No quote possible](docs/screenshots/f7-no-quote.png)
+  ![No quote possible](apps/legal-intake-design/public/screenshots/f7-no-quote.png)
 
 - Notifications: case received (no face; it was your action) and quote ready
   (the lawyer's face; a person wrote it).

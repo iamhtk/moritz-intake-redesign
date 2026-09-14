@@ -12,7 +12,7 @@ interfere with each other, and a refresh keeps whatever you have done.
 
 `/en/client/new`
 
-![Start](docs/screenshots/01-home.png)
+![Start](apps/legal-intake-design/public/screenshots/01-home.png)
 
 One box, in your own words or a dropped file. Under it, how this works: four
 steps, who does each, and when. The lawyer who prices this kind of matter is
@@ -25,7 +25,7 @@ before it starts moving.
 
 `/en/client/new?demo=1`
 
-![Describe](docs/screenshots/02-describe.png)
+![Describe](apps/legal-intake-design/public/screenshots/02-describe.png)
 
 The conversation on the left; the brief filling in on the right. Every fact
 appears as it is understood. The four field states are on screen at once:
@@ -38,7 +38,7 @@ counts what you have confirmed, not what you have been asked.
 
 Same screen. Open a row marked _Check this_.
 
-![A value awaiting confirmation](docs/screenshots/03-confirm.png)
+![A value awaiting confirmation](apps/legal-intake-design/public/screenshots/03-confirm.png)
 
 A value read from a document shows the passage it came from, cut from the
 PDF's own text, three sentences at most. A value the model inferred shows one
@@ -52,7 +52,7 @@ your green on its own does not, for text.
 
 `/en/client/new?demo=review`
 
-![Review](docs/screenshots/04-review.png)
+![Review](apps/legal-intake-design/public/screenshots/04-review.png)
 
 Everything confirmed, read it once more, send it. Then nine seconds of your
 own three steps — checking nothing is missing, writing up the notes, handing
@@ -65,7 +65,7 @@ Press it early and it points at what is missing instead of refusing.
 
 `/en/client/new?demo=sent`
 
-![Sent](docs/screenshots/05-sent.png)
+![Sent](apps/legal-intake-design/public/screenshots/05-sent.png)
 
 A reference number, a status, where the copy was emailed, and the rail's
 Quote step opened to show what is happening in the wait: a draft of your
@@ -95,7 +95,7 @@ Send, once, with a reason.
 **Phone.** Everything above at 375px. The rail lies down into a bar at the
 top and opens on a tap; the brief is a sheet you pull up.
 
-![Sent, on a phone](docs/screenshots/06-phone-sent.png)
+![Sent, on a phone](apps/legal-intake-design/public/screenshots/06-phone-sent.png)
 
 **Without an API key.** The flow runs on a scripted fallback and says so.
 With one, it is the live model.

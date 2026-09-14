@@ -213,7 +213,10 @@ export function QuoteCard({
   };
 
   return (
-    <div className="border-border flex flex-col gap-4 rounded-2xl border p-4">
+    <div
+      data-tour="quote-card"
+      className="border-border flex flex-col gap-4 rounded-2xl border p-4"
+    >
       <div className="flex flex-col gap-1">
         <p className="text-foreground font-serif text-xl leading-tight tracking-tight">
           {t(accepted ? 'accepted.heading' : 'arrivedHeading')}
@@ -278,6 +281,7 @@ export function QuoteCard({
                * strange thing for it to be.
                */
               variant={response === 'approve' ? 'default' : 'outline'}
+              data-tour={`quote-${response}`}
               className="w-full justify-start"
               onClick={() => {
                 if (needsDetail(response)) {
@@ -295,7 +299,7 @@ export function QuoteCard({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div data-tour={`quote-${open}-reasons`} className="flex flex-col gap-3">
           {/*
            * What this path costs and where it goes, in the same breath as the
            * control (L17). Each one answers a different question: whether the
@@ -385,7 +389,12 @@ export function QuoteCard({
             <Button type="button" onClick={send} disabled={!ready}>
               {t('send')}
             </Button>
-            <Button type="button" variant="ghost" onClick={reset}>
+            <Button
+              type="button"
+              variant="ghost"
+              data-tour="quote-back"
+              onClick={reset}
+            >
               {t('back')}
             </Button>
           </div>

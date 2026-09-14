@@ -217,7 +217,7 @@ export function SentConfirmation({
           : ''}
       </p>
 
-      <DescriptionList>
+      <DescriptionList data-tour="sent-receipt">
         <DescriptionTerm className="border-t-0 sm:border-t-0">
           {t('reference')}
         </DescriptionTerm>
@@ -332,7 +332,10 @@ export function SentConfirmation({
        * only clause on this screen carrying the commercial promise, so it
        * moves here rather than being lost with the sentence around it.
        */}
-      <p className="text-muted-foreground text-sm leading-relaxed">
+      <p
+        data-tour="close-tab"
+        className="text-muted-foreground text-sm leading-relaxed"
+      >
         {t('canClose')} {t('nothingCharged')}
       </p>
 
@@ -437,7 +440,7 @@ export function SentConfirmation({
        * and then sending an invoice is how a flow loses someone's trust at the
        * exact moment it has earned it.
        */}
-      <div className="flex flex-col gap-3">
+      <div data-tour="sent-lawyers" className="flex flex-col gap-3">
         <LawyerShowcase
           {...(matterId ? { matterId } : {})}
           label={t('showcaseLabel')}

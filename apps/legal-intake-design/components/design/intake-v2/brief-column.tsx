@@ -170,7 +170,7 @@ export function BriefColumn({
   const cascade = useCascade(brief.fields);
 
   const fieldRows = (
-    <div className="mt-2 flex flex-col">
+    <div data-tour="brief-fields" className="mt-2 flex flex-col">
       {brief.fields.map((field) => {
         const receipt = receipts[field.key];
         return (
@@ -268,7 +268,7 @@ export function BriefColumn({
         </h1>
 
         {showProgress ? (
-          <div className="flex flex-col gap-3 max-lg:hidden">
+          <div data-tour="brief-progress" className="flex flex-col gap-3 max-lg:hidden">
             <div className="flex items-baseline justify-between gap-4">
               <span className="text-muted-foreground text-xs">
                 {t('label')}

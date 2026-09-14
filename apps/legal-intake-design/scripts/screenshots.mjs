@@ -5,7 +5,7 @@
 //   node scripts/screenshots.mjs
 //
 // Reads PLAYGROUND_PASSWORD from .env.development to pass the gate. Writes
-// PNGs to ../../docs/screenshots/. Reduced motion is on so every frame is a
+// PNGs to ../public/screenshots/. Reduced motion is on so every frame is a
 // settled state, not mid-animation.
 
 // playwright is in the pnpm store as a transitive dependency, not linked here.
@@ -14,7 +14,7 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const BASE = 'http://localhost:3080';
-const OUT = resolve('../../docs/screenshots');
+const OUT = resolve('../public/screenshots');
 mkdirSync(OUT, { recursive: true });
 
 const env = Object.fromEntries(

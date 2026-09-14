@@ -168,6 +168,7 @@ const PALETTE_DIRS = [
   'components/design/intake/chat',
   'components/design/new-case',
   'components/shared',
+  'components/design/tour',
 ];
 
 /** The file-type colour map, and nothing else. */

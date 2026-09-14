@@ -59,7 +59,7 @@ describe('what the confirmation opens with', () => {
    */
   it('runs receipt, permission, faces, dropzone, way out', () => {
     const order = [
-      at('<DescriptionList>'),
+      at('<DescriptionList data-tour="sent-receipt">'),
       at("t('canClose')"),
       at('<LawyerShowcase'),
       at('<PostSubmitDropzone'),
