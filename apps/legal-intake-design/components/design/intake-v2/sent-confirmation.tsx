@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Plus } from '@repo/ui/icons';
+import { cn } from '@repo/ui/lib/utils';
 import { Button } from '@/components/design/foundations/components/button';
 import {
   DescriptionDetails,
@@ -17,12 +18,10 @@ import { joinNames } from '@/lib/intake/name-list';
 import { documentDisagreements, type Brief } from '@/lib/intake/brief';
 import type { MatterId } from '@/components/design/new-case/intake-types';
 import { ConfirmationEmailTrigger } from './confirmation-email';
+import { PrototypeLink } from './prototype-link';
 import { PostSubmitDropzone, type AddedDocument } from './post-submit-dropzone';
-import { CaseProgress } from './case-progress';
-import { hasCaseProgress } from '@/lib/intake/case-stages';
 import { oneMoreThing } from '@/lib/intake/one-more-thing';
 import { OneMoreThing } from './one-more-thing';
-import type { IntakePhase } from '@/lib/intake/phase';
 import { SUBMITTED_CASE } from '@/lib/intake/submitted-case';
 
 /**
@@ -51,7 +50,6 @@ import { SUBMITTED_CASE } from '@/lib/intake/submitted-case';
  */
 export function SentConfirmation({
   brief,
-  phase,
   matterId,
   addedDocuments,
   onAttachDocument,
@@ -60,10 +58,9 @@ export function SentConfirmation({
   onStartAnother,
   documentCount,
   onAddOutcome,
+  onSkipToQuote,
 }: {
   brief: Brief;
-  /** Drives the pipeline rail. See `case-stages.ts`. */
-  phase: IntakePhase;
   /** Resolved from the brief's matter-type field, not `brief.matterId` (item 13). */
   matterId: MatterId | undefined;
   /** Documents handed over since the case was sent (Decision 24). */
@@ -97,6 +94,14 @@ export function SentConfirmation({
   documentCount: number;
   /** The `outcome` answer, added after submission (item 7). */
   onAddOutcome: (text: string) => void;
+  /**
+   * Bring the quote forward, for a reviewer rather than for a client.
+   *
+   * The flow's one deliberately non-product control. See the note on the
+   * element it renders, and `advanceToQuote` in `intake-v2.tsx` for the timer
+   * it replaced.
+   */
+  onSkipToQuote: () => void;
 }) {
   const t = useTranslations('intake.sent');
   /**
@@ -132,6 +137,9 @@ export function SentConfirmation({
   useEffect(() => {
     setAnnounced(true);
   }, []);
+  /** The recap paragraph, folded to its first line until asked for. */
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const summaryId = useId();
   const disagreements = documentDisagreements(brief);
   /*
    * The same set the showcase below renders, so the row and the faces cannot
@@ -232,6 +240,24 @@ export function SentConfirmation({
           })}
         </DescriptionDetails>
         {/*
+         * The receipt, as a row of the receipt (Decision 22).
+         *
+         * A confirmation screen answers "did that work" only for as long as
+         * it is open. The email is the part that is still there tomorrow, so
+         * the line saying it was sent is a property of the case in the same
+         * way Reference and Status are — and it used to be a centred control
+         * two blocks lower, which is how a screen gets tall enough that its
+         * own most useful sentence falls off the bottom.
+         */}
+        <DescriptionTerm>{t('copySentTo')}</DescriptionTerm>
+        <DescriptionDetails className="min-w-0">
+          <ConfirmationEmailTrigger
+            brief={brief}
+            matterId={matterId}
+            onOpen={onOpenEmail}
+          />
+        </DescriptionDetails>
+        {/*
          * There was a "Next step" row here, and the rail below replaced it
          * rather than joining it.
          *
@@ -252,99 +278,87 @@ export function SentConfirmation({
       </DescriptionList>
 
       {/*
-       * Where the case is in the firm's pipeline (B, the post-submission half
-       * of the second complaint).
+       * The pipeline rail used to be here, and it is now the left rail
+       * (`journey-rail.tsx`).
        *
-       * Directly under the status rows, and the position was argued the other
-       * way first: the rail answers "what happens next", the reference and the
-       * status answer "did that work", and somebody who has just pressed send
-       * is asking the second question — so the rail went below the receipt, the
-       * email and the disagreements.
+       * Two arguments closed at once. This screen was the only one that had
+       * the seven rows, so a client watched a four-step stepper vanish from
+       * the panel footer on submit and a seven-row list appear in its place —
+       * the same question answered twice in two vocabularies. And this column
+       * is its own scroller: on a 1440x900 laptop it holds 2265px of content
+       * in 828px of height, so wherever the rail sat, some client was going to
+       * have to scroll to find out where their case was. In the margin it is
+       * fixed to the window, it has been on screen since the first message,
+       * and the row that matters most here — that a draft is already being
+       * written — is visible without moving.
        *
-       * Then it was looked at in a browser. The brief column is its own
-       * scroller, and on a 1440x900 laptop it holds 2265px of content in 828px
-       * of height: the rail began at 822, which is to say behind the sticky
-       * footer, and no part of it was on screen. A reviewer reading this file
-       * would have found the component; a client would not have found the
-       * component. The ordering argument was right about the question and wrong
-       * about the cost, because the rows that answer "did that work" are the
-       * first two in the list above and they are already read by the time the
-       * eye reaches here.
-       *
-       * So: reference and status first, then the shape of what is coming, and
-       * the durable receipts below it. The single most valuable sentence in the
-       * flow — that a draft of their document is already being written — is now
-       * above the fold on the screen where the silence used to start.
+       * "Nobody is assigned until you accept" survives as the ordering of
+       * `paid` before `lawyer` on that rail, which is a stronger way to say it
+       * than a sentence: the client can see the two steps and which is first.
        */}
-      {hasCaseProgress(phase) ? <CaseProgress phase={phase} /> : null}
 
       {/*
        * Permission to leave (D).
        *
        * The cheapest sentence on the screen and the one that most makes the
        * firm feel expensive: good service is the thing you walk away from and
-       * it reaches you. Directly under the rail whose last visible row is a
-       * wait, which is the sentence's whole job: it answers the row above it.
-       * It is only true because the two durable receipts exist — the email
-       * below and the bell notification raised at submission.
+       * it reaches you. It is only true because the two durable receipts
+       * exist — the email in the row above and the bell notification raised
+       * at submission.
+       *
+       * The second sentence is what is left of `turnaroundNote`, which read
+       * "Quotes usually come back within four hours. Nothing is charged until
+       * you accept it." The first half of that is the Estimated response row
+       * two inches up, said again in a paragraph; the second half was the
+       * only clause on this screen carrying the commercial promise, so it
+       * moves here rather than being lost with the sentence around it.
        */}
       <p className="text-muted-foreground text-[13px] leading-relaxed">
-        {t('canClose')}
+        {t('canClose')} {t('nothingCharged')}
       </p>
 
       {/*
-       * The paragraph the recap wrote from the finished brief, which is what a
-       * lawyer reads first. Absent only if the recap call failed, in which case
-       * the rows above still say everything it would have summarised.
+       * The paragraph the recap wrote from the finished brief, folded to its
+       * first line.
        *
-       * Below the rail rather than above it, which is the second half of the
-       * same measurement. It is six lines on a 390px screen, and those six
-       * lines were the difference between the rail's drafting sentence being on
-       * the first screen and being 34px under it.
+       * ⭐ It is the tallest thing on this screen that the client does not
+       * need. Six lines on a 390px phone, and it is a summary of a brief they
+       * wrote, built from values they confirmed on the screen immediately
+       * before this one, about a case already named twice above — by its
+       * title and by its reference. What it is genuinely for is the record
+       * and the lawyer who reads it, and the record is the email.
        *
-       * Moving it costs nothing the client needs, because they wrote it. They
-       * confirmed every value it was built from on the screen immediately
-       * before this one, and the case is already identified twice above — by
-       * its title and by its reference. What this paragraph is for is the
-       * record and the lawyer who reads it, so it belongs at the head of the
-       * record: the email receipt and the disagreements follow it, and together
-       * those three are "what we have, and what we noticed".
+       * So: first line open, the rest on request. Not `Collapsible`, and this
+       * is the one place on the screen where reaching for it would have been
+       * wrong. Radix hides its content completely when shut, and what makes
+       * this cheap is that the first line stays — a disclosure labelled "Show
+       * more" over nothing at all is a worse trade, because the client cannot
+       * tell whether it is worth opening. `line-clamp` is the mechanism that
+       * matches the intent; `Collapsible` is used for the brief below, where
+       * the whole block genuinely goes.
        */}
       {brief.description ? (
-        <p className="text-muted-foreground text-[13px] leading-relaxed">
-          {brief.description}
-        </p>
+        <div className="flex flex-col items-start gap-1">
+          <p
+            id={summaryId}
+            className={cn(
+              'text-muted-foreground text-[13px] leading-relaxed',
+              summaryOpen ? null : 'line-clamp-1',
+            )}
+          >
+            {brief.description}
+          </p>
+          <button
+            type="button"
+            onClick={() => setSummaryOpen((value) => !value)}
+            aria-expanded={summaryOpen}
+            aria-controls={summaryId}
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mx-1 rounded-[0.5rem] px-1 text-xs underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2"
+          >
+            {t(summaryOpen ? 'summaryHide' : 'summaryShow')}
+          </button>
+        </div>
       ) : null}
-
-      {/*
-       * The turnaround, in the only terms we can stand behind.
-       *
-       * This deliberately says nothing about where the team sits or what time
-       * it is there. An earlier version computed the local hour in Oslo and
-       * shaped the promise around office hours, which was a better sentence and
-       * an unsupportable claim: the team is moving and the co-counsel are
-       * contracted from other firms, so "where our team sits" was never a fact
-       * this product knew. Four hours is what we were told, so four hours is
-       * all this says.
-       */}
-      <p className="text-muted-foreground text-[13px] leading-relaxed">
-        {t('turnaroundNote')}
-      </p>
-
-      {/*
-       * The receipt, next to the reference it quotes (Decision 22).
-       *
-       * A confirmation screen answers "did that work" only for as long as it is
-       * open. The email is the part that is still there tomorrow, so the line
-       * that says it was sent belongs beside the case number rather than at the
-       * bottom of the page, and opening it is how a reviewer reads it without a
-       * mail server.
-       */}
-      <ConfirmationEmailTrigger
-        brief={brief}
-        matterId={matterId}
-        onOpen={onOpenEmail}
-      />
 
       {/*
        * Where the client's account and the document parted company. The brief
@@ -393,24 +407,6 @@ export function SentConfirmation({
       ) : null}
 
       {/*
-       * The one thing, if there is one (item 7).
-       *
-       * Above the dropzone rather than below it, because when the ask *is* the
-       * dropzone there is nothing here at all and the two must not both be
-       * claiming to be the most useful next move. Below the permission to leave
-       * on purpose: this is an offer, and an offer made before the client has
-       * been told they are free to go is a condition.
-       */}
-      {ask === 'outcome' ? <OneMoreThing onAdd={onAddOutcome} /> : null}
-
-      <PostSubmitDropzone
-        documents={addedDocuments}
-        onAttach={onAttachDocument}
-        onOpen={onOpenDocument}
-        isTheOneThing={ask === 'document'}
-      />
-
-      {/*
        * The faces, and what they are actually doing next (B, Decision 7,
        * Decision 21).
        *
@@ -441,6 +437,24 @@ export function SentConfirmation({
       </div>
 
       {/*
+       * The one thing, if there is one (item 7).
+       *
+       * Above the dropzone rather than below it, because when the ask *is* the
+       * dropzone there is nothing here at all and the two must not both be
+       * claiming to be the most useful next move. Below the permission to leave
+       * on purpose: this is an offer, and an offer made before the client has
+       * been told they are free to go is a condition.
+       */}
+      {ask === 'outcome' ? <OneMoreThing onAdd={onAddOutcome} /> : null}
+
+      <PostSubmitDropzone
+        documents={addedDocuments}
+        onAttach={onAttachDocument}
+        onOpen={onOpenDocument}
+        isTheOneThing={ask === 'document'}
+      />
+
+      {/*
        * The second of Garzai's two buttons, restored (item 22).
        *
        * "Go to case" is the primary and lives in the brief footer with every
@@ -462,6 +476,25 @@ export function SentConfirmation({
         <Plus data-icon="inline-start" aria-hidden="true" />
         {t('startAnother')}
       </Button>
+
+      {/*
+       * The one control on this screen that is not part of the product.
+       *
+       * Under the outline button rather than beside it, at the very bottom of
+       * the column, where it is the last thing on the screen rather than one
+       * of the choices on it. Next to "Go to case" as §3 asks: that button is
+       * the sticky footer directly below this line, so the two sit together
+       * without this one having to join the footer and become an action.
+       *
+       * See `prototype-link.tsx` for why it looks the way it does, and
+       * `advanceToQuote` in `intake-v2.tsx` for the twelve-second timer it
+       * replaced.
+       */}
+      <PrototypeLink
+        action="skipToQuote"
+        direction="forward"
+        onClick={onSkipToQuote}
+      />
     </div>
   );
 }

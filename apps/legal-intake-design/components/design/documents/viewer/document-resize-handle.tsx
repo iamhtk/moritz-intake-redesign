@@ -10,6 +10,34 @@ import { cn } from '@repo/ui/lib/utils';
 export const MIN_DOCUMENT_WIDTH = 352;
 
 /**
+ * The width the grid's tracks actually get, which is not the grid's own width.
+ *
+ * `getBoundingClientRect` reports the border box, so any padding on the grid
+ * is counted twice by a clamp asking "how much room is there for the
+ * document": once as space the tracks do not have, and again as space the
+ * panel is told it can grow into. The panel wins, and the conversation is
+ * pushed below its floor to pay for it.
+ *
+ * The intake grid carries no padding today — the journey rail is a sibling
+ * column rather than a gutter inside it (`journey-rail.tsx` records why the
+ * gutter version was tried and dropped). This subtracts it anyway, because
+ * the failure is silent and the guard is two lines.
+ *
+ * Read off the computed style rather than from a shared constant, for the
+ * reason the drag limits are measured at all: the alternative is the same
+ * number written down in three places, and the copies are the ones that go
+ * stale.
+ */
+export function gridTrackWidth(grid: HTMLElement): number {
+  const style = getComputedStyle(grid);
+  return (
+    grid.getBoundingClientRect().width -
+    (parseFloat(style.paddingLeft) || 0) -
+    (parseFloat(style.paddingRight) || 0)
+  );
+}
+
+/**
  * A page is not worth widening past this, and past it the conversation beside
  * it is the thing paying for the extra pixels.
  */
@@ -91,7 +119,7 @@ export function DocumentResizeHandle({
       if (!panel || !grid) return null;
 
       const available =
-        grid.getBoundingClientRect().width -
+        gridTrackWidth(grid) -
         (brief?.getBoundingClientRect().width ?? 0) -
         chatFloor;
 

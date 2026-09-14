@@ -1,7 +1,6 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { Mail } from '@repo/ui/icons';
 import {
   EmailBody,
   EmailButton,
@@ -194,12 +193,23 @@ export function ConfirmationEmailTrigger({
 
   return (
     /*
-     * A real ring, not just an underline (T34).
+     * A row in the receipt now, not a line of its own under it.
      *
-     * It had `focus-visible:underline focus-visible:outline-none`, and it
-     * already underlines on hover, so a keyboard user landing on it saw the
-     * hover state and nothing that said "this is where you are". Measured as
-     * the one focus stop on the confirmation with no indication at all.
+     * It used to be a centred full-width control with a mail icon, sitting
+     * two blocks below the reference it quotes. The confirmation was too tall
+     * and this was one of the cheapest fixes in it: "a copy is on its way to
+     * you" is a *property of the case*, in exactly the way Reference and
+     * Status are, so it reads as the fifth row of the description list and
+     * costs nothing of its own. Left-aligned, at the size of a value, because
+     * that is what it now is.
+     *
+     * The icon went with the centring. In a description list a glyph in one
+     * value and not the other four is decoration.
+     *
+     * A real ring, not just an underline (T34). It had
+     * `focus-visible:underline focus-visible:outline-none`, and it already
+     * underlines on hover, so a keyboard user landing on it saw the hover
+     * state and nothing that said "this is where you are".
      */
     <button
       type="button"
@@ -213,14 +223,12 @@ export function ConfirmationEmailTrigger({
           body,
         })
       }
-      className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid flex w-full cursor-pointer items-center justify-center gap-2 rounded-[0.5rem] text-xs underline-offset-4 outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="focus-visible:outline-ring focus-visible:outline-solid group flex cursor-pointer items-center gap-1.5 rounded-[0.5rem] text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
     >
-      <Mail
-        className="size-3.5 shrink-0"
-        strokeWidth={1.75}
-        aria-hidden="true"
-      />
-      {t('trigger', { address: MOCK_CLIENT_USER.email })}
+      <span className="text-foreground truncate">{MOCK_CLIENT_USER.email}</span>
+      <span className="text-muted-foreground group-hover:text-foreground shrink-0 underline underline-offset-4 transition-colors">
+        {t('read')}
+      </span>
     </button>
   );
 }

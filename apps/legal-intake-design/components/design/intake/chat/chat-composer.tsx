@@ -77,6 +77,21 @@ type ChatComposerProps = {
   value?: string;
   /** Controlled change handler. Required for controlled usage. */
   onChange?: (next: string) => void;
+  /**
+   * Every edit, whether the field is controlled or not.
+   *
+   * `onChange` cannot answer this: it is half of the controlled contract and
+   * fires only when `value` is supplied, so an uncontrolled caller that merely
+   * wants to know the client has started typing would have to take ownership
+   * of the text to find out — and owning the text means re-rendering the whole
+   * screen on every keystroke to learn one boolean.
+   *
+   * Added for the intake's card-to-rail handoff (`how-it-works.tsx`), where
+   * the first character typed is what swaps the explanation for the tracker.
+   * Fires on dictation and on paste as well as on typing, because all three
+   * are the client starting.
+   */
+  onEdit?: (next: string) => void;
   /** Assistant is generating: the Send button becomes a Stop control. */
   busy?: boolean;
   /** Stop generation (only used while `busy`). */
@@ -177,6 +192,7 @@ export function ChatComposer({
   onAttachClick,
   value: valueProp,
   onChange,
+  onEdit,
   busy = false,
   onStop,
   attachments = [],
@@ -193,10 +209,11 @@ export function ChatComposer({
   const value = isControlled ? valueProp : internalValue;
   const setValue = useCallback(
     (next: string) => {
+      onEdit?.(next);
       if (isControlled) onChange?.(next);
       else setInternalValue(next);
     },
-    [isControlled, onChange],
+    [isControlled, onChange, onEdit],
   );
 
   const [fade, setFade] = useState({ top: false, bottom: false });

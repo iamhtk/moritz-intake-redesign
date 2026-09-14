@@ -2558,7 +2558,10 @@
       "workDoneAsking": "That covered {count} more of the {total} things I needed, which is all of them. Anything else is optional.",
       "preparedWith": "Prepared with {name} · {timestamp}",
       "askingNow": "asking now",
-      "observationLabel": "Noted for the lawyer"
+      "observationLabel": "Noted for the lawyer",
+      "foldedFields": "{count, plural, one {Your brief · # field} other {Your brief · # fields}}",
+      "foldedShow": "Show",
+      "foldedHide": "Hide"
     },
     "chat": {
       "placeholderFirst": "Describe your matter, or attach a document…",
@@ -2667,21 +2670,31 @@
       "arrivedChat": "Your fixed quote is ready, {name} priced it. It is in the panel beside this chat. Nothing is charged until you accept it.",
       "accepted": {
         "heading": "Quote accepted",
-        "body": "Thank you. One step left: payment. {name} is assigned to your case as soon as it clears, and takes over this chat from there.",
-        "payAction": "Pay {fee} and start",
-        "payNote": "Payments are out of scope in this prototype, so this button does nothing. In the live flow you pay here, and a lawyer is assigned straight after.",
-        "covers": "What you are paying for"
+        "body": "{name} has been told and will be in touch. Payment happens on your case page, and your lawyer is assigned once it clears."
       }
     },
     "howItWorks": {
       "title": "How this works",
-      "one": "Tell Moritz about your matter, or drop in a document.",
-      "two": "Your brief fills in as you talk. Check anything Moritz worked out.",
-      "three": "Send it, and a fixed quote comes back in this chat within four hours.",
-      "oneTitle": "Your words",
-      "twoTitle": "Your brief",
-      "threeTitle": "Your quote",
-      "division": "Moritz writes your brief up. A lawyer decides what it means."
+      "youAreHere": "You are here.",
+      "footer": "Our agents do the first pass. Our lawyers finish it.",
+      "description": {
+        "brief": "Tell us what happened, or drop in a document. Your brief builds as you talk, and you check anything we worked out.",
+        "quote": "Send it. A lawyer reads your brief and prices the work. A fixed quote comes back in this chat. Nothing is charged until you accept.",
+        "lawyer": "Accept, and your lawyer is assigned and takes over this chat.",
+        "document": "They draft it, we check it, you get the finished document."
+      },
+      "who": {
+        "brief": "You, with Moritz",
+        "quote": "A lawyer",
+        "lawyer": "Your lawyer",
+        "document": "Back to you"
+      },
+      "when": {
+        "brief": "Now · a few minutes",
+        "quote": "Within 24 hours",
+        "lawyer": "When you accept",
+        "document": "No estimate. We would rather not guess."
+      }
     },
     "demo": {
       "seeded": "Here is the brief part-way through, with one value I am not confident about. Have a look on the right and correct anything I got wrong.",
@@ -2741,7 +2754,6 @@
         }
       },
       "documentReceived": "{count, plural, one {Got {names}. I have added it to your case} other {Got all {count}: {names}. I have added them to your case}} and passed {count, plural, one {it} other {them}} to the team drafting your quote. Anything else you send here reaches them the same way.",
-      "turnaroundNote": "Quotes usually come back within four hours. Nothing is charged until you accept it.",
       "estimatedResponseValue": "Within four hours",
       "reviewer": "Reviewer",
       "reviewerValue": "{more, plural, =0 {A qualified lawyer, trained at {schools}} other {A qualified lawyer, trained at {schools} or one of # other schools}}",
@@ -2758,7 +2770,11 @@
           "covers": "What will the quote cover?",
           "document": "Can I still send a document?"
         }
-      }
+      },
+      "nothingCharged": "Nothing is charged until you accept it.",
+      "copySentTo": "Copy sent to",
+      "summaryShow": "Show more",
+      "summaryHide": "Show less"
     },
     "drop": {
       "heading": "Drop it anywhere on this page",
@@ -2779,19 +2795,43 @@
       }
     },
     "journey": {
-      "position": "Step {step} of {total}",
+      "label": "Where you are",
       "step": {
         "brief": "Brief",
         "quote": "Quote",
         "lawyer": "Lawyer",
-        "document": "Document"
+        "document": "Document",
+        "documentShort": "Doc"
       },
-      "now": {
-        "brief": "you are telling us about the matter",
-        "quote": "a lawyer is reading it and pricing the work",
-        "lawyer": "a lawyer takes the case and talks to you here",
-        "document": "your finished document arrives"
-      }
+      "line": {
+        "brief": "You are telling us about the matter.",
+        "sending": "Your case is on its way to us.",
+        "quote": "A lawyer is reading it and pricing the work.",
+        "lawyer": "A lawyer takes the case and talks to you here.",
+        "document": "Your finished document arrives."
+      },
+      "stage": {
+        "sent": "Your case reached us",
+        "pricing": "A lawyer prices the work",
+        "quote": "Your price arrives here",
+        "paid": "You accept it and pay",
+        "lawyer": "A lawyer takes over this chat",
+        "revision": "Your lawyer edits it, then it is checked",
+        "delivered": "You get the finished document"
+      },
+      "detail": {
+        "pricing": "A first draft is already being written. 20 to 50 minutes."
+      },
+      "note": {
+        "quote": "Usually within 24 hours. Nothing is charged until you accept."
+      },
+      "state": {
+        "done": "Done",
+        "current": "Happening now",
+        "future": "Still to come"
+      },
+      "expand": "Show what happens in this step",
+      "collapse": "Hide what happens in this step"
     },
     "person": {
       "trigger": "Talk to a person",
@@ -2845,7 +2885,8 @@
       "signature": "{name}",
       "signaturePractice": "{title}, Moritz",
       "queue": "{count, plural, =0 {Yours is first in the queue to be priced.} one {There is one matter ahead of yours in the queue to be priced.} other {There are # matters ahead of yours in the queue to be priced.}}",
-      "observationNote": "Noted for the lawyer: {observation}"
+      "observationNote": "Noted for the lawyer: {observation}",
+      "read": "Read it"
     },
     "notification": {
       "receivedTitle": "We have your case",
@@ -2923,28 +2964,10 @@
       "sourceNotFound": "Those words could not be found in {name}. The document is open, so the passage may be in an image rather than in the text.",
       "sourceUnavailable": "{name} is not open in this browser any more. It was sent with your case."
     },
-    "caseProgress": {
-      "title": "Where your case is",
-      "stage": {
-        "sent": "Your case reached us",
-        "pricing": "A lawyer reads it and prices the work",
-        "quote": "Your fixed price arrives in this chat",
-        "paid": "You accept it and pay",
-        "lawyer": "Your lawyer is assigned and takes over this chat",
-        "revision": "Your lawyer edits the document, and it is checked again",
-        "delivered": "You get the finished document"
-      },
-      "detail": {
-        "pricing": "A first draft of your document is already being written and checked while this happens. That part usually takes 20 to 50 minutes."
-      },
-      "showWork": "Show the {count} steps after you accept",
-      "hideWork": "Hide the {count} steps after you accept",
-      "noTimings": "Only the quote has a time on it. We would rather leave the rest without an estimate than guess at one.",
-      "state": {
-        "done": "Done",
-        "current": "Happening now",
-        "future": "Still to come"
-      }
+    "prototype": {
+      "label": "Prototype only",
+      "skipToQuote": "Skip ahead to the quote arriving",
+      "backToConfirmation": "Back to the confirmation"
     }
   },
   "commandPalette": {

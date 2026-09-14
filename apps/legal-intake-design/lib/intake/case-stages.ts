@@ -74,21 +74,42 @@ export type CaseStageState = 'done' | 'current' | 'future';
  * `quote` is everything up to and including the client paying. `work` is what
  * happens once they have.
  *
- * The grouping drives the fold in `case-progress.tsx`, and the reason is about
- * attention rather than space. A client who has just pressed send has one
- * question and it is about the price; three more rows about document review
- * underneath it answer a question they have not reached and bury the one they
- * have. The `work` rows are one click away rather than absent, because "what
- * happens if I pay this" is the next question and somebody deciding whether to
- * spend money on a law firm is entitled to see the process before committing.
+ * It used to drive a fold in `case-progress.tsx`: the `work` rows sat behind a
+ * "show the 3 steps after you accept" disclosure, because a client who has
+ * just pressed send has one question and it is about the price, and three more
+ * rows about document review bury it.
+ *
+ * The left rail solves that with the 4-step nesting instead — `work` is split
+ * across the `lawyer` and `document` headings, which are closed until asked
+ * for — so the group is no longer a fold. It is kept because it is still the
+ * commercial gate, and `case-stages.test.ts` pins the four-then-three split:
+ * a row crossing it would change what a client sees before deciding to spend
+ * money.
  */
 export type CaseStageGroup = 'quote' | 'work';
 
+/**
+ * The seven stage ids, as a union rather than `string`.
+ *
+ * Named so that `JOURNEY_STAGES` in `journey.ts` can be typed against them:
+ * the 4-step rail nests these seven rows inside its four headings, and the one
+ * way that map can go wrong is silently — a renamed stage that still compiles
+ * and quietly drops a row out of the rail. A union makes it a type error.
+ */
+export type CaseStageId =
+  | 'sent'
+  | 'pricing'
+  | 'quote'
+  | 'paid'
+  | 'lawyer'
+  | 'revision'
+  | 'delivered';
+
 export type CaseStage = {
   /**
-   * Stable id, and the key its sentence lives under in `intake.caseProgress`.
+   * Stable id, and the key its sentence lives under in `intake.journey`.
    */
-  id: string;
+  id: CaseStageId;
   group: CaseStageGroup;
   /**
    * Whether this stage has a second line under it (`stage.<id>.detail`).
@@ -163,7 +184,7 @@ export const CASE_STAGES: readonly CaseStage[] = [
  * which is precisely the complaint about not knowing whether a case was
  * submitted, reintroduced by the component built to fix it.
  */
-function reached(phase: IntakePhase): number {
+function reached(phase: IntakePhase, accepted: boolean): number {
   // The case has gone and a lawyer is pricing it. `sent` is done, `pricing` is
   // what it is waiting on.
   if (phase === 'sent') return 1;
@@ -175,7 +196,31 @@ function reached(phase: IntakePhase): number {
    * accept control, so a rail marking the payment as made while the button to
    * make it is still on screen would be the rail arguing with the page.
    */
-  if (phase === 'quoted') return 3;
+  if (phase === 'quoted') {
+    /*
+     * ⭐ Accepting ticks `paid`, and that row is named "You accept it and
+     * pay" — so the tick is making a claim about a payment that has not
+     * happened. Worth stating rather than burying, because it is the one
+     * place this file bends its own rule.
+     *
+     * The rule is that a stage is `done` only where the client's own screen
+     * has evidence of it, and the reason is that a rail advancing on
+     * anything else is a law firm telling a client their document had been
+     * drafted when nobody had opened the file. Here the evidence is real:
+     * the client pressed Accept. What is missing is the second half of a row
+     * that covers two acts.
+     *
+     * Splitting the row would be the tidy fix and it is the wrong one.
+     * Payment is out of scope in this prototype — it happens on Moritz's own
+     * case page, which is where "Go to case" now lands — so a `paid` row that
+     * could never tick would sit there for the rest of the flow reading as
+     * stalled, which is the exact failure `case-progress` was built against.
+     * Accepting is as far as the client can go here, and the row says their
+     * part is done. The next row, the lawyer being assigned, becomes what the
+     * case is waiting on, which is what the chat says too.
+     */
+    return accepted ? 4 : 3;
+  }
   return 0;
 }
 
@@ -189,8 +234,31 @@ export type CaseStageRow = CaseStage & { state: CaseStageState };
  * because the future rows are the feature. A rail that showed only what had
  * happened would be a receipt, and the client already has one of those.
  */
-export function caseStages(phase: IntakePhase): CaseStageRow[] {
-  const mark = reached(phase);
+export function caseStages(
+  phase: IntakePhase,
+  /**
+   * Whether the client has accepted the quote (§3's Step E).
+   *
+   * A second argument rather than a phase of its own. Acceptance changes one
+   * row on one rail and nothing else in the flow — not what the brief can do,
+   * not what the composer is for, not which screen is up — and a sixth
+   * `IntakePhase` would have to be answered for by `journeyStepFor`,
+   * `isSubmitted`, `hasConfirmation`, `splitFor` and the footer map, all of
+   * which would say exactly what `quoted` says.
+   */
+  accepted = false,
+): CaseStageRow[] {
+  /*
+   * `-1` before the case has gone, so nothing is `current` either.
+   *
+   * `reached` returns 0 for every pre-submission phase, and 0 is also a real
+   * mark — it means `sent` is what the case is waiting on. That ambiguity was
+   * harmless while only `hasCaseProgress`-gated screens rendered these rows.
+   * The left rail shows all seven from the first screen, greyed, so the
+   * ambiguity became a lie: a client who has typed one sentence would have
+   * read "Your case reached us — happening now".
+   */
+  const mark = hasCaseProgress(phase) ? reached(phase, accepted) : -1;
   return CASE_STAGES.map((stage, index) => ({
     ...stage,
     state:
@@ -205,5 +273,5 @@ export function caseStages(phase: IntakePhase): CaseStageRow[] {
  * cannot disagree about which phases are post-submission.
  */
 export function hasCaseProgress(phase: IntakePhase): boolean {
-  return reached(phase) > 0;
+  return reached(phase, false) > 0;
 }

@@ -89,13 +89,24 @@ describe('applySubmission', () => {
     expect(Number.isNaN(new Date(merged.createdAt).getTime())).toBe(false);
   });
 
-  // Where the case sits in the firm's queue is not the submission's call, and
-  // the fixture was already written as a just-submitted one (see
-  // submitted-case.test.ts).
-  it('leaves the case at step one of the client timeline', () => {
+  /*
+   * ⭐ Where the case sits in the firm's queue is not the submission's call.
+   *
+   * This used to read "leaves the case at step one", and it could, because
+   * the target fixture was written as a just-submitted one. The target is
+   * `case_006` now (see `SUBMITTED_CASE_ID`), which is three weeks old,
+   * priced and has a lawyer on it — so the assertion is no longer about what
+   * the page shows, it is about what this function refuses to change.
+   *
+   * That refusal is the invariant worth keeping. The moment `applySubmission`
+   * can rewrite a status it stops being a record of what the client sent and
+   * becomes a fixture editor, and the next thing anybody asks it to do is
+   * clear a quote — which is a submission deciding the firm's queue.
+   */
+  it('never rewrites where the case sits in the firm’s queue', () => {
     expect(merged.status).toBe(FIXTURE.status);
-    expect(merged.quoteAmount).toBeNull();
-    expect(merged.assignedLawyer).toBeNull();
+    expect(merged.quoteAmount).toBe(FIXTURE.quoteAmount);
+    expect(merged.assignedLawyer).toBe(FIXTURE.assignedLawyer);
     expect(merged.caseNumber).toBe(SUBMITTED_CASE.reference);
   });
 

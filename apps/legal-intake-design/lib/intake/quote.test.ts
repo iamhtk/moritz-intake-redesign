@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createTranslator } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import messages from '@/messages/en.json';
@@ -152,5 +154,63 @@ describe('the copy behind the paths', () => {
         `${reason} has no way forward`,
       ).toBeGreaterThan(20);
     }
+  });
+});
+
+/**
+ * The accepted state, and what §3's Step E took out of it.
+ *
+ * "Quote accepted" used to be followed by a disabled `Pay US$3,800 and start`
+ * button and a note saying payments were out of scope. Moritz's own case page
+ * has a real "Pay invoice" control — and `SUBMITTED_CASE_ID` now points "Go to
+ * case" straight at it — so ours was a greyed-out imitation of a control they
+ * ship. It was the furthest anything in this prototype strayed from
+ * redesigning intake: it invented a payment screen for a firm that has one.
+ *
+ * Read as source and as copy, because the failure it guards is additive. A
+ * pay button is the kind of thing that comes back one reasonable argument at
+ * a time, and the last one was good enough to survive several reviews.
+ */
+describe('the accepted quote', () => {
+  const card = readFileSync(
+    join(process.cwd(), 'components/design/intake-v2/quote-card.tsx'),
+    'utf8',
+  ).replace(/\/\*[\s\S]*?\*\//g, '');
+
+  const t = createTranslator({
+    locale: 'en',
+    messages: { intake: messages.intake },
+    namespace: 'intake.quote',
+  }) as unknown as (key: string, values?: Record<string, unknown>) => string;
+
+  it('has no pay control, and no copy left to build one from', () => {
+    expect(card).not.toContain('payAction');
+    expect(card).not.toContain('payNote');
+    const accepted = messages.intake.quote.accepted as Record<string, unknown>;
+    expect(Object.keys(accepted).sort()).toEqual(['body', 'heading']);
+  });
+
+  /*
+   * The four responses still go the moment one is chosen. That half was
+   * always right: a decision that has been made must not leave four greyed
+   * controls on screen inviting the client to wonder whether it took.
+   */
+  it('still takes the four responses away once one is chosen', () => {
+    expect(card).toContain('{accepted ? null : open === null ? (');
+  });
+
+  /*
+   * What is left is the record of what was agreed — heading, terms, and one
+   * sentence saying where payment happens. Not a step, and not silence.
+   */
+  it('says where payment actually happens', () => {
+    expect(t('accepted.heading')).toBe('Quote accepted');
+    expect(t('accepted.body', { name: 'Priya' })).toContain('case page');
+  });
+
+  /* §3's one line in the chat, which is the whole of what accepting says. */
+  it('acknowledges in the chat, by name', () => {
+    expect(t('approved', { name: 'Priya' })).toContain('Priya');
+    expect(t('approved', { name: 'Priya' })).toContain('Accepted');
   });
 });

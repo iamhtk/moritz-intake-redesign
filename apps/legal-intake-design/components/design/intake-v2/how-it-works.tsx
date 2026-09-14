@@ -3,429 +3,461 @@
 import type { CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/design/foundations/components/avatar';
+import { AVATAR_FRAMING } from '@/components/design/homepage-v2/legal-team';
+import type { MatterId } from '@/components/design/new-case/intake-types';
+import { leadForMatter } from '@/components/design/new-case/lawyers';
 import { TrustStrip } from '@/components/shared/trust-strip';
+import { JOURNEY_STEPS, type JourneyStepId } from '@/lib/intake/journey';
 
 /**
- * The three steps on the opening screen, in three treatments (temporary).
+ * How this works, on the screen before anything has been said.
  *
- * The block this replaces was deliberately quiet: an eyebrow and three muted
- * one-liners with a mono numeral, argued for on the grounds that it is
- * reference material rather than a pitch (see `brief-outline.tsx`). Read on the
- * page it is the flattest thing on a screen whose whole job is to make a law
- * firm feel worth talking to, and it is also the only block answering the
- * question the client actually has, which is what happens after they press
- * send. Quiet was the wrong call for the one paragraph that earns the click.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS IS THE RAIL'S STARTING POSITION, NOT A BROCHURE.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
- * All three of these ship at once, stacked and labelled, so the choice can be
- * made by looking at them rather than by reading a description of them. Two of
- * them come out again.
+ * The card this replaces had three steps — *Your words / Your brief / Your
+ * quote* — and each of the three things wrong with it was the same thing:
+ * it was written as marketing copy for a screen, rather than as the first
+ * frame of the tracker the client is about to spend the whole case reading.
  *
- * What they share, and what is not up for choice:
+ * 1. **"Your words" and "Your brief" are one step.** Talking and watching the
+ *    brief fill in are not two things that happen in sequence, they are the
+ *    same few minutes described twice. Splitting them bought a third column
+ *    and cost the client a step.
+ * 2. **It stopped at the quote.** Lawyer and Document — the two things the
+ *    client is actually paying for — were not on it at all. The brief this
+ *    answers puts it plainly: *"a quote to pay, a lawyer appears, a document
+ *    arrives."* A card that ends at the price describes the transaction and
+ *    leaves out the work.
+ * 3. **It said four hours.** Moritz's own figure, everywhere else in this
+ *    product and on their case pages, is 24.
  *
- * - **A scannable title per step.** Nobody reads three sentences before typing.
- *   "Your words / Your brief / Your quote" is the arc of the flow in three
- *   words, it is parallel, and it does not restate the sentence underneath it
- *   the way "Say it / Check it / Get a price" would.
- * - **The existing sentences, untouched.** The ask was the treatment.
- * - **No new colour.** The one fill used is `bg-mz-gradient-gold`, which is the
- *   brand's client path (see `onboarding-brand-panel.tsx`: grey is neutral,
- *   gold is client, sky is lawyer). This screen is the client path, so the
- *   panel is the brand answering a brand question rather than a tint picked to
- *   make a box stand out.
- * - **Serif for the numerals and titles.** The only other serif on this screen
- *   is the `h1`, which is where the premium of this page already lives.
+ * And it did not match the rail. `journey-rail.tsx` names the case in four
+ * words — Brief, Quote, Lawyer, Document — from the first reply to delivery.
+ * Two different "how it works" stories on adjacent screens is complaint #2
+ * (*"people do not understand the steps, or where they are in them"*) caused
+ * rather than answered.
+ *
+ * **So: the same four words as the rail, vertical, and each step says who does
+ * it and when.** The titles are read out of `intake.journey.step.*` rather
+ * than out of a `howItWorks` copy block of their own, which is the only way to
+ * make "the same four words" structurally true instead of a thing somebody has
+ * to remember when they edit one of them.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE "WHEN" COLUMN IS HONEST, NOT DECORATIVE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Three of the four have a real answer and the fourth says so:
+ *
+ * - *Now · a few minutes* on Brief — it is the client's own typing.
+ * - *Within 24 hours* on Quote — Moritz's own published figure, and the same
+ *   number `intake.journey.note.quote` gives the rail.
+ * - *When you accept* on Lawyer — assignment follows payment, which is the
+ *   real order and the one the confirmation already states.
+ * - *No estimate* on Document, with the reason attached. This is the flow's
+ *   existing rule, written on the confirmation: *"Only the quote has a time on
+ *   it. We would rather leave the rest without an estimate than guess at one."*
+ *   Saying it out loud where a competitor would print a fake number is more
+ *   premium than the number, not less.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHAT IS DELIBERATELY NOT IN HERE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * **No numbers.** No `01/02/03`, no "step 2 of 4", no percentage. The rail
+ * carries no count for the reason written at the top of `journey-rail.tsx`,
+ * and a card that numbers the same four steps teaches a vocabulary the tracker
+ * then refuses to speak. The dots and the line are the sequence.
+ *
+ * **No icons beyond the shield on the trust line, and no boxes inside the
+ * card.** One surface, one tint, type and hairlines for everything else.
+ *
+ * **One colour, and it is the token.** `bg-mz-gold` — flat `#fbf6ed` — rather
+ * than `bg-mz-gradient-gold`, which this card used to wear. The gradient's
+ * bottom stop is `#f1f0dd`, one of the four off-palette ambers the brand audit
+ * picked out (`#e8a952`, `#c0703d`, `#a17436`, `#f1f0dd`), so a card whose
+ * whole rule is "one colour" was quietly shipping two and a half. Flat cream
+ * is also the better surface for a list that is now twice as tall: a vertical
+ * wash reads as depth on a short block and as a stain on a long one.
+ *
+ * **Three dead variants are gone.** This file shipped four treatments at once
+ * — a gold panel, an editorial list, a centred stepper and the gold editorial
+ * that won — on the explicit understanding, in its own header, that the losers
+ * "come out again" (audit item 66). They never did. They are out now; the
+ * argument each of them made is in git.
  */
 
-const STEPS = [
-  { key: 'one', numeral: '01' },
-  { key: 'two', numeral: '02' },
-  { key: 'three', numeral: '03' },
-] as const;
+/**
+ * The two rows that carry a face.
+ *
+ * Quote and Lawyer, and nothing else. Brief is the client and Document is the
+ * client again, so a photograph on either would be a stock human being used as
+ * punctuation — which is the one thing this flow's whole treatment of real
+ * lawyers is written against.
+ */
+const FACE_STEPS: readonly JourneyStepId[] = ['quote', 'lawyer'];
 
 /**
- * The label above each block.
+ * The label above the card.
  *
  * Same type treatment as `SectionEyebrow` in `lawyer-showcase.tsx` (11px,
  * medium, uppercase, `tracking-[0.14em]`) so the two read as one system. Not
- * imported from it because that one is centred and two of these three are not,
- * and it takes no `className`.
+ * imported from it because that one is centred and takes no `className`.
  */
-function Eyebrow({ className }: { className?: string }) {
+function Eyebrow() {
   const t = useTranslations('intake');
 
   return (
-    <span
-      className={cn(
-        'text-muted-foreground block text-[11px] font-medium uppercase tracking-[0.14em]',
-        className,
-      )}
-    >
+    <span className="text-muted-foreground block text-[11px] font-medium uppercase tracking-[0.14em]">
       {t('howItWorks.title')}
     </span>
   );
 }
 
-/** Staggered entrance, so the three steps arrive as a sequence. */
-function stepDelay(index: number) {
-  return { animationDelay: `${index * 70}ms` };
+/**
+ * A step's mark, and the line down to the next one.
+ *
+ * Same grammar as the rail — a small round mark and a hairline — because the
+ * client is about to watch these exact marks move down the left of the page,
+ * and the card only works as the tracker's first frame if it is drawn in the
+ * tracker's own hand.
+ *
+ * **Brief is filled, the other three are hollow**, and this is the one place
+ * the card's marks differ from the rail's on purpose. The rail draws its
+ * current step as a *ring*, because a filled mark there sits in a column that
+ * also contains green ticks and would read as "done" — the "did my case
+ * actually submit?" confusion redrawn as a circle. Nothing on this card can
+ * ever be done: it exists only before the first word is typed, so a fill here
+ * can only mean the one thing it is meant to mean, which is *start here*.
+ */
+function StepMark({ here, connected }: { here: boolean; connected: boolean }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex shrink-0 flex-col items-center gap-1 pt-[5px]"
+    >
+      <span
+        className={cn(
+          'size-2.5 shrink-0 rounded-full border',
+          here ? 'border-foreground bg-foreground' : 'border-foreground/25',
+        )}
+      />
+      {connected ? <span className="bg-foreground/15 w-px flex-1" /> : null}
+    </div>
+  );
 }
 
 /**
- * A: a gold panel, three across.
+ * The face beside Quote and Lawyer.
  *
- * The heaviest of the three, and the one that answers the brief most directly:
- * the composer and the drop zone above it are both bordered surfaces, so a
- * third surface here finishes a rhythm the page already has instead of
- * introducing one. Numerals sit in hairline rings joined by a rule that bleeds
- * through the grid gutter, which is what makes three columns read as one
- * sequence rather than three facts.
+ * 22px, which is half the note's avatar below and about the smallest a real
+ * headshot survives: this is a person, not an icon, and the point of it is
+ * that the client can see they are one.
+ *
+ * **It follows the matter type.** `leadForMatter` is the same lookup the
+ * lawyer note, the confirmation and the case handoff all use, so the person
+ * who appears here is the person who appears everywhere else in the flow for
+ * this kind of matter. Before the client has said what the matter is —
+ * which, on this screen, is nearly always — it returns the default lead for
+ * unclassified work rather than guessing.
+ *
+ * **Not the note's rotation.** `intake-lawyer-note.tsx` cycles the roster
+ * while the matter is unknown, and that is right for a block whose whole
+ * subject is one human being. Two rows of this card would be cycling in
+ * peripheral vision beside a composer with a cursor in it, and the card's
+ * subject is the process, not the person.
+ *
+ * `overflow-hidden` is load-bearing, not tidying: `AVATAR_FRAMING` crops these
+ * headshots with a `scale`, and the foundation `Avatar` root deliberately does
+ * not clip (see `intake-lawyer-note.tsx` for the face that spilled over its
+ * own name).
  */
-export function HowItWorksPanel({ className }: { className?: string }) {
-  const t = useTranslations('intake');
-
+function LawyerFace({
+  name,
+  initials,
+  imageUrl,
+  id,
+}: {
+  name: string;
+  initials: string;
+  imageUrl: string;
+  id: string;
+}) {
   return (
-    <section
+    <Avatar
       className={cn(
-        'bg-mz-gradient-gold border-border/70 rounded-2xl border px-6 py-6 sm:px-8 sm:py-7',
-        className,
+        'size-[22px] shrink-0 overflow-hidden',
+        imageUrl ? 'border-border/60 border' : 'ring-primary/20 ring-1',
       )}
     >
-      <Eyebrow />
-      <ol className="mt-5 grid gap-6 sm:grid-cols-3 sm:gap-8">
-        {STEPS.map((step, index) => (
-          <li
-            key={step.key}
-            className="mz-animate-step"
-            style={stepDelay(index)}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className="border-foreground/20 bg-background/70 text-foreground flex size-7 shrink-0 items-center justify-center rounded-full border font-serif text-[13px] leading-none"
-              >
-                {index + 1}
-              </span>
-              {/*
-               * The rule to the next numeral. `-mr-8` is the grid's own gutter,
-               * so the line crosses it and lands on the next ring rather than
-               * stopping short and reading as a stray dash.
-               */}
-              {index < STEPS.length - 1 ? (
-                <span
-                  aria-hidden="true"
-                  className="bg-foreground/15 hidden h-px flex-1 sm:-mr-8 sm:block"
-                />
-              ) : null}
-            </div>
-            <p className="text-foreground mt-3.5 font-serif text-[15px] leading-none">
-              {t(`howItWorks.${step.key}Title`)}
-            </p>
-            <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">
-              {t(`howItWorks.${step.key}`)}
-            </p>
-          </li>
-        ))}
-      </ol>
-    </section>
+      <AvatarImage
+        src={imageUrl}
+        alt={name}
+        className={AVATAR_FRAMING[id] ?? 'object-cover'}
+      />
+      {/*
+       * The employment lead has no headshot by design (see `lawyers.ts`), and
+       * a monogram is the answer rather than a grey disc. Rendered
+       * unconditionally: an empty `src` resolves to `error` without a request,
+       * and leaving the image out entirely is what used to leave Radix's root
+       * thinking a photograph was still up, blanking the fallback.
+       */}
+      <AvatarFallback className="bg-primary/10 text-foreground text-[9px] font-medium tracking-wide">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
 /**
- * B: an editorial list, no surface.
+ * How long the card takes to get out of the way.
  *
- * Keeps the vertical reading order of the block it replaces and buys its
- * presence from type instead of chrome: the numeral is set large in the serif
- * and held back to a fifth of the foreground, so it reads as a folio rather
- * than as a bullet. Hairlines between the rows and nothing else. The quietest
- * way to be more than it was.
+ * Exported because the caller has to know: the card collapses in CSS and is
+ * then unmounted in React, and an unmount that lands early cuts the animation
+ * off mid-fade while one that lands late leaves an empty flex gap under the
+ * suggestion chips. One number, read by both halves. See the handoff note
+ * below and `phase === 'start'` in `intake-v2.tsx`.
  */
-export function HowItWorksEditorial({ className }: { className?: string }) {
-  const t = useTranslations('intake');
+export const HANDOFF_MS = 500;
 
-  return (
-    <section className={className}>
-      <Eyebrow />
-      <ol className="divide-border/70 border-border/70 mt-4 divide-y border-y">
-        {STEPS.map((step, index) => (
-          <li
-            key={step.key}
-            className="mz-animate-step flex items-baseline gap-5 py-4"
-            style={stepDelay(index)}
-          >
-            <span
-              aria-hidden="true"
-              className="text-foreground/20 w-9 shrink-0 font-serif text-2xl tabular-nums leading-none"
-            >
-              {step.numeral}
-            </span>
-            <div className="min-w-0">
-              <p className="text-foreground text-[13.5px] font-medium">
-                {t(`howItWorks.${step.key}Title`)}
-              </p>
-              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-                {t(`howItWorks.${step.key}`)}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-/**
- * C: a connected stepper, centred.
- *
- * The only one of the three that says the process has an end: two filled nodes
- * and a hollow one, on a single continuous hairline. It is the same grammar as
- * the five-step progress list on the case page
- * (`client-case-timeline.tsx`), turned on its side, so a client who submits
- * meets a shape they have already read. Centred under the serif heading, and
- * with no surface of its own.
- */
-export function HowItWorksStepper({ className }: { className?: string }) {
-  const t = useTranslations('intake');
-
-  return (
-    <section className={cn('flex flex-col items-center', className)}>
-      <Eyebrow />
-      <ol className="mt-5 grid w-full gap-6 sm:grid-cols-3 sm:gap-8">
-        {STEPS.map((step, index) => {
-          const isLast = index === STEPS.length - 1;
-
-          return (
-            <li
-              key={step.key}
-              className="mz-animate-step flex flex-col items-center text-center"
-              style={stepDelay(index)}
-            >
-              {/*
-               * Half a rule each side of the node, each bleeding half the
-               * gutter (`-ml-4`/`-mr-4` against `gap-8`), so the three cells
-               * draw one unbroken line. Suppressed at the ends, and on a phone
-               * where the grid is a single column and a horizontal rule would
-               * connect nothing.
-               */}
-              <div className="relative flex h-3 w-full items-center justify-center">
-                {index > 0 ? (
-                  <span
-                    aria-hidden="true"
-                    className="bg-foreground/15 absolute left-0 top-1/2 hidden h-px w-1/2 -translate-y-1/2 sm:-ml-4 sm:block"
-                  />
-                ) : null}
-                {!isLast ? (
-                  <span
-                    aria-hidden="true"
-                    className="bg-foreground/15 absolute right-0 top-1/2 hidden h-px w-1/2 -translate-y-1/2 sm:-mr-4 sm:block"
-                  />
-                ) : null}
-                {/*
-                 * Hollow for the last one. The quote is the thing that has not
-                 * happened yet, and an open node is how every stepper in the
-                 * product says so.
-                 */}
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'relative rounded-full',
-                    isLast
-                      ? 'border-foreground/40 bg-background size-3 border'
-                      : 'bg-foreground/70 size-2.5',
-                  )}
-                />
-              </div>
-              <p className="text-foreground mt-3 font-serif text-[15px] leading-none">
-                {t(`howItWorks.${step.key}Title`)}
-              </p>
-              <p className="text-muted-foreground mt-1.5 max-w-[16rem] text-xs leading-relaxed">
-                {t(`howItWorks.${step.key}`)}
-              </p>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
-  );
-}
-
-/**
- * E: the editorial list, on the gold panel.
- *
- * B's typography inside A's surface, and worth trying for one reason that is
- * not a compromise: the brand gradient runs `180deg`, white to `#fbf6ed` to
- * `#f1f0dd`, and an editorial list runs top to bottom too. So the wash deepens
- * along the reading direction and the heaviest tint lands on the last step,
- * which is the fixed quote. That is the only part of this block a client
- * actually cares about, and the gradient puts the weight there for free.
- *
- * Three things are deliberately not B's:
- *
- * 1. **The rules and the border are foreground alpha, not the `border` token.**
- *    A token hairline sits on a changing background value here: near white at
- *    the top of the panel, warm beige at the bottom. Held at a fixed alpha over
- *    the foreground, every rule carries the same weight down the block instead
- *    of the top ones reading stronger than the bottom ones.
- * 2. **The numerals are warm ink, not grey at 20%.** `text-foreground/20` is a
- *    cool grey, and cool grey over warm beige is the pairing that reads dirty
- *    rather than delicate. Mixing the foreground toward the panel's own gold
- *    puts the folio *in* the wash instead of on top of it. The 30% is the knob:
- *    lower is more delicate, higher holds up better against the deep end.
- *    Derived from brand tokens through `color-mix`, which this codebase already
- *    uses for exactly this kind of blend (see `button.tsx`), so it is not an
- *    off-palette colour invented for one block.
- * 3. **No `border-y` on the list.** B needed it because it had no container;
- *    here the panel's own edge is the boundary, and keeping both would draw two
- *    lines where the design has one.
- *
- * **The type, set the way this platform sets it.** The serif is Cormorant
- * Garamond, and `globals.css` does not treat it as a face you can drop in at
- * any size: it records that with the grayscale antialiasing here the serif
- * "reads too thin, especially at the small UI sizes these headings are actually
- * used at", and so pushes the small in-use steps to 600 while leaving the large
- * display steps at 500 for elegance. Both halves of that rule are applied.
- *
- * - **Titles: serif, 16px, 600.** They cannot simply take `font-serif` at the
- *   13.5px the sans version used. The same file rebalances its own serif and
- *   sans peers at 30px to 26px and 20px to 17px, which puts the serif about
- *   1.15x the nominal size of a sans that matches it optically: Cormorant has a
- *   much smaller x-height than Inter, so equal numbers do not read as equal
- *   text. 16px at 600 is the peer of 13.5px at 500. `tracking-tight` follows
- *   every other serif on this screen, including the `h1` above it.
- * - **Numerals: 500, not 600.** A folio held back in colour is a display
- *   element, not a label, and the same rule keeps display steps lighter. At 600
- *   the figures stop being a watermark and start competing with the titles.
- * - **Sentences: still sans.** This is the part of "according to the platform"
- *   that is a restriction rather than a licence. Every serif in the repo is a
- *   heading, a display number, or one 13px italic aside; nothing sets body copy
- *   in it. Two lines of 12px Cormorant is exactly the thin, patchy small text
- *   the rule above exists to prevent, and the editorial pairing this block
- *   wants is a serif title over a sans sentence anyway.
- *
- * The open question is mass rather than detail. Three stacked rows make a tall
- * panel, and a tall tint is a much bigger colour commitment than a short wide
- * one: this stops being an accent and becomes a section. The serif titles push
- * that slightly further, because 16px over 12px is a taller row than 13.5px
- * over 12px was. Worth looking at next to the composer to see whether it
- * competes with it.
- */
-export function HowItWorksGoldEditorial({
+export function HowItWorksCard({
+  matterId,
+  leaving = false,
   className,
   style,
 }: {
+  /**
+   * The matter as resolved from the brief's own `matter-type` field, or
+   * `undefined` before the client has said what this is.
+   *
+   * Same prop and same source as `IntakeLawyerNote` a few inches below —
+   * `matterOf(brief)`, never `brief.matterId`, which is pinned to `contract`
+   * for the life of every brief. Two faces on one screen disagreeing about who
+   * handles this matter would be worse than either of them being wrong alone.
+   */
+  matterId: MatterId | undefined;
+  /**
+   * ⭐ The card is on its way out, because the rail has taken over.
+   *
+   * ───────────────────────────────────────────────────────────────────────────
+   * THE CARD BECOMES THE RAIL.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * The moment the client types a character or drops a file, the same four
+   * words appear in the left rail with Brief active and this card folds away
+   * underneath them. The explanation *turns into* the tracker: same words,
+   * same dots, same line, so the client reads the shape once on the opening
+   * screen and then spends the rest of the case watching it move.
+   *
+   * Two rules make it safe rather than clever:
+   *
+   * 1. **The rail is in place before the card is gone.** The opening screen
+   *    reserves the rail's column from first paint and fills it the instant
+   *    the client begins; only then does this start folding. There is never a
+   *    frame with neither, which would read as the page losing something.
+   * 2. **`prefers-reduced-motion` gets a plain swap.** `motion-reduce:` drops
+   *    the transition here and `globals.css` drops the rail's entrance
+   *    keyframe, so the card is simply not there on the next render and the
+   *    rail simply is.
+   *
+   * A collapsing grid row rather than a height animation: `grid-rows-[1fr]` to
+   * `grid-rows-[0fr]` over an `overflow-hidden` child is the one way to
+   * animate to a content-derived height without measuring it, and measuring
+   * this card would mean a `ResizeObserver` on the opening screen — the exact
+   * thing `journey-rail.tsx` tore out.
+   */
+  leaving?: boolean;
   className?: string;
   /**
    * For the caller's entrance animation.
    *
-   * The rows used to animate in one at a time. That was a nice detail on its
-   * own and it compounds badly inside an animating parent, so the whole screen
-   * now takes one cascade and this panel is a single block in it. See
-   * `ENTRANCE_STAGGER_MS` in `intake-v2.tsx`.
+   * Nothing inside this card animates on load. The screen takes one cascade
+   * and this is a single block in it; see `ENTRANCE_STAGGER_MS` in
+   * `lib/entrance.ts` for why the per-row stagger this used to have was
+   * removed.
    */
   style?: CSSProperties;
 }) {
   const t = useTranslations('intake');
+  const lawyer = leadForMatter(matterId);
 
   return (
-    <section
-      className={cn(
-        'bg-mz-gradient-gold border-foreground/10 tall:px-6 tall:py-5 taller:px-8 taller:py-7 rounded-2xl border px-5 py-4',
-        className,
-      )}
-      style={style}
-    >
-      <Eyebrow />
-      {/*
-       * The list lies down until there is room to stand it up.
-       *
-       * This screen has to fit the window, and a stacked list is about 140px
-       * taller than the same three steps across a row: three lines of text
-       * each, plus a row of padding each, against one block of two lines. The
-       * vertical arrangement is the better read and it is what was chosen, so
-       * it is what appears the moment the window can afford it, and the
-       * horizontal one carries every screen that cannot.
-       *
-       * `tallest` rather than `taller`, because `taller` is already spending
-       * its extra height on padding; standing this up needs its own headroom.
-       * The rules only exist in the stacked arrangement: `divide-y` sets a top
-       * border on every item after the first, which across three grid columns
-       * would draw two short lines above the second and third steps rather
-       * than anything meaningful.
-       */}
-      <ol className="tallest:divide-foreground/10 tallest:mt-4 tallest:block tallest:divide-y mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
-        {STEPS.map((step) => (
-          <li
-            key={step.key}
-            className="tallest:gap-5 tallest:py-3.5 tallest:first:pt-0 tallest:last:pb-0 flex items-baseline gap-4"
-          >
-            <span
-              aria-hidden="true"
-              className="tallest:w-9 tallest:text-2xl w-7 shrink-0 font-serif text-xl font-medium tabular-nums leading-none [color:color-mix(in_oklab,var(--foreground)_30%,var(--mz-gold))]"
-            >
-              {step.numeral}
-            </span>
-            <div className="min-w-0">
-              <p className="text-foreground tallest:text-base font-serif text-[15px] font-semibold leading-tight tracking-tight">
-                {t(`howItWorks.${step.key}Title`)}
+    /*
+     * Three wrappers, and each one is load-bearing.
+     *
+     * The outer carries the caller's entrance, and it has to be a different
+     * element from the one that fades out: `mz-animate-step` is declared with
+     * `animation-fill-mode: both`, so its final keyframe keeps `opacity: 1`
+     * pinned on whatever element it is applied to, and a class setting
+     * `opacity-0` on that same element would simply lose. The middle one owns
+     * the collapse and the fade. The inner is the `overflow-hidden` the grid
+     * row needs to clip against.
+     */
+    <div className={className} style={style}>
+      <div
+        className={cn(
+          'grid transition-[grid-template-rows,opacity] duration-500 ease-out motion-reduce:transition-none',
+          leaving
+            ? 'pointer-events-none grid-rows-[0fr] opacity-0'
+            : 'grid-rows-[1fr] opacity-100',
+        )}
+        aria-hidden={leaving || undefined}
+      >
+        <div className="overflow-hidden">
+          <section className="bg-mz-gold border-foreground/10 tall:px-6 tall:py-5 taller:px-8 taller:py-6 rounded-2xl border px-5 py-4">
+            <Eyebrow />
+
+            {/*
+             * No gap on the list, and the breathing room is padding inside
+             * each row instead. A `gap` would break the hairline into three
+             * separate dashes between four dots, which is the thing that
+             * makes a stepper look broken — the rail solves it the same way,
+             * for the same reason.
+             */}
+            <ol className="tall:mt-4 mt-3 flex flex-col">
+              {JOURNEY_STEPS.map((step, index) => {
+                const here = index === 0;
+                const face = lawyer !== null && FACE_STEPS.includes(step);
+                const connected = index < JOURNEY_STEPS.length - 1;
+
+                return (
+                  <li key={step} className="flex gap-3">
+                    <StepMark here={here} connected={connected} />
+
+                    {/*
+                     * Who and when sit beside the description on anything wider than
+                     * a phone and underneath it below that. Right-aligned in a fixed
+                     * column so the four "when" answers form a readable second
+                     * column rather than four ragged tails, and capped at 10.5rem
+                     * because "No estimate. We would rather not guess." is a
+                     * sentence and would otherwise take a third of the row.
+                     */}
+                    <div
+                      className={cn(
+                        'flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-5',
+                        connected && 'tall:pb-4 pb-3.5',
+                      )}
+                    >
+                      <div className="min-w-0 flex-1">
+                        {/*
+                         * The rail's own word for this step, read from the rail's own
+                         * copy. Not a `howItWorks.*` title, because "the same four
+                         * words" has to be a fact about the code rather than a note
+                         * in a doc: one key, one place to edit it, and the card and
+                         * the tracker cannot drift apart.
+                         */}
+                        <p className="text-foreground font-serif text-[15px] font-semibold leading-tight tracking-tight">
+                          {t(`journey.step.${step}`)}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                          {t(`howItWorks.description.${step}`)}
+                        </p>
+                        {/*
+                         * Under Brief only, and tiny. The dot already says it; this
+                         * is for the client who reads the card as a list of four
+                         * unfamiliar words and wants to know which one is now.
+                         */}
+                        {here ? (
+                          <p className="text-muted-foreground/70 mt-1 text-[11px] leading-snug">
+                            {t('howItWorks.youAreHere')}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <div className="flex shrink-0 flex-col gap-0.5 sm:w-[10.5rem] sm:items-end sm:text-right">
+                        <div className="flex items-center gap-1.5 sm:flex-row-reverse">
+                          {face ? (
+                            <LawyerFace
+                              id={lawyer.id}
+                              name={lawyer.name}
+                              initials={lawyer.initials}
+                              imageUrl={lawyer.imageUrl}
+                            />
+                          ) : null}
+                          {/*
+                           * On Quote the person is named, because that is the row
+                           * where a real human being reads the brief and puts a
+                           * price on it, and a name with a practice area beside it
+                           * is the difference between a firm and a queue.
+                           *
+                           * On Lawyer the same face returns under *your lawyer*
+                           * rather than under the name again. The continuity is the
+                           * point of the row — the person who read it is the person
+                           * who takes it — and repeating the name would read as two
+                           * separate claims about an assignment that has not
+                           * happened yet.
+                           *
+                           * The practice area is the roster's own `title`, not a
+                           * shortened version of it. Same string the lawyer note
+                           * shows a few inches below, so the two cannot disagree
+                           * about what this person does.
+                           */}
+                          <span className="text-foreground text-[11px] font-medium leading-snug">
+                            {step === 'quote' && face
+                              ? lawyer.name
+                              : t(`howItWorks.who.${step}`)}
+                          </span>
+                        </div>
+                        {step === 'quote' && face ? (
+                          <span className="text-muted-foreground text-[10.5px] leading-snug">
+                            {lawyer.title}
+                          </span>
+                        ) : null}
+                        <span className="text-muted-foreground/80 text-[10.5px] leading-snug">
+                          {t(`howItWorks.when.${step}`)}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {/*
+             * The division of labour and the credentials, under one rule.
+             *
+             * Both answer the same question — a client who has read the four steps
+             * and is deciding whether to paste a dispute is asking "and then what"
+             * about the process, not about two separate topics. A second hairline
+             * would make the card a stack of three sections instead of a list with a
+             * footer.
+             *
+             * The sentence is Moritz's own, from the brief: *"Our agents do the first
+             * pass. Our lawyers finish it."* The video plan's version of this was
+             * "AI does 80%, a named human does 20%", which is a good framing and a
+             * number nobody has measured — a percentage is the most falsifiable
+             * shape a claim can take. Their words say the same thing as a division
+             * of labour, which is the part that is true.
+             *
+             * In the serif and not the sans, because it is the card's closing line
+             * rather than a fifth step, and the serif is how this flow marks an
+             * aside (see the file note in `brief-column.tsx`).
+             */}
+            <div className="border-foreground/10 tall:mt-4 tall:pt-3.5 mt-3 border-t pt-3">
+              <p className="text-foreground/75 font-serif text-[13px] italic leading-relaxed">
+                {t('howItWorks.footer')}
               </p>
-              <p className="text-muted-foreground tall:mt-1.5 mt-1 text-xs leading-relaxed">
-                {t(`howItWorks.${step.key}`)}
-              </p>
+              {/*
+               * The credentials, last and tight against the line above.
+               *
+               * They were a loose row under the composer, which had the better
+               * adjacency — that is the moment a contract is handed over — and no
+               * home. As the second line of the card's footer they are part of the
+               * same small paragraph, and the spacing has to say so. See
+               * `trust-strip.tsx` for why the treatment changes with the surface.
+               */}
+              <TrustStrip surface="gold" className="tall:mt-2 mt-1.5" />
             </div>
-          </li>
-        ))}
-      </ol>
-      {/*
-       * Who does which part of this, said once (V34).
-       *
-       * The video plan's version is "AI does 80%, a named human does 20%",
-       * which is a good framing and a number we cannot stand behind — nobody
-       * has measured it, and a percentage is the most falsifiable shape a claim
-       * can take. This says the same thing as a division of labour instead,
-       * which is the part that is actually true and the part the client cares
-       * about: the machine writes things down, a person decides what they mean.
-       *
-       * Here rather than on the lawyer note below, because this is the only
-       * block on the screen where both halves are already visible — steps one
-       * and two are Moritz, step three is a lawyer. It reads as a caption on
-       * the list it captions rather than as a new claim.
-       *
-       * Under the rule and in the muted size, because it is a summary of the
-       * three steps above and not a fourth one.
-       */}
-      {/*
-       * The terms under which the three steps happen: who does the work, and
-       * what protects it while they do.
-       *
-       * Both under one rule rather than two, because they answer the same
-       * question — a client who has read the steps and is deciding whether to
-       * paste a dispute is asking "and then what" about the process, not about
-       * two separate topics. A second hairline would make the panel a stack of
-       * three sections instead of a list with a footer.
-       */}
-      <div className="border-foreground/10 tall:mt-3.5 tall:pt-3.5 mt-3 border-t pt-3">
-        <p className="text-muted-foreground text-xs leading-relaxed">
-          {t('howItWorks.division')}
-        </p>
-        {/*
-         * The credentials, last.
-         *
-         * They were a loose row directly under the composer, which had the
-         * better adjacency — that is the moment a contract is being handed over
-         * — and no home: a four-item strip floating on white between the
-         * composer and the suggestion chips, one more thing on a screen whose
-         * problem is how many things are on it. Inside the panel they are the
-         * closing line of the only block that explains the process, which is
-         * the other honest place for them, and the move is close to free in
-         * height because the row above the composer goes away with it. See
-         * `trust-strip.tsx` for why the treatment changes with the surface.
-         *
-         * Tight against the line above rather than spaced off it. They were a
-         * row of pills with a row's worth of margin, which made the footer read
-         * as two blocks; as a second line of the same small type they are part
-         * of the same paragraph, and the spacing has to say so.
-         */}
-        <TrustStrip surface="gold" className="tall:mt-2 mt-1.5" />
+          </section>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -103,16 +103,31 @@ describe('colour restraint in the intake', () => {
   });
 
   /*
-   * The half of the old rule worth keeping: green belongs to the brief panel,
-   * which is where "settled" is a thing that can be true — the progress bar,
-   * the rows' ticks and readings, and the journey stepper's finished steps. A
-   * green anywhere else in the flow is a new meaning, which is the failure the
-   * original test was really about.
+   * The half of the old rule worth keeping: green means one thing, *settled
+   * and good*, and only the surfaces where settled can be true are allowed to
+   * say it — the progress bar, the rows' ticks and readings, and the finished
+   * steps on the journey rail. A green anywhere else in the flow is a new
+   * meaning, which is the failure the original test was really about.
+   *
+   * `brief-stepper.tsx` was on this list and is gone: it and `case-progress`
+   * were one stepper drawn twice, and `journey-rail.tsx` is the single
+   * replacement. The rail is also the strictest use of the three — a bare
+   * tick, no filled disc, no rail tint — because it sits in the margin for the
+   * whole flow and four green badges down the side of a law firm's intake is
+   * exactly the SaaS-dashboard failure the rail is written against.
    */
-  it('keeps green on the brief panel, where settled means something', () => {
+  it('keeps green where settled means something', () => {
     const files = [...new Set(usages(PATTERNS.green!).map((one) => one.file))];
     expect(files.sort()).toEqual(
-      ['brief-column.tsx', 'brief-field-row.tsx', 'brief-stepper.tsx'].sort(),
+      [
+        'brief-column.tsx',
+        'brief-field-row.tsx',
+        'journey-rail.tsx',
+        // The same rail laid out horizontally for narrow screens, so the same
+        // tick for the same reason. Two files rather than one because the
+        // layouts are genuinely different shapes, not because the meaning is.
+        'journey-bar.tsx',
+      ].sort(),
     );
   });
 });

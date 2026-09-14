@@ -122,6 +122,15 @@ export function QuoteCard({
    * client has committed to. When it is true the four responses are gone
    * entirely rather than disabled: the decision has been made, and leaving four
    * greyed-out controls on screen invites the client to wonder whether it took.
+   *
+   * ⭐ It used to switch on a second thing as well: a disabled
+   * "Pay US$3,800 and start" button with a note saying payments were out of
+   * scope. That is cut (§3's Step E). Moritz's case page already has a real
+   * "Pay invoice" control, and a greyed-out imitation of a control they ship
+   * is the furthest anything in this prototype strayed from redesigning
+   * intake — it invented a payment screen for a firm that has one. What is
+   * left on this card after accepting is the terms the client just agreed to,
+   * which is a record rather than a step.
    */
   accepted: boolean;
   /**
@@ -250,26 +259,13 @@ export function QuoteCard({
         {t('exampleNote')}
       </p>
 
-      {accepted ? (
-        /*
-         * What accepting actually bought, and the one step still outstanding.
-         *
-         * Garzai: "Customer get a link with quota in the intake chat, they pay
-         * it there." Payment is out of scope in this prototype, so the control
-         * is here, disabled, and says so — rather than being absent, which
-         * would leave the client's last screen claiming a lawyer comes next
-         * when what actually comes next is a card payment. A flow that hides
-         * its commercial step is the thing this whole screen was added to fix.
-         */
-        <div className="flex flex-col gap-2">
-          <Button type="button" className="w-full" disabled>
-            {t('accepted.payAction', { fee: money })}
-          </Button>
-          <p className="text-muted-foreground text-[11.5px] leading-relaxed">
-            {t('accepted.payNote')}
-          </p>
-        </div>
-      ) : open === null ? (
+      {/*
+       * Nothing between the terms and the responses once accepted.
+       *
+       * A disabled pay button stood here. See the note on `accepted`: the
+       * real one is on their case page, which is where "Go to case" lands.
+       */}
+      {accepted ? null : open === null ? (
         <div className="flex flex-col gap-2">
           {QUOTE_RESPONSES.map((response) => (
             <Button

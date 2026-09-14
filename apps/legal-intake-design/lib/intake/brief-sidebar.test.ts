@@ -248,9 +248,25 @@ describe('the sidebar, read as source', () => {
     );
   });
 
-  /* 5. Air between the position sentence and the marker row. */
-  it('separates the stepper’s sentence from its markers', () => {
-    const stepper = read('components/design/intake-v2/brief-stepper.tsx');
-    expect(stepper).toContain("cn('flex flex-col gap-3', className)");
+  /*
+   * 5. The stepper is no longer in the sidebar at all.
+   *
+   * It used to sit in this footer, above the send sentence, and the spacing
+   * between its position line and its marker row was the thing this case
+   * checked. Both are gone: the four steps are the left rail now
+   * (`journey-rail.tsx`), which is fixed to the window rather than living in
+   * a column that scrolls, and it carries no position line because it carries
+   * no numbers. What is worth pinning here is that the footer did not quietly
+   * grow a replacement.
+   */
+  it('has no stepper in the footer any more', () => {
+    const intake = read('components/design/intake-v2/intake-v2.tsx');
+    const footer = intake.slice(
+      intake.indexOf('const briefFooter = ('),
+      intake.indexOf('const briefPanel = ('),
+    );
+    expect(footer).not.toContain('<BriefStepper');
+    expect(footer).not.toContain('<JourneyRail');
+    expect(footer).toContain('FOOTER_SENTENCE[phase]');
   });
 });

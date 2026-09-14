@@ -18,7 +18,7 @@ import { INTAKE_PHASES, type IntakePhase } from './phase';
 const translator = createTranslator({
   locale: 'en',
   messages: { intake: messages.intake },
-  namespace: 'intake.caseProgress',
+  namespace: 'intake.journey',
 });
 
 const t = translator as unknown as (
@@ -67,17 +67,34 @@ describe('the case stages', () => {
     expect(t('detail.pricing')).toContain('already being written');
   });
 
-  it('resolves the disclosure and the no-timings note', () => {
-    const work = CASE_STAGES.filter((stage) => stage.group === 'work').length;
-    expect(t('showWork', { count: work })).toContain(String(work));
-    expect(t('hideWork', { count: work })).toContain(String(work));
-    expect(t('noTimings').length).toBeGreaterThan(0);
-    expect(t('title').length).toBeGreaterThan(0);
+  /*
+   * The rail is 144px wide and every sentence in it is written to that
+   * measure. The old copy was written for a 400px panel — "Your lawyer is
+   * assigned and takes over this chat" wrapped to four lines in the margin,
+   * which is how a quiet rail becomes the loudest column on the page. A
+   * character cap is the version of "short lines" a test can check.
+   */
+  it('keeps every sentence short enough for the margin', () => {
+    for (const stage of CASE_STAGES) {
+      expect(
+        t(`stage.${stage.id}`).length,
+        `stage.${stage.id} is too long for the rail`,
+      ).toBeLessThanOrEqual(40);
+    }
+  });
+
+  it('resolves the disclosure labels and the states', () => {
+    for (const key of ['expand', 'collapse', 'label']) {
+      expect(t(key).length).toBeGreaterThan(0);
+    }
+    for (const state of ['done', 'current', 'future']) {
+      expect(t(`state.${state}`).length).toBeGreaterThan(0);
+    }
   });
 
   it('splits at the commercial gate: four rows to pay, three after', () => {
-    // The fold in `case-progress.tsx` is this split. A row moving across it
-    // would change what a client sees before deciding to spend money.
+    // The commercial gate. A row moving across it would change what a client
+    // sees before deciding to spend money.
     expect(CASE_STAGES.filter((stage) => stage.group === 'quote')).toHaveLength(
       4,
     );
@@ -123,6 +140,47 @@ describe('how far the rail has got', () => {
     // and the client already has one of those.
     for (const phase of ['sent', 'quoted'] as const) {
       expect(caseStages(phase)).toHaveLength(CASE_STAGES.length);
+    }
+  });
+
+  /*
+   * Before the case has gone there is no `current` row at all, and this is the
+   * invariant the left rail needs that the confirmation-only rail did not.
+   * `reached` returns 0 for every pre-submission phase, and 0 is also a real
+   * mark meaning "waiting on `sent`". The rail shows all seven rows from the
+   * first screen, greyed, so the ambiguity would have told a client who had
+   * typed one sentence that their case had reached us.
+   */
+  it('marks nothing at all before the case has gone', () => {
+    for (const phase of ['start', 'building', 'review', 'sending'] as const) {
+      const rows = caseStages(phase);
+      expect(rows.every((row) => row.state === 'future')).toBe(true);
+    }
+  });
+
+  /*
+   * ⭐ Accepting ticks one more row, and that row is "You accept it and pay".
+   *
+   * The tick is making a claim about a payment that has not happened, and
+   * `case-stages.ts` records why that is the right call here: payment is out
+   * of scope in this prototype — it is on Moritz's own case page — so a row
+   * that could never tick would sit there reading as stalled for the rest of
+   * the flow, which is the failure this rail was built against. Accepting is
+   * as far as the client can go, and the next row becomes what the case is
+   * waiting on, which is what the chat says too.
+   */
+  it('ticks the client’s own step once they have accepted', () => {
+    const accepted = caseStages('quoted', true);
+    expect(
+      accepted.filter((row) => row.state === 'done').map((row) => row.id),
+    ).toEqual(['sent', 'pricing', 'quote', 'paid']);
+    expect(accepted.find((row) => row.state === 'current')?.id).toBe('lawyer');
+  });
+
+  /* And does nothing at all on a phase where there is no quote to accept. */
+  it('ignores acceptance before the quote exists', () => {
+    for (const phase of ['building', 'review', 'sending', 'sent'] as const) {
+      expect(caseStages(phase, true)).toEqual(caseStages(phase, false));
     }
   });
 

@@ -6,7 +6,8 @@ import {
   AttachmentMedia,
   AttachmentTitle,
 } from '@/components/design/foundations/components/attachment';
-import { FileText, X } from '@repo/ui/icons';
+import { X } from '@repo/ui/icons';
+import { describeFile } from '@/components/design/new-case/file-utils';
 import { cn } from '@repo/ui/lib/utils';
 
 /**
@@ -29,10 +30,28 @@ export function MessageAttachment({
   onRemove?: () => void;
   className?: string;
 }) {
+  /*
+   * The file's own glyph and colour, not a generic page (§1 #8).
+   *
+   * `describeFile` is the map the case pages, the document viewer and the old
+   * new-case flow have always used: PDF red, Word blue, Excel green,
+   * PowerPoint orange, everything else grey. This component hardcoded one
+   * slate page icon for every file, so the thing a client is most likely to
+   * hand over — a contract, as a PDF — arrived looking like a text file, and
+   * looked different here from how the same file looks on the case page they
+   * are handed off to.
+   *
+   * Wiring, not a design decision. The red is Adobe's, the way the blue is
+   * Word's; it is a file-type convention rather than the brand's
+   * `destructive` token, which means "stop here" and is capped for that
+   * reason.
+   */
+  const { Icon, colorClass } = describeFile(name);
+
   const body = (
     <>
       <AttachmentMedia>
-        <FileText aria-hidden="true" />
+        <Icon aria-hidden="true" className={colorClass} />
       </AttachmentMedia>
       <AttachmentContent>
         <AttachmentTitle>{name}</AttachmentTitle>

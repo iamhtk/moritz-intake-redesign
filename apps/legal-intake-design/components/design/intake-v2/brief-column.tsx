@@ -1,7 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/design/foundations/components/collapsible';
 import type { Brief, BriefField } from '@/lib/intake/brief';
 import { BriefFieldRow } from './brief-field-row';
 import type { FieldReceipt } from './use-brief';
@@ -31,6 +36,7 @@ export function BriefColumn({
   afterFields,
   footer,
   readOnly = false,
+  foldFields = false,
   showProgress = true,
   savedAt = null,
   titlePending = false,
@@ -108,6 +114,19 @@ export function BriefColumn({
   /** A sent brief is a record. No Accept, no pencil, no Undo. */
   readOnly?: boolean;
   /**
+   * Fold the field rows behind one line (§3's progressive disclosure).
+   *
+   * Separate from `readOnly` although today they are set from the same
+   * phase, because they are different claims: `readOnly` is about whether the
+   * brief can still be changed, this is about whether it is the thing on the
+   * screen. On the confirmation it is not — the client has just read every
+   * one of these rows on the review screen and confirmed them one at a time,
+   * and repeating the whole document underneath the receipt is what made that
+   * screen 2265px tall. It stays one click away because it is the record, and
+   * a record you cannot open is a claim.
+   */
+  foldFields?: boolean;
+  /**
    * The bar is a gate being worked towards, so it goes once the gate is
    * behind the client. A full green bar over a submitted case is decoration.
    */
@@ -118,6 +137,59 @@ export function BriefColumn({
   onOpenSource: (field: BriefField) => void;
 }) {
   const t = useTranslations('intake.brief');
+  const [fieldsOpen, setFieldsOpen] = useState(false);
+
+  const fieldRows = (
+    <div className="mt-2 flex flex-col">
+      {brief.fields.map((field) => {
+        const receipt = receipts[field.key];
+        return (
+          <BriefFieldRow
+            key={field.key}
+            field={field}
+            hint={hints[field.key]}
+            {...(receipt ? { receipt } : {})}
+            /*
+             * Item 4, and the two halves of "it clears": the question moving
+             * on is `askingKey` changing, and the field filling is the value
+             * check. A row that has just been answered must not still be
+             * marked as the one being waited on, even for the render before
+             * the next turn arrives.
+             */
+            asking={field.key === askingKey && field.value === null}
+            readOnly={readOnly}
+            onConfirm={() => onConfirm(field.key)}
+            onEdit={(value) => onEdit(field.key, value)}
+            onUndo={() => onUndo(field.key)}
+            onOpenSource={() => onOpenSource(field)}
+          />
+        );
+      })}
+    </div>
+  );
+
+  /*
+   * The file note signature (item 14).
+   *
+   * "Prepared with", not "prepared by", and the name is the client's. That is
+   * the one-word version of the whole argument of this panel: the brief is not
+   * something done to them and handed over for approval, it is a document they
+   * co-wrote and can still change. A file note signed by Moritz would quietly
+   * undo every Accept and Edit control above it.
+   *
+   * Cormorant Garamond, italic and muted, at the smallest step on the scale,
+   * because a signature is not content. It is the mark at the bottom of a page
+   * that tells you the page is a real document — so when the page folds away,
+   * the signature folds with it.
+   */
+  const signature = preparedWith ? (
+    <p className="text-muted-foreground mt-6 font-serif text-[13px] italic">
+      {t('preparedWith', {
+        name: preparedWith.name,
+        timestamp: preparedWith.timestamp,
+      })}
+    </p>
+  ) : null;
 
   return (
     <section aria-label={t('title')} className="flex h-full min-h-0 flex-col">
@@ -204,80 +276,76 @@ export function BriefColumn({
 
       {notice ? <div className="mt-6">{notice}</div> : null}
 
-      <div className="mt-2 flex flex-col">
-        {brief.fields.map((field) => {
-          const receipt = receipts[field.key];
-          return (
-            <BriefFieldRow
-              key={field.key}
-              field={field}
-              hint={hints[field.key]}
-              {...(receipt ? { receipt } : {})}
-              /*
-               * Item 4, and the two halves of "it clears": the question moving
-               * on is `askingKey` changing, and the field filling is the value
-               * check. A row that has just been answered must not still be
-               * marked as the one being waited on, even for the render before
-               * the next turn arrives.
-               */
-              asking={field.key === askingKey && field.value === null}
-              readOnly={readOnly}
-              onConfirm={() => onConfirm(field.key)}
-              onEdit={(value) => onEdit(field.key, value)}
-              onUndo={() => onUndo(field.key)}
-              onOpenSource={() => onOpenSource(field)}
-            />
-          );
-        })}
-      </div>
+      {foldFields ? (
+        /*
+         * ⭐ The whole brief, behind one line.
+         *
+         * `Collapsible` rather than a `line-clamp` like the recap paragraph
+         * above it, and the difference is the point: there is no useful first
+         * line of a field list. Half a row is not a preview of a document, it
+         * is a document that looks broken. This block either is on the screen
+         * or is not, which is exactly the shape Radix's primitive has.
+         *
+         * The whole row is the trigger, not the word on the end of it. "Show"
+         * is 34px wide and the row is the width of the panel; making the
+         * client aim at the word would be a smaller target than the thing it
+         * is attached to.
+         */
+        <Collapsible
+          open={fieldsOpen}
+          onOpenChange={setFieldsOpen}
+          className="mt-6 flex flex-col"
+        >
+          <CollapsibleTrigger className="border-border text-muted-foreground hover:text-foreground focus-visible:ring-ring -mx-1 flex items-center justify-between gap-3 rounded-[0.5rem] border-t px-1 pt-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2">
+            <span>{t('foldedFields', { count: brief.fields.length })}</span>
+            <span className="flex shrink-0 items-center gap-1.5 underline underline-offset-4">
+              {t(fieldsOpen ? 'foldedHide' : 'foldedShow')}
+            </span>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {fieldRows}
+            {signature}
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
+        <>
+          {fieldRows}
 
-      {/*
-       * The autosave, acknowledged under the document it saved (item 3).
-       *
-       * The height is reserved whether or not there is anything to say, so the
-       * line appearing and going never nudges the rows above it or the face
-       * below. That is the whole reason this is an always-mounted box with a
-       * fading child rather than a conditional render: the brief is a document
-       * the client is reading, and something shifting under their eyes every
-       * few seconds is worse than no acknowledgement at all.
-       *
-       * Keyed on the timestamp, which is what replays the fade. `role="status"`
-       * rather than an `aria-live` region on the whole panel, so a screen
-       * reader hears "Saved just now" and not the brief again.
-       */}
-      <div className="h-5 shrink-0" aria-hidden={savedAt === null}>
-        {savedAt === null ? null : (
-          <p
-            key={savedAt}
-            role="status"
-            className="text-muted-foreground mz-animate-saved pt-1.5 text-[11.5px]"
-          >
-            {t('saved')}
-          </p>
-        )}
-      </div>
+          {/*
+           * The autosave, acknowledged under the document it saved (item 3).
+           *
+           * The height is reserved whether or not there is anything to say, so
+           * the line appearing and going never nudges the rows above it or the
+           * face below. That is the whole reason this is an always-mounted box
+           * with a fading child rather than a conditional render: the brief is
+           * a document the client is reading, and something shifting under
+           * their eyes every few seconds is worse than no acknowledgement at
+           * all.
+           *
+           * Keyed on the timestamp, which is what replays the fade.
+           * `role="status"` rather than an `aria-live` region on the whole
+           * panel, so a screen reader hears "Saved just now" and not the brief
+           * again.
+           *
+           * Only in the unfolded branch: `savedAt` is `null` on every phase
+           * that folds, because a submitted case is not being saved to the
+           * client's own browser any more.
+           */}
+          <div className="h-5 shrink-0" aria-hidden={savedAt === null}>
+            {savedAt === null ? null : (
+              <p
+                key={savedAt}
+                role="status"
+                className="text-muted-foreground mz-animate-saved pt-1.5 text-[11.5px]"
+              >
+                {t('saved')}
+              </p>
+            )}
+          </div>
 
-      {/*
-       * The file note signature (item 14).
-       *
-       * "Prepared with", not "prepared by", and the name is the client's. That
-       * is the one-word version of the whole argument of this panel: the brief
-       * is not something done to them and handed over for approval, it is a
-       * document they co-wrote and can still change. A file note signed by
-       * Moritz would quietly undo every Accept and Edit control above it.
-       *
-       * Cormorant Garamond, italic and muted, at the smallest step on the
-       * scale, because a signature is not content. It is the mark at the bottom
-       * of a page that tells you the page is a real document.
-       */}
-      {preparedWith ? (
-        <p className="text-muted-foreground mt-6 font-serif text-[13px] italic">
-          {t('preparedWith', {
-            name: preparedWith.name,
-            timestamp: preparedWith.timestamp,
-          })}
-        </p>
-      ) : null}
+          {signature}
+        </>
+      )}
 
       {afterFields ? <div className="mt-7">{afterFields}</div> : null}
 

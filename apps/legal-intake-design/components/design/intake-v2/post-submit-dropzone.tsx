@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FileText } from '@repo/ui/icons';
+import { describeFile } from '@/components/design/new-case/file-utils';
 import { FileDropzone } from '@/components/shared/file-dropzone';
 import { ACCEPTED_FILES_ATTRIBUTE } from '@/lib/intake/accepted-files';
 
@@ -95,22 +95,14 @@ export function PostSubmitDropzone({
                   title={added.name}
                   className="text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] focus-visible:outline-ring focus-visible:outline-solid -mx-1.5 flex w-full cursor-pointer items-center gap-2 rounded-[0.5rem] px-1.5 py-1 text-left text-[13px] outline-none transition-colors focus-visible:outline-2"
                 >
-                  <FileText
-                    className="size-3.5 shrink-0"
-                    strokeWidth={1.75}
-                    aria-hidden="true"
-                  />
+                  <FileGlyph name={added.name} />
                   <span className="decoration-border truncate underline underline-offset-2">
                     {added.name}
                   </span>
                 </button>
               ) : (
                 <span className="text-muted-foreground flex items-center gap-2 py-1 text-[13px]">
-                  <FileText
-                    className="size-3.5 shrink-0"
-                    strokeWidth={1.75}
-                    aria-hidden="true"
-                  />
+                  <FileGlyph name={added.name} />
                   <span className="truncate">{added.name}</span>
                 </span>
               )}
@@ -135,5 +127,24 @@ export function PostSubmitDropzone({
         className="gap-2.5 rounded-2xl px-4 py-5"
       />
     </div>
+  );
+}
+
+/**
+ * The file's own glyph and colour (§1 #8).
+ *
+ * Both rows here — the one that opens the document and the one that cannot —
+ * drew the same slate page icon for every file. `describeFile` is the map the
+ * case pages and the document viewer already use, so a PDF handed over after
+ * submission now looks like the PDF it will look like on the case page.
+ *
+ * A local component rather than two copies of three lines, because the two
+ * rows differ only in whether the name is a button and the glyph is the one
+ * thing that must not drift between them.
+ */
+function FileGlyph({ name }: { name: string }) {
+  const { Icon, colorClass } = describeFile(name);
+  return (
+    <Icon aria-hidden="true" className={`size-3.5 shrink-0 ${colorClass}`} />
   );
 }

@@ -42,6 +42,7 @@ export function ChatColumn({
   onAttach,
   onRemoveAttachment,
   onOpenDocument,
+  onEdit,
   attachmentsCanSend,
   beneathComposer,
 }: {
@@ -67,6 +68,16 @@ export function ChatColumn({
    * thought about them. So a chip is a control, not a receipt.
    */
   onOpenDocument: (name: string) => void;
+  /**
+   * The client is typing, for the one caller that needs to know before they
+   * send.
+   *
+   * Passed straight through to `ChatComposer`; see the prop there for why it
+   * is not `onChange`. The opening screen uses it to hand the "how this works"
+   * card over to the journey rail on the first character, which has to happen
+   * while the client is still mid-sentence rather than after they submit it.
+   */
+  onEdit?: (next: string) => void;
   /**
    * Whether the docked files are something the client can send on their own.
    *
@@ -354,6 +365,7 @@ export function ChatColumn({
             busy={busy}
             onSend={onSend}
             onAttach={onAttach}
+            {...(onEdit ? { onEdit } : {})}
             /*
              * The page owns the drag, not the composer.
              *

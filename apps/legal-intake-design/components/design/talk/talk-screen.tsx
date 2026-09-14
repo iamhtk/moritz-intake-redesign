@@ -198,13 +198,13 @@ export function TalkScreen({ matterId }: { matterId?: MatterId }) {
       {/*
        * The way back, and it goes to the list rather than to a case.
        *
-       * It used to point at `SUBMITTED_CASE.href`, which is one specific case —
-       * `/client/cases/case_009`, the single mock the intake's submission
-       * stands for. That is the right destination for the confirmation
-       * screen's "Go to case", where the client has just sent *that* matter and
-       * is being shown where it landed. It is the wrong one here: this screen is
-       * not about any one case, the message may not be about a case at all, and
-       * a client who arrived from the nav had never seen case_009 in their life.
+       * It used to point at `SUBMITTED_CASE.href`, which is one specific
+       * case — the single mock the intake's submission stands for. That is the
+       * right destination for the confirmation screen's "Go to case", where
+       * the client has just sent *that* matter and is being shown where it
+       * landed. It is the wrong one here: this screen is not about any one
+       * case, the message may not be about a case at all, and a client who
+       * arrived from the nav had never seen that case in their life.
        *
        * `/client/cases` is also what makes it unconditional. The old link was
        * gated on a submission existing, because a case page for a case nobody

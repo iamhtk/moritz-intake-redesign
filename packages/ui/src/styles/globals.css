@@ -345,13 +345,29 @@
 
   /*
    * A scrollbar that surfaces only while its region is moving, for readers whose
-   * system draws scrollbars permanently. The gutter is reserved at all times, so
-   * the thumb arriving never reflows the content beside it; only the thumb's
-   * colour changes, keyed off the `data-scrolling` mark that useScrollActivity
-   * writes. The -webkit- rules cover engines predating standard scrollbar
-   * properties, which is why both spellings are here.
+   * system draws scrollbars permanently. Only the thumb's colour changes, keyed
+   * off the `data-scrolling` mark that useScrollActivity writes. The -webkit-
+   * rules cover engines predating standard scrollbar properties, which is why
+   * both spellings are here.
+   *
+   * `scrollbar-gutter: stable` is what makes the claim above true, and it was
+   * missing: this block already said "the gutter is reserved at all times, so
+   * the thumb arriving never reflows the content beside it", and nothing here
+   * reserved anything. Hiding the *thumb* does not reserve a *track* — the
+   * track exists only while the region overflows, so every region using this
+   * narrowed by 8px the moment its content grew past its height.
+   *
+   * It showed up as the intake's brief panel: opening the folded brief under a
+   * quote made the panel overflow, the scrollbar appeared, and the quote card
+   * above it visibly shrank from the right. A disclosure that resizes the
+   * thing next to it reads as a layout bug even when it is a browser doing
+   * exactly what it was asked.
+   *
+   * Reserved always, so the width of a scrolling region is a property of the
+   * region rather than of how much is currently in it.
    */
   .mz-scrollbar-on-scroll {
+    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     transition: scrollbar-color 200ms ease-out;

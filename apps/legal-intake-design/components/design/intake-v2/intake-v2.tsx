@@ -17,6 +17,7 @@ import {
   DocumentRailTrigger,
   DocumentResizeHandle,
   MIN_DOCUMENT_WIDTH,
+  gridTrackWidth,
   useDocumentWorkspace,
   type DocumentCitation,
 } from '@/components/design/documents/viewer';
@@ -72,6 +73,7 @@ import { matterOf } from '@/lib/intake/matter-of';
 import {
   canEnterReview,
   canSend,
+  hasConfirmation,
   intakePhase,
   isSealed,
   isSubmitted,
@@ -101,8 +103,7 @@ import {
 import { progressNoteFor } from '@/lib/intake/progress-note';
 import { WaitingQuestions } from './waiting-questions';
 import { BriefColumn } from './brief-column';
-import { BriefStepper } from './brief-stepper';
-import { HowItWorksGoldEditorial } from './how-it-works';
+import { HANDOFF_MS, HowItWorksCard } from './how-it-works';
 import { BriefSummaryBar } from './brief-summary-bar';
 import { DropOverlay } from './drop-overlay';
 import { IntakeLawyerNote } from './intake-lawyer-note';
@@ -111,9 +112,11 @@ import { NoQuoteNotice } from './no-quote-notice';
 import { QuoteCard } from './quote-card';
 import { ReviewNotice } from './review-notice';
 import { SentConfirmation } from './sent-confirmation';
-import { CaseProgress } from './case-progress';
 import { SendingSteps } from './sending-steps';
-import { hasCaseProgress } from '@/lib/intake/case-stages';
+import { describeFile } from '@/components/design/new-case/file-utils';
+import { JourneyBar } from './journey-bar';
+import { PrototypeLink } from './prototype-link';
+import { JourneyRailColumn } from './journey-rail';
 import { SENDING_TOTAL_MS } from '@/lib/intake/sending-steps';
 import { SuggestionChips } from './suggestion-chips';
 import { TalkToAPerson } from './talk-to-a-person';
@@ -121,27 +124,6 @@ import { ChatColumn } from './chat-column';
 import { useBrief } from './use-brief';
 import { useConversation } from './use-conversation';
 import { useWindowDrop } from './use-window-drop';
-
-/**
- * How long before the quote lands (item 78, G3).
- *
- * The commercial step was unreachable by playing the flow: `quoted` was set
- * only by the demo seed, so a reviewer clicking through never saw the thing
- * Garzai named as the actual next event — "that next step is a quote, not a
- * lawyer" — and never saw the screen where the client pays for it.
- *
- * A timer is the honest stand-in here because the real trigger is an event we
- * do not have: a lawyer finishing a price, some hours later. Twelve seconds is
- * obviously not four hours and is not pretending to be; it is the shortest wait
- * that still reads as a wait, so the arrival is something that *happens to* the
- * client — announced in the chat, raised on the bell — rather than a screen
- * they were already on. Stated as a prototype compression in `NOTE.md`.
- *
- * Only ever started by a real submission, never by `?demo=sent`. The demo
- * links are documented as five separate states and one of them quietly turning
- * into another would break that.
- */
-const QUOTE_ARRIVES_MS = 12_000;
 
 /**
  * Which document suggestion a read falls back to when the documents did not
@@ -484,6 +466,7 @@ export function IntakeV2() {
     send,
     retry,
     say,
+    rewindTo,
     sayClient,
     sayWhile,
     finishSaying,
@@ -673,6 +656,23 @@ export function IntakeV2() {
   // acknowledged rather than swallowed by the layout switch.
   const [startChoice, setStartChoice] = useState<string | undefined>(undefined);
 
+  /**
+   * ⭐ The client has started, which is earlier than the case has started.
+   *
+   * `started` below is `messages.length > 0` — the first turn has gone to the
+   * server — and that is the right boundary for the phase, the layout and
+   * everything the brief does. It is the wrong boundary for the card-to-rail
+   * handoff, which has to happen on the *first character*: the whole point of
+   * the move is that the explanation becomes the tracker while the client is
+   * still writing their first sentence, not a beat after they submit it.
+   *
+   * So the composer reports its edits (`onEdit`, threaded through
+   * `ChatColumn`) and this holds the one bit that comes out of them. State
+   * rather than the composer's text, because the screen does not want to
+   * re-render on every keystroke to learn a boolean it already knows.
+   */
+  const [typed, setTyped] = useState(false);
+
   // ----------------------------------------------------------------- phases
 
   const started = messages.length > 0;
@@ -754,24 +754,10 @@ export function IntakeV2() {
   }, [briefLed]);
 
   const sendingTimer = useRef<number | null>(null);
-  const quoteTimer = useRef<number | null>(null);
-  /**
-   * Whether a quote is owed to this screen.
-   *
-   * A ref rather than state, and gated rather than keyed on the phase, because
-   * `sent` is reachable two ways and only one of them should produce a price:
-   * a real submission does, and `?demo=sent` must not, or the documented demo
-   * state would turn into a different documented demo state while a reviewer
-   * was reading it.
-   */
-  const expectQuote = useRef(false);
   useEffect(
     () => () => {
       if (sendingTimer.current !== null) {
         window.clearTimeout(sendingTimer.current);
-      }
-      if (quoteTimer.current !== null) {
-        window.clearTimeout(quoteTimer.current);
       }
     },
     [],
@@ -796,9 +782,6 @@ export function IntakeV2() {
     sendingTimer.current = window.setTimeout(() => {
       sendingTimer.current = null;
       setStage('sent');
-      // Armed here rather than in the effect that reads it, so only a case that
-      // actually went through is owed a price. See `expectQuote`.
-      expectQuote.current = true;
 
       /*
        * The case stops being a draft in this browser and becomes a case on the
@@ -911,16 +894,12 @@ export function IntakeV2() {
      * `quoteOutcome` and `quoteAccepted` outlive the stage they belong to: they
      * are plain state on this component, not derived from it, so a client who
      * accepted a quote and then started a second case would carry an accepted
-     * quote into a case that has not been priced. The timers are cancelled for
-     * the same reason — a quote arriving into a fresh intake would be the
-     * previous case's event landing on this one.
+     * quote into a case that has not been priced. The send timer is cancelled
+     * for the same reason — a confirmation arriving into a fresh intake would
+     * be the previous case's event landing on this one.
      */
     setQuoteOutcome(null);
     setQuoteAccepted(false);
-    if (quoteTimer.current !== null) {
-      window.clearTimeout(quoteTimer.current);
-      quoteTimer.current = null;
-    }
     if (sendingTimer.current !== null) {
       window.clearTimeout(sendingTimer.current);
       sendingTimer.current = null;
@@ -2127,7 +2106,13 @@ export function IntakeV2() {
        * its rows need — which is the same priority the drag itself has, applied
        * to a change the client did not make by dragging.
        */
-      const room = grid.getBoundingClientRect().width - briefWidth - chatFloor;
+      /*
+       * `gridTrackWidth`, not the grid's own width: while a document is
+       * docked the grid reserves a left gutter for the journey rail, and a
+       * clamp that counted it would let the panel grow into the rail and push
+       * the conversation below its floor to pay for it.
+       */
+      const room = gridTrackWidth(grid) - briefWidth - chatFloor;
       const max = Math.max(MIN_DOCUMENT_WIDTH, Math.round(room));
       if (chosen > max) setDocumentWidth(max);
     };
@@ -2218,13 +2203,33 @@ export function IntakeV2() {
    * One derived value rather than a second piece of state, so removing a file
    * has exactly one place to remove it from.
    */
-  const dockedAttachments: ComposerAttachment[] =
+  /*
+   * The composer's docked file chips, carrying their own glyph (§1 #8).
+   *
+   * `ChatComposer` has always rendered `attachment.icon` and
+   * `attachment.iconClassName` — its own type comments them as "a per-file-type
+   * token like `text-red-600`" — and both sides of this expression were built
+   * without either, so the composer fell back to a generic page icon in slate.
+   * The gap was upstream of the component that looked wrong, which is why it
+   * survived: nothing in the composer was broken.
+   *
+   * `describeFile` is the same map the case pages and the document viewer use,
+   * so a contract dropped into the composer is the red PDF it will still be on
+   * the case page at the other end of the flow.
+   */
+  const withGlyph = (attachment: ComposerAttachment): ComposerAttachment => {
+    const { Icon, colorClass } = describeFile(attachment.name);
+    return { ...attachment, icon: Icon, iconClassName: colorClass };
+  };
+
+  const dockedAttachments: ComposerAttachment[] = (
     attachments.length > 0
       ? attachments
       : stagedFiles.map((one) => ({
           id: `staged_${one.file.name}`,
           name: one.file.name,
-        }));
+        }))
+  ).map(withGlyph);
 
   /**
    * Whether what is docked is a message in itself.
@@ -2236,6 +2241,52 @@ export function IntakeV2() {
    * pressed is the defect this distinguishes.
    */
   const dockedCanSend = attachments.length === 0 && stagedFiles.length > 0;
+
+  /**
+   * ⭐ The opening screen's handoff: the card explains, then the rail tracks.
+   *
+   * ───────────────────────────────────────────────────────────────────────────
+   * THE CARD BECOMES THE RAIL.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * `HowItWorksCard` and `JourneyRailColumn` say the same four words — Brief,
+   * Quote, Lawyer, Document — out of the same copy key. On the opening screen
+   * the card says them in the middle of the page with a sentence each; the
+   * moment the client types a character or drops a file, the rail fills the
+   * column it has been holding open since first paint and the card folds away
+   * underneath it. The client reads the shape once and then watches it move
+   * for the rest of the case.
+   *
+   * **Begun means typed or dropped, not sent.** Both are the client starting,
+   * and the drop is the one that matters most: somebody who hands over a
+   * contract without a word has done more to start this case than somebody
+   * halfway through a sentence.
+   *
+   * **Two pieces of state rather than one**, because CSS and React have to
+   * agree on an order. `begun` drives the fold, which is a transition on the
+   * card. `cardGone` unmounts it afterwards, and it has to be afterwards: a
+   * card unmounted on the same tick never animates, and a card left mounted
+   * forever leaves the opening column carrying a collapsed block's flex gap
+   * between the suggestion chips and the lawyer note.
+   *
+   * **Reduced motion takes the plain swap the rules ask for.** No fold, no
+   * fade, no wait: the card is gone on the next render and the rail's own
+   * entrance keyframe is already disabled in `globals.css`. Read at the
+   * moment of the handoff rather than subscribed to, because this fires once
+   * per session and a client who changes the setting mid-sentence is not a
+   * case worth a listener.
+   */
+  const begun = typed || dockedAttachments.length > 0;
+  const [cardGone, setCardGone] = useState(false);
+  useEffect(() => {
+    if (!begun || cardGone) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setCardGone(true);
+      return;
+    }
+    const handoffTimer = window.setTimeout(() => setCardGone(true), HANDOFF_MS);
+    return () => window.clearTimeout(handoffTimer);
+  }, [begun, cardGone]);
 
   /*
    * The one lawyer this flow claims is involved.
@@ -2290,37 +2341,113 @@ export function IntakeV2() {
     say(t('sent.chatIntro'));
   }, [say, stage, t]);
 
-  useEffect(() => {
-    if (stage !== 'sent' || !expectQuote.current) return;
-    // Claimed immediately: a re-render while the timer is pending must not
-    // start a second one, and a quote is owed once.
-    expectQuote.current = false;
+  /**
+   * The quote arriving, on request rather than on a clock (§3, Step F).
+   *
+   * ───────────────────────────────────────────────────────────────────────────
+   * THIS WAS A TWELVE-SECOND TIMER, AND THE TIMER HAD TO GO.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * `QUOTE_ARRIVES_MS = 12_000`, armed by every real submission. Twelve
+   * seconds after Send, the confirmation replaced itself with the quote
+   * screen on its own. The argument for it was good — the real trigger is an
+   * event we do not have, a lawyer finishing a price some hours later, and a
+   * short wait makes the arrival something that *happens to* the client
+   * rather than a screen they were already on.
+   *
+   * What it did in practice is dissolve the last screen of the required flow
+   * while the reviewer was reading it. The confirmation is the answer to the
+   * brief's first complaint, and it had a twelve-second fuse on it.
+   *
+   * So the same three things happen in the same order, fired by a control the
+   * reviewer presses instead:
+   *
+   *   1. the phase moves to `quoted`, which ticks the rail from "a lawyer
+   *      prices the work" to "your price arrives here";
+   *   2. Moritz says so in the chat, naming the lawyer who priced it;
+   *   3. the bell raises it, with a face on it, and the card appears in the
+   *      panel.
+   *
+   * The ordering is the point rather than an accident of how it was written:
+   * a reviewer should watch the machinery work rather than arrive at a
+   * finished state. See `sent-confirmation.tsx` for why the control has to
+   * look like a prototype control and not a feature.
+   *
+   * `expectQuote` went with the timer. It existed to keep `?demo=sent` from
+   * turning into `?demo=quote` on its own, and nothing arms itself any more —
+   * the two demo states stay two demo states because only a press moves
+   * between them. `?demo=quote` is still the second way in.
+   */
+  /**
+   * The turn that announced the quote, so "Back to the confirmation" can take
+   * it back with the phase. See `returnToConfirmation`.
+   */
+  const quoteLine = useRef<string | null>(null);
 
-    quoteTimer.current = window.setTimeout(() => {
-      quoteTimer.current = null;
-      setQuoteOutcome('quoted');
-      setStage('quoted');
-      say(t('quote.arrivedChat', { name: leadFirstName }));
-      raisePortalNotification(
-        'NON_LEGAL',
-        quoteReadyNotification({
-          caseNumber: SUBMITTED_CASE.reference,
-          caseTitle: brief.title ?? t('email.fallbackName'),
-          href: SUBMITTED_CASE.href,
-          title: t('notification.quoteTitle'),
-          content: t('notification.quoteBody', {
-            reference: SUBMITTED_CASE.reference,
-          }),
-          /*
-           * The one notification in this flow with a face on it, and the
-           * reason is in `quoteReadyNotification`: a person really did write
-           * this, which is not true of the submission receipt.
-           */
-          lawyer: lead ? { name: lead.name, image: lead.imageUrl } : null,
+  const advanceToQuote = useCallback(() => {
+    // Once. The control lives on the confirmation and the confirmation goes
+    // when the phase moves, but a double-press inside one render should not
+    // announce the same quote twice.
+    if (stage !== 'sent') return;
+
+    setQuoteOutcome('quoted');
+    setStage('quoted');
+    quoteLine.current = say(t('quote.arrivedChat', { name: leadFirstName }));
+    raisePortalNotification(
+      'NON_LEGAL',
+      quoteReadyNotification({
+        caseNumber: SUBMITTED_CASE.reference,
+        caseTitle: brief.title ?? t('email.fallbackName'),
+        href: SUBMITTED_CASE.href,
+        title: t('notification.quoteTitle'),
+        content: t('notification.quoteBody', {
+          reference: SUBMITTED_CASE.reference,
         }),
-      );
-    }, QUOTE_ARRIVES_MS);
+        /*
+         * The one notification in this flow with a face on it, and the reason
+         * is in `quoteReadyNotification`: a person really did write this,
+         * which is not true of the submission receipt.
+         */
+        lawyer: lead ? { name: lead.name, image: lead.imageUrl } : null,
+      }),
+    );
   }, [stage, say, t, leadFirstName, lead, brief.title]);
+
+  /**
+   * Back to the confirmation, for a reviewer who skipped ahead.
+   *
+   * The mirror of `advanceToQuote`, and it exists because a one-way door
+   * strands people: the quote screen — and especially the accepted state
+   * after "Accept and start", which is as far as this prototype goes — had no
+   * way back to the last screen of the required flow except starting a case
+   * again.
+   *
+   * It rewinds the conversation as well as the phase, and that is the half
+   * that is easy to leave out. Without it the rail ticks back to "a lawyer
+   * prices the work" while the chat two inches away still says the price
+   * arrived, which is a contradiction on the screen a reviewer is judging.
+   * See `rewindTo` for why that primitive is deliberately reachable only from
+   * here.
+   *
+   * `quoteAccepted` is cleared too. It outlives the phase — it is plain state
+   * rather than something derived from it — so a reviewer who accepted, went
+   * back, and skipped ahead again would find the quote already accepted and
+   * no way to press the button they came to look at.
+   *
+   * The bell is left alone. `QUOTE_READY_NOTIFICATION_ID` is fixed and the
+   * mock store dedupes on it, so going forward a second time re-raises
+   * nothing, and a notification that had genuinely arrived is not something a
+   * rewind should be able to unsend.
+   */
+  const returnToConfirmation = useCallback(() => {
+    if (quoteLine.current !== null) {
+      rewindTo(quoteLine.current);
+      quoteLine.current = null;
+    }
+    setQuoteAccepted(false);
+    setQuoteOutcome(null);
+    setStage('sent');
+  }, [rewindTo]);
 
   const onQuoteResponse = useCallback(
     (response: QuoteResponse, message: string) => {
@@ -2337,6 +2464,18 @@ export function IntakeV2() {
          * and Moritz says the same sentence twice.
          */
         if (quoteAccepted) return;
+        /*
+         * ⭐ Three things, and §3's Step E is the list of what is *not* here.
+         *
+         * A line in the chat, a tick on the rail's "You accept it and pay"
+         * row — `quoteAccepted` is what `caseStages` reads for that — and the
+         * quote card settling into the terms that were agreed. No payment
+         * screen, no disabled "Pay US$3,800 and start", no amount presented
+         * as a thing still owed. Moritz's case page has a real "Pay invoice"
+         * control and "Go to case" now lands on it; a greyed-out imitation of
+         * a control they ship was the furthest this prototype ever strayed
+         * from redesigning intake.
+         */
         setQuoteAccepted(true);
         say(t('quote.approved', { name }));
         toast.success(t('quote.response.approve'));
@@ -2391,6 +2530,16 @@ export function IntakeV2() {
       }}
       onAttach={receiveFiles}
       onOpenDocument={openDocumentNamed}
+      /*
+       * The first character, for the card-to-rail handoff on the opening
+       * screen. Passed in every phase rather than only that one, because the
+       * flag it sets is read on one screen and a prop that appears and
+       * disappears with the layout is a prop somebody has to reason about.
+       * After the opening screen it is a no-op: `typed` is already true.
+       */
+      onEdit={(next) => {
+        if (next.trim().length > 0) setTyped(true);
+      }}
       attachmentsCanSend={dockedCanSend}
       /*
        * The way out, under the composer, in every phase (V22).
@@ -2459,17 +2608,14 @@ export function IntakeV2() {
   const briefFooter = (
     <div className="flex flex-col gap-3">
       {/*
-       * Where they are in the whole case, above the sentence about what happens
-       * next and the button that starts it.
+       * No stepper here any more. It is the left rail (`journey-rail.tsx`).
        *
-       * Answers the brief's second complaint — "People do not understand the
-       * steps in the submission process, or where they are in it" — which the
-       * flow had no answer to at all: the progress bar says how much of the
-       * *brief* is done, and nothing said the brief was step one of four. See
-       * `journey.ts` for why four steps and not the pipeline's seven.
+       * This footer is inside a column that scrolls, and a stepper the client
+       * has to scroll to find is not an answer to "where am I". The rail is
+       * fixed to the window and is on screen for the whole flow, including the
+       * confirmation, where this one used to be replaced by a second, longer
+       * stepper saying the same thing in different words.
        */}
-      <BriefStepper phase={phase} className="pb-1" />
-
       {/*
        * The commercial sentence, and it has to change on `quoted` (G3).
        *
@@ -2589,6 +2735,23 @@ export function IntakeV2() {
       preparedWith={preparedWith}
       readOnly={submitted}
       /*
+       * §3's progressive disclosure: the brief folds to one line once the
+       * confirmation is on screen.
+       *
+       * `hasConfirmation`, not `submitted`, and the one phase between them is
+       * the whole point. Through `sending` the brief is still the only thing
+       * in this column — the confirmation does not exist yet and the sending
+       * steps are four lines in the footer — so folding it there leaves an
+       * empty panel with a "Show" link in it, at the exact moment the client
+       * is watching for a sign that something is happening. It folds when
+       * there is something to fold *behind*.
+       *
+       * Different claim from `readOnly` as well as different phases.
+       * `readOnly` is whether the brief can still be changed, which closes on
+       * the click; this is whether it is still the subject of the screen.
+       */
+      foldFields={hasConfirmation(phase)}
+      /*
        * Kept through `sending` on purpose. Decision 18 asks for one change per
        * boundary, and the send boundary's change is the button becoming a line
        * — pulling the bar at the same moment makes it two. It goes at `sent`,
@@ -2617,7 +2780,6 @@ export function IntakeV2() {
             notice: (
               <SentConfirmation
                 brief={brief}
-                phase={phase}
                 matterId={matterId}
                 addedDocuments={addedDocuments}
                 onAttachDocument={onAttachAfterSubmit}
@@ -2642,6 +2804,7 @@ export function IntakeV2() {
                  */
                 documentCount={documents.documents.length}
                 onAddOutcome={addOutcomeAfterSubmit}
+                onSkipToQuote={advanceToQuote}
               />
             ),
           }
@@ -2673,16 +2836,28 @@ export function IntakeV2() {
                   onRespond={onQuoteResponse}
                 />
                 {/*
-                 * The same rail as the confirmation, one row further on.
-                 *
-                 * Kept on this screen rather than retired with the
-                 * confirmation, because the question it answers has changed
-                 * rather than gone: on `sent` it says what the wait is for, and
-                 * here it says what accepting actually buys. Somebody deciding
-                 * whether to spend money on a law firm is entitled to see the
-                 * three steps that follow the payment before they make it.
+                 * The pipeline rail used to be repeated here, under the quote.
+                 * It is in the left margin now, one row further on, and it has
+                 * been on screen since the first message rather than appearing
+                 * twice after the client presses Send.
                  */}
-                {hasCaseProgress(phase) ? <CaseProgress phase={phase} /> : null}
+
+                {/*
+                 * The way back, and it is rendered outside the card on
+                 * purpose so it survives "Accept and start".
+                 *
+                 * `quoteAccepted` changes what `QuoteCard` draws inside
+                 * itself; it does not change the phase. Putting the link here
+                 * rather than in the card means the accepted state — the
+                 * furthest this prototype goes, and the easiest place for a
+                 * reviewer to get stranded — keeps it without the card having
+                 * to know anything about prototype controls.
+                 */}
+                <PrototypeLink
+                  action="backToConfirmation"
+                  direction="back"
+                  onClick={returnToConfirmation}
+                />
               </div>
             ),
           }
@@ -2690,10 +2865,18 @@ export function IntakeV2() {
       {...(phase === 'quoted' && quoteOutcome === 'no-quote'
         ? {
             notice: (
-              <NoQuoteNotice
-                reason="not-fixed-fee"
-                onSend={(message) => onQuoteResponse('question', message)}
-              />
+              <div className="flex flex-col gap-6">
+                <NoQuoteNotice
+                  reason="not-fixed-fee"
+                  onSend={(message) => onQuoteResponse('question', message)}
+                />
+                {/* The same way back. This screen is a dead end too. */}
+                <PrototypeLink
+                  action="backToConfirmation"
+                  direction="back"
+                  onClick={returnToConfirmation}
+                />
+              </div>
             ),
           }
         : {})}
@@ -2757,201 +2940,264 @@ export function IntakeV2() {
   // the brief steps out of its box onto the page (Decision 18).
   if (phase === 'start') {
     return (
-      <div className="tall:py-7 taller:py-10 mx-auto flex min-h-full w-full max-w-[940px] flex-col px-4 py-5 sm:px-6">
+      /*
+       * ⭐ No rail until the client begins, and then the rail instead of the
+       * card.
+       *
+       * The rule here used to be "no rail on this screen, in either layout",
+       * and the argument was sound: nothing has been started, so there is no
+       * position to report, and a stepper beside an empty composer is four
+       * labels tracking a case that does not exist.
+       *
+       * It is still true of the empty screen and it stopped being the whole
+       * rule when the card below started saying the rail's own four words.
+       * Once Brief, Quote, Lawyer and Document are on this page anyway, the
+       * rail is not a second stepper arriving — it is the same one, taking
+       * over. So the column waits, empty, and fills on the first character.
+       * See `JourneyHandoff` in `journey-rail.tsx` and `HANDOFF_MS` above.
+       *
+       * **The column is reserved from first paint, not conditionally
+       * rendered.** This screen is a centred composition; a 11.25rem column
+       * appearing at the left would shove the composer sideways under the
+       * cursor of somebody mid-sentence. So the rail's track and a mirror of
+       * it on the right are both paid for before anyone is looking, and the
+       * 940px column stays centred in the window whether the rail is drawn or
+       * not.
+       */
+      <div className="flex min-h-full w-full flex-col">
         {/*
-         * `my-auto` rather than `justify-center`: it centres the column when
-         * there is room, and quietly gives up when there is not, letting the
-         * page scroll instead. Centring a flex column that overflows clips the
-         * top of it, which is how a short laptop screen loses the heading.
-         */}
-        {/*
-         * Height-first spacing, like the client homepage.
+         * The rail lying down, for the widths with no room for a column.
          *
-         * This screen is meant to fit the window: it is the first thing a
-         * client sees and a scrollbar on it says the form is longer than it
-         * looks. The base values are the ones that have to survive a laptop,
-         * and `tall:`/`taller:` buy the air back when the window has it. See
-         * the variant definitions in `globals.css`.
+         * Conditional where the column is reserved, because this one costs
+         * nothing to leave out: it is a full-width bar above the content, so
+         * it pushes down rather than sideways, and the card folding away at
+         * the same moment gives back several times its height.
          */}
-        <div className="tall:gap-6 taller:gap-8 my-auto flex flex-col gap-5">
-          {/*
-           * The three things said once, before Moritz says anything (items 1,
-           * 2 and 3).
-           *
-           * All three live on this screen rather than in an opening chat
-           * message, and that is the firing rule rather than a layout
-           * preference. This screen exists only while `phase === 'start'`, so
-           * greeting the client by name, telling them the law is not their job
-           * to explain, and telling them they can leave whenever they like are
-           * structurally incapable of happening twice. An opening message in
-           * the transcript would be three sentences the model could then
-           * echo, and a scrollback the client passes on their way to the
-           * bottom every time they come back.
-           *
-           * The prompt is told all three have been said and that none of them
-           * are his to repeat. See `system-prompt.ts`.
-           */}
-          {/*
-           * The greeting, and one line telling them what to do. Nothing else.
-           *
-           * Everything this used to say has an owner elsewhere on the screen:
-           * the composer's placeholder says a document can be handed over, the
-           * brief panel lists what will be asked for, and the three steps below
-           * say how the next few minutes go. A client who has not typed a word
-           * yet is not reading a preamble, and copy that restates what the
-           * layout already shows is the most expensive kind to keep.
-           */}
-          <header
-            className={cn(
-              'tall:gap-3 flex flex-col gap-2 text-center',
-              ENTRANCE_CLASS,
-            )}
-            style={entrance(0)}
-          >
-            <h1 className="text-foreground tall:text-3xl mx-auto max-w-2xl font-serif text-2xl tracking-tight">
-              {firstName === null
-                ? t('start.headingAnonymous')
-                : t('start.heading', { firstName })}
-            </h1>
-            <p className="text-muted-foreground tall:text-base mx-auto max-w-xl text-sm">
-              {t('start.subheading')}
-            </p>
-          </header>
+        {begun ? <JourneyBar phase={phase} className="xl:hidden" /> : null}
 
-          {/*
-           * The opening move is one action, and there is now one place to make
-           * it: say what you need, drop the document, send once (A, Decision 1,
-           * L2).
-           *
-           * There used to be a second, separate drop zone under the composer.
-           * It came from a good instinct — an intake whose best input is a
-           * contract should not hide the way to hand one over behind an icon —
-           * but it answered that by adding a target rather than by making the
-           * existing one obvious, and two places to put a document is the exact
-           * shape of the complaint this redesign is answering. The zone is gone
-           * and nothing it did is lost: the whole window still takes a drop
-           * (`use-window-drop.ts`), the composer takes one itself and now says
-           * so in the same visual language as the page (`chat-composer.tsx`),
-           * and the paperclip still opens the picker. Three ways in, one place
-           * they land.
-           *
-           * What the deletion buys is the Legora composition: one serif line as
-           * the largest thing on the screen, the composer directly under it,
-           * and nothing between them competing for the first glance.
-           *
-           * Attaching here does *not* start reading the document. The file is
-           * held until send, so the description and the document arrive
-           * together and the turn call sees a brief the contract has already
-           * filled in.
-           */}
-          <div
-            className={cn('flex flex-col gap-3', ENTRANCE_CLASS)}
-            style={entrance(1)}
-          >
-            <div className="flex flex-col">{chatColumn()}</div>
+        <div className="flex w-full flex-1">
+          <JourneyRailColumn
+            phase={phase}
+            handoff={begun ? 'arriving' : 'waiting'}
+          />
+
+          <div className="tall:py-7 taller:py-10 mx-auto flex w-full max-w-[940px] flex-col px-4 py-5 sm:px-6">
             {/*
-             * Permission to leave, directly under the thing they are being
-             * asked to fill in (item 3).
-             *
-             * It was in the intro and it was wrong there: a preamble is read by
-             * someone deciding whether to start, and this sentence is for
-             * someone already mid-thought who has just realised they need to go
-             * and find the contract. Set to match the save indicator on the
-             * brief, because it is the same promise: the one says work is kept,
-             * the other shows it being kept.
+             * `my-auto` rather than `justify-center`: it centres the column when
+             * there is room, and quietly gives up when there is not, letting the
+             * page scroll instead. Centring a flex column that overflows clips the
+             * top of it, which is how a short laptop screen loses the heading.
              */}
             {/*
-             * Nothing renders here now. Both halves of this row left for a
-             * reason, so both reasons are recorded rather than dropped.
+             * Height-first spacing, like the client homepage.
              *
-             * The credentials moved into the gold "how this works" panel below
-             * (see its footer in `how-it-works.tsx`). This was the better
-             * adjacency — a client reads this row while deciding whether to
-             * upload a contract — but it was a loose strip on white with no
-             * container, and the panel is the one block on the screen that
-             * already explains the process. The height it frees is roughly the
-             * height it costs down there, which is what made the move cheap on
-             * a screen that has to fit the window.
-             *
-             * The reassurance line is commented out rather than deleted,
-             * because the argument for where it sits is the expensive part to
-             * rebuild; uncomment the `<p>` to bring it back.
+             * This screen is meant to fit the window: it is the first thing a
+             * client sees and a scrollbar on it says the form is longer than it
+             * looks. The base values are the ones that have to survive a laptop,
+             * and `tall:`/`taller:` buy the air back when the window has it. See
+             * the variant definitions in `globals.css`.
              */}
-            {/*
-             * Italic and 7px because it is an aside: permission to leave, not
-             * an instruction.
-             *
-             * It spent a while rendered with an inline `fontSize` while sizes
-             * were compared, because the dev server was serving a stale CSS
-             * chunk and every newly written arbitrary size compiled to
-             * nothing, silently falling back to the inherited 16px. That is
-             * why three successive attempts at "smaller" all looked
-             * identical. Worth knowing the next time a size will not take.
-             */}
-            {/* <p className="text-muted-foreground px-1 text-[7px] italic leading-relaxed">
+            <div className="tall:gap-6 taller:gap-8 my-auto flex flex-col gap-5">
+              {/*
+               * The three things said once, before Moritz says anything (items 1,
+               * 2 and 3).
+               *
+               * All three live on this screen rather than in an opening chat
+               * message, and that is the firing rule rather than a layout
+               * preference. This screen exists only while `phase === 'start'`, so
+               * greeting the client by name, telling them the law is not their job
+               * to explain, and telling them they can leave whenever they like are
+               * structurally incapable of happening twice. An opening message in
+               * the transcript would be three sentences the model could then
+               * echo, and a scrollback the client passes on their way to the
+               * bottom every time they come back.
+               *
+               * The prompt is told all three have been said and that none of them
+               * are his to repeat. See `system-prompt.ts`.
+               */}
+              {/*
+               * The greeting, and one line telling them what to do. Nothing else.
+               *
+               * Everything this used to say has an owner elsewhere on the screen:
+               * the composer's placeholder says a document can be handed over, the
+               * brief panel lists what will be asked for, and the four steps below
+               * say how the whole case goes. A client who has not typed a word
+               * yet is not reading a preamble, and copy that restates what the
+               * layout already shows is the most expensive kind to keep.
+               */}
+              <header
+                className={cn(
+                  'tall:gap-3 flex flex-col gap-2 text-center',
+                  ENTRANCE_CLASS,
+                )}
+                style={entrance(0)}
+              >
+                <h1 className="text-foreground tall:text-3xl mx-auto max-w-2xl font-serif text-2xl tracking-tight">
+                  {firstName === null
+                    ? t('start.headingAnonymous')
+                    : t('start.heading', { firstName })}
+                </h1>
+                <p className="text-muted-foreground tall:text-base mx-auto max-w-xl text-sm">
+                  {t('start.subheading')}
+                </p>
+              </header>
+
+              {/*
+               * The opening move is one action, and there is now one place to make
+               * it: say what you need, drop the document, send once (A, Decision 1,
+               * L2).
+               *
+               * There used to be a second, separate drop zone under the composer.
+               * It came from a good instinct — an intake whose best input is a
+               * contract should not hide the way to hand one over behind an icon —
+               * but it answered that by adding a target rather than by making the
+               * existing one obvious, and two places to put a document is the exact
+               * shape of the complaint this redesign is answering. The zone is gone
+               * and nothing it did is lost: the whole window still takes a drop
+               * (`use-window-drop.ts`), the composer takes one itself and now says
+               * so in the same visual language as the page (`chat-composer.tsx`),
+               * and the paperclip still opens the picker. Three ways in, one place
+               * they land.
+               *
+               * What the deletion buys is the Legora composition: one serif line as
+               * the largest thing on the screen, the composer directly under it,
+               * and nothing between them competing for the first glance.
+               *
+               * Attaching here does *not* start reading the document. The file is
+               * held until send, so the description and the document arrive
+               * together and the turn call sees a brief the contract has already
+               * filled in.
+               */}
+              <div
+                className={cn('flex flex-col gap-3', ENTRANCE_CLASS)}
+                style={entrance(1)}
+              >
+                <div className="flex flex-col">{chatColumn()}</div>
+                {/*
+                 * Permission to leave, directly under the thing they are being
+                 * asked to fill in (item 3).
+                 *
+                 * It was in the intro and it was wrong there: a preamble is read by
+                 * someone deciding whether to start, and this sentence is for
+                 * someone already mid-thought who has just realised they need to go
+                 * and find the contract. Set to match the save indicator on the
+                 * brief, because it is the same promise: the one says work is kept,
+                 * the other shows it being kept.
+                 */}
+                {/*
+                 * Nothing renders here now. Both halves of this row left for a
+                 * reason, so both reasons are recorded rather than dropped.
+                 *
+                 * The credentials moved into the gold "how this works" panel below
+                 * (see its footer in `how-it-works.tsx`). This was the better
+                 * adjacency — a client reads this row while deciding whether to
+                 * upload a contract — but it was a loose strip on white with no
+                 * container, and the panel is the one block on the screen that
+                 * already explains the process. The height it frees is roughly the
+                 * height it costs down there, which is what made the move cheap on
+                 * a screen that has to fit the window.
+                 *
+                 * The reassurance line is commented out rather than deleted,
+                 * because the argument for where it sits is the expensive part to
+                 * rebuild; uncomment the `<p>` to bring it back.
+                 */}
+                {/*
+                 * Italic and 7px because it is an aside: permission to leave, not
+                 * an instruction.
+                 *
+                 * It spent a while rendered with an inline `fontSize` while sizes
+                 * were compared, because the dev server was serving a stale CSS
+                 * chunk and every newly written arbitrary size compiled to
+                 * nothing, silently falling back to the inherited 16px. That is
+                 * why three successive attempts at "smaller" all looked
+                 * identical. Worth knowing the next time a size will not take.
+                 */}
+                {/* <p className="text-muted-foreground px-1 text-[7px] italic leading-relaxed">
               {t('start.reassurance')}
             </p> */}
+              </div>
+
+              {/*
+               * A way in for someone who does not know how to begin. Below the
+               * composer and under a quiet lead-in: typing or dropping a document is
+               * the flow, and these must not compete with it.
+               */}
+              <SuggestionChips
+                className={ENTRANCE_CLASS}
+                style={entrance(2)}
+                chips={chipsByField[MATTER_TYPE_KEY] ?? []}
+                label={t('start.orStartWith')}
+                {...(startChoice !== undefined
+                  ? { selectedValue: startChoice }
+                  : {})}
+                onSelect={(chip) => {
+                  setStartChoice(chip.value);
+                  void send(chip.label);
+                }}
+              />
+
+              {/*
+               * How the whole case goes, before a word has been typed.
+               *
+               * Four steps in the rail's own words, each with who does it and
+               * when, and it hands itself over to the rail on the first
+               * character. See `how-it-works.tsx` for the card and the handoff
+               * note above for the swap.
+               */}
+              {cardGone ? null : (
+                <HowItWorksCard
+                  matterId={matterId}
+                  leaving={begun}
+                  className={ENTRANCE_CLASS}
+                  style={entrance(3)}
+                />
+              )}
+
+              {/*
+               * One real person, before a word is typed (Decision 21).
+               *
+               * Under the outline rather than above the composer: the client came
+               * here to describe a problem, and the first thing on the screen has
+               * to be the place to do that. This is what they find when they look
+               * past it for reassurance that a human is involved, which is exactly
+               * when it is worth something.
+               */}
+              <IntakeLawyerNote
+                matterId={matterId}
+                askable
+                className={cn(
+                  'border-border tall:pt-5 taller:pt-6 border-t pt-4',
+                  ENTRANCE_CLASS,
+                )}
+                style={entrance(4)}
+              />
+            </div>
+
+            {/*
+             * No document surface here. `documentSurface` is `null` for this
+             * phase and the reason is with the flag (`documentsReachable`); it
+             * is left out rather than rendered-as-nothing so that reading this
+             * screen does not suggest a handle appears on it.
+             */}
+            {dropOverlay}
+            {leaveDialogElement}
           </div>
 
           {/*
-           * A way in for someone who does not know how to begin. Below the
-           * composer and under a quiet lead-in: typing or dropping a document is
-           * the flow, and these must not compete with it.
-           */}
-          <SuggestionChips
-            className={ENTRANCE_CLASS}
-            style={entrance(2)}
-            chips={chipsByField[MATTER_TYPE_KEY] ?? []}
-            label={t('start.orStartWith')}
-            {...(startChoice !== undefined
-              ? { selectedValue: startChoice }
-              : {})}
-            onSelect={(chip) => {
-              setStartChoice(chip.value);
-              void send(chip.label);
-            }}
-          />
-
-          {/*
-           * How the next few minutes go, before a word has been typed.
+           * The rail's mirror image, holding the right margin open.
            *
-           * See `how-it-works.tsx` for why this is a gold panel and not the
-           * muted three-liner it replaced. The three other treatments it was
-           * compared against are still in that file, unrendered.
+           * Not symmetry for its own sake: without it the 940px column would
+           * be centred in what is left *after* the rail, which puts the
+           * heading and the composer 90px left of the middle of the window on
+           * the one screen whose entire design is a centred column. A spacer
+           * is the cheapest honest fix — no measurement, no negative margins,
+           * and it disappears with the rail at the same breakpoint.
            */}
-          <HowItWorksGoldEditorial
-            className={ENTRANCE_CLASS}
-            style={entrance(3)}
-          />
-
-          {/*
-           * One real person, before a word is typed (Decision 21).
-           *
-           * Under the outline rather than above the composer: the client came
-           * here to describe a problem, and the first thing on the screen has
-           * to be the place to do that. This is what they find when they look
-           * past it for reassurance that a human is involved, which is exactly
-           * when it is worth something.
-           */}
-          <IntakeLawyerNote
-            matterId={matterId}
-            askable
-            className={cn(
-              'border-border tall:pt-5 taller:pt-6 border-t pt-4',
-              ENTRANCE_CLASS,
-            )}
-            style={entrance(4)}
+          <div
+            aria-hidden="true"
+            className="hidden w-[11.25rem] shrink-0 xl:block"
           />
         </div>
-
-        {/*
-         * No document surface here. `documentSurface` is `null` for this phase
-         * and the reason is with the flag (`documentsReachable`); it is left
-         * out rather than rendered-as-nothing so that reading this screen does
-         * not suggest a handle appears on it.
-         */}
-        {dropOverlay}
-        {leaveDialogElement}
       </div>
     );
   }
@@ -2960,251 +3206,286 @@ export function IntakeV2() {
     documents.mode === 'docked' && canDock && documentPanelProps !== null;
 
   return (
-    <div
-      className={cn(
-        'flex h-full w-full flex-col',
-        /*
-         * The 1600 cap is what centres the pair on a wide display, and it is
-         * also what there is no room for once a document joins them. So while
-         * one is docked the composition takes the whole window and the three
-         * columns run from the left edge to the right — which is what makes
-         * space for the panel without touching either pane's own sizing. The
-         * moment it closes, the cap comes back and the page is byte-identical
-         * to what it was before.
-         */
-        docked ? 'max-w-none' : 'mx-auto max-w-[1600px]',
-      )}
-    >
+    <div className="flex h-full w-full flex-col">
       {/*
-       * The phone layout, and the only place the two panes are not side by
-       * side. One line for the brief, opened on a tap (Decision 18).
+       * The rail, lying down, for the widths with no room for a column.
+       *
+       * Above the row rather than inside the capped content, so it spans the
+       * window the way the client reads it: one bar over everything, in the
+       * same place whatever the panes below are doing. Sticky, so scrolling
+       * the transcript never takes it off screen, and whatever it opens is
+       * drawn over the panes rather than pushing them down.
        */}
-      <div className="shrink-0 px-4 sm:px-6 lg:hidden">
-        <BriefSummaryBar
-          brief={brief}
-          progress={progress}
-          open={briefOpenOnMobile}
-          onToggle={() => setBriefOpenOnMobile((open) => !open)}
-        />
-      </div>
+      <JourneyBar
+        phase={phase}
+        accepted={quoteAccepted}
+        className="xl:hidden"
+      />
 
-      {/*
-       * Two halves that actually fill the width, rather than a narrow chat
-       * floating in a wide column.
-       *
-       * While the brief is filling in, the sizing is a compromise between two
-       * things that pull against each other. Prose gets hard to read much past
-       * 900px, so the chat cannot just stretch. A label-and-value list stops
-       * reading as a document once the values drift far from their labels, so
-       * the brief cannot either. So the brief takes what it needs and no more
-       * (up to 34rem), the chat takes everything left up to a readable 56rem,
-       * and the page caps at 1600. On a 1440 or 1512 laptop that lands with
-       * almost nothing wasted.
-       *
-       * At review the two swap weight: the chat keeps a strip, because the
-       * quote arrives and is paid in it, and the brief becomes the document.
-       * The columns are animated across that one boundary and never move again
-       * — a layout that resized as fields filled would be jumpy and would make
-       * every screenshot unpredictable (Decision 18). Not resizable by hand:
-       * there is no resizable primitive in their library, and a reviewer will
-       * not drag a handle to rescue a bad default.
-       *
-       * At review the brief is ANCHORED and the chat ABSORBS the slack. Two
-       * columns throughout, never stacked above `lg`; the only question is
-       * which of them the leftover width goes to. It took three goes.
-       *
-       * First version: `20rem / 1fr`, brief capped at 44rem inside that second
-       * column. The column's leftover became a band of dead space in the
-       * middle of the page while the chat sat at 320px, 72px of it padding.
-       * Moritz's replies wrapped to three words a line beside an empty gap.
-       *
-       * Second version: both tracks bounded, pair centred. That killed the gap
-       * but fixed the composition at 72rem, so a wide display got 384px of
-       * margin down each side and the left half read as abandoned next to a
-       * dense brief. Symmetric margins are only calm when both halves carry
-       * weight, and a 26rem strip does not.
-       *
-       * This version: the brief takes a document width and no more, the chat
-       * is `1fr` and takes everything left, and the grid caps so the
-       * transcript cannot stretch past readable. Slack lands in the chat
-       * rather than in the margin, because the flexible track is the one that
-       * grows.
-       *
-       * Three steps at `lg`, `xl` and `2xl`, because one cap cannot serve a
-       * 13in laptop and a 27in monitor. The cap rises with the screen and the
-       * brief widens with it, so a bigger display buys a bigger composition
-       * instead of a bigger margin:
-       *
-       *   1024   chat 368   brief 640   margin 8
-       *   1280   chat 496   brief 768   margin 8
-       *   1512   chat 672   brief 768   margin 36
-       *   1920   chat 768   brief 832   margin 160
-       *
-       * Past about 2000 it stops growing and centres, which is the right
-       * answer for a screen nobody reads a document across in full.
-       */}
-      <div
-        /*
-         * A width the client chose wins over the width the breakpoints chose.
-         *
-         * Inline, because that is what "I have decided" looks like in CSS, and
-         * only while docked and only once they have actually dragged — until
-         * then there is no pinned number here at all and the responsive track
-         * above is the whole story. The brief's track is restated unchanged so
-         * the drag can only ever come out of the conversation.
-         */
-        {...(docked && documents.width !== null
-          ? {
-              style: {
-                gridTemplateColumns: `minmax(${chatFloor}px,1fr) ${
-                  briefLed
-                    ? `minmax(0,${briefWidth}px)`
-                    : `minmax(20rem,${briefWidth}px)`
-                } ${documents.width}px`,
-              },
-            }
-          : {})}
-        className={cn(
-          'grid min-h-0 flex-1 transition-[grid-template-columns] duration-500 ease-out motion-reduce:transition-none',
-          /*
-           * Nothing animates while a drag is in flight. The half-second ease
-           * that makes the panel arrive gracefully makes a drag feel like it is
-           * being argued with — the column chases the pointer instead of
-           * following it.
-           */
-          documents.resizing && 'transition-none',
-          /*
-           * A third track, and nothing else about the two beside it changes.
-           *
-           * The rule is the same one the pair was built on: the flexible track
-           * absorbs the slack, so the document and the brief each take a
-           * document width and no more, and what is left over goes to the
-           * conversation rather than into a margin. The brief holds its
-           * existing floor (22rem) so it never drops below the width a
-           * label-and-value list stops reading at, and the panel is bounded
-           * where a page stops being worth widening.
-           *
-           * Measured, not guessed — the widths below are what the browser
-           * computed once all three were on screen together:
-           *
-           *   1280   chat 384   brief 448   document 448
-           *   1512   chat 520   brief 448   document 544
-           *   1920   chat 800   brief 480   document 640
-           *
-           * Two passes to get here. The first gave the document and the brief
-           * less and the conversation more, and both of the two that matter
-           * suffered for it: the brief's values wrapped to three words a line
-           * beside their Accept buttons, and the page fitted to 65% — small
-           * type on a contract somebody is being asked to check.
-           *
-           * The shape of the tracks is doing the work. The document is
-           * `minmax(0,34rem)`, so it takes a document width wherever there is
-           * one and gives it up first where there is not; the brief keeps the
-           * range it has always had; and the conversation is the flexible
-           * track with a floor, so it absorbs what is left and stops when a
-           * transcript stops being readable. That ordering is why 1280 lands
-           * on three usable columns rather than overflowing: the document
-           * yields 96px there rather than the chat going below its floor.
-           *
-           * Only from `xl`. Below it there is no third column worth having and
-           * the panel opens as an overlay instead — see `roomToDock`. The `lg`
-           * classes therefore stay exactly as they were, which is also what
-           * makes the closed state provably unchanged.
-           */
-          docked
-            ? briefLed
-              ? 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:grid-cols-[minmax(22rem,1fr)_minmax(0,34rem)_minmax(0,34rem)] 2xl:grid-cols-[minmax(28rem,1fr)_minmax(0,40rem)_minmax(0,40rem)]'
-              : 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:grid-cols-[minmax(24rem,1fr)_minmax(20rem,28rem)_minmax(0,34rem)] 2xl:grid-cols-[minmax(28rem,1fr)_minmax(22rem,30rem)_minmax(0,40rem)]'
-            : briefLed
-              ? 'lg:mx-auto lg:w-full lg:max-w-[90rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)] 2xl:max-w-[100rem] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)]'
-              : 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)]',
-        )}
-      >
+      <div className="flex min-h-0 w-full flex-1">
         {/*
-         * One pane at a time on a phone. Both panes own their own scroll, so
-         * stacking them inside a fixed-height grid gave each a slice of the
-         * viewport: the brief was clipped mid-field and the conversation
-         * started underneath it. Opening the brief takes the screen, and
-         * closing it hands the screen back to the conversation.
+         * The rail's column, first in the DOM as well as on screen.
+         *
+         * Outside the 1600 cap below, so the cap goes on centring the pair in
+         * whatever is left rather than having to make room inside itself.
+         * That is also what keeps the rail in one place: the cap is removed
+         * when a document docks (see `max-w-none`), and this column does not
+         * care.
          */}
+        <JourneyRailColumn phase={phase} accepted={quoteAccepted} />
+
         <div
           className={cn(
-            'order-2 flex min-h-0 flex-col px-4 py-8 sm:px-6 lg:order-1 lg:flex',
-            // A 40px gutter is generous beside a wide transcript and absurd
-            // beside a narrow one: it was eating a fifth of the strip.
-            briefLed ? 'lg:pl-7 lg:pr-6' : 'lg:pl-10 lg:pr-8',
+            'flex min-h-0 min-w-0 flex-1 flex-col',
             /*
-             * Room for the document tab below the two-column breakpoint.
-             *
-             * The tab is `fixed` to the right edge at mid-height, which on a
-             * desktop lands in the `lg:pr-*` gutter above and on a phone lands
-             * on top of the text: at 390px both panes run to 16px of the edge
-             * and the tab is wider than that, so it sat over the middle of a
-             * sentence. An overlay control whose whole claim is "there is a
-             * surface over here" cannot be the thing covering the words.
-             *
-             * A reserved gutter rather than moving the tab, because every other
-             * position on a phone is worse — the top is the summary bar, the
-             * bottom is the composer and the primary button — and because the
-             * edge is where the panel actually comes from.
+             * The 1600 cap is what centres the pair on a wide display, and it is
+             * also what there is no room for once a document joins them. So while
+             * one is docked the composition takes the whole window and the three
+             * columns run from the left edge to the right — which is what makes
+             * space for the panel without touching either pane's own sizing. The
+             * moment it closes, the cap comes back and the page is byte-identical
+             * to what it was before.
              */
-            documentTabShowing && 'max-lg:pe-14',
-            briefOpenOnMobile && 'max-lg:hidden',
-          )}
-        >
-          <div
-            className={cn(
-              'mx-auto flex min-h-0 w-full flex-1 flex-col',
-              briefLed ? 'max-w-none' : 'max-w-[56rem]',
-            )}
-          >
-            {chat}
-          </div>
-        </div>
-        <div
-          ref={briefPaneRef}
-          id="intake-brief-panel"
-          className={cn(
-            'border-border mz-scrollbar-on-scroll order-1 min-h-0 overflow-y-auto px-4 py-8 sm:px-6 lg:order-2 lg:block lg:border-l lg:pl-8 lg:pr-10',
-            // Same gutter as the transcript pane. See the note there.
-            documentTabShowing && 'max-lg:pe-14',
-            !briefOpenOnMobile && 'hidden',
+            docked ? 'max-w-none' : 'mx-auto max-w-[1600px]',
           )}
         >
           {/*
-           * No inner width cap any more. The grid track is bounded at 46rem, so
-           * a second cap inside it could only ever re-open the gap it was
-           * introduced to close.
+           * The phone layout, and the only place the two panes are not side by
+           * side. One line for the brief, opened on a tap (Decision 18).
            */}
-          <div className="h-full">{briefPanel}</div>
-        </div>
+          <div className="shrink-0 px-4 sm:px-6 lg:hidden">
+            <BriefSummaryBar
+              brief={brief}
+              progress={progress}
+              open={briefOpenOnMobile}
+              onToggle={() => setBriefOpenOnMobile((open) => !open)}
+            />
+          </div>
 
-        {/*
-         * The document, in the track that was made for it. Third in the DOM as
-         * well as on screen, after the two panes rather than between them, so
-         * the tab order runs conversation → brief → document and neither pane
-         * had to move to make room.
-         */}
-        {docked && documentPanelProps !== null && (
-          <DocumentPanel
-            {...documentPanelProps}
-            compact
-            maximised={false}
-            resizeHandle={
-              <DocumentResizeHandle
-                chatFloor={chatFloor}
-                width={documents.width}
-                onResize={documents.setWidth}
-                onReset={documents.resetWidth}
-                onResizeStart={() => documents.setResizing(true)}
-                onResizeEnd={() => documents.setResizing(false)}
+          {/*
+           * Two halves that actually fill the width, rather than a narrow chat
+           * floating in a wide column.
+           *
+           * While the brief is filling in, the sizing is a compromise between two
+           * things that pull against each other. Prose gets hard to read much past
+           * 900px, so the chat cannot just stretch. A label-and-value list stops
+           * reading as a document once the values drift far from their labels, so
+           * the brief cannot either. So the brief takes what it needs and no more
+           * (up to 34rem), the chat takes everything left up to a readable 56rem,
+           * and the page caps at 1600. On a 1440 or 1512 laptop that lands with
+           * almost nothing wasted.
+           *
+           * At review the two swap weight: the chat keeps a strip, because the
+           * quote arrives and is paid in it, and the brief becomes the document.
+           * The columns are animated across that one boundary and never move again
+           * — a layout that resized as fields filled would be jumpy and would make
+           * every screenshot unpredictable (Decision 18). Not resizable by hand:
+           * there is no resizable primitive in their library, and a reviewer will
+           * not drag a handle to rescue a bad default.
+           *
+           * At review the brief is ANCHORED and the chat ABSORBS the slack. Two
+           * columns throughout, never stacked above `lg`; the only question is
+           * which of them the leftover width goes to. It took three goes.
+           *
+           * First version: `20rem / 1fr`, brief capped at 44rem inside that second
+           * column. The column's leftover became a band of dead space in the
+           * middle of the page while the chat sat at 320px, 72px of it padding.
+           * Moritz's replies wrapped to three words a line beside an empty gap.
+           *
+           * Second version: both tracks bounded, pair centred. That killed the gap
+           * but fixed the composition at 72rem, so a wide display got 384px of
+           * margin down each side and the left half read as abandoned next to a
+           * dense brief. Symmetric margins are only calm when both halves carry
+           * weight, and a 26rem strip does not.
+           *
+           * This version: the brief takes a document width and no more, the chat
+           * is `1fr` and takes everything left, and the grid caps so the
+           * transcript cannot stretch past readable. Slack lands in the chat
+           * rather than in the margin, because the flexible track is the one that
+           * grows.
+           *
+           * Three steps at `lg`, `xl` and `2xl`, because one cap cannot serve a
+           * 13in laptop and a 27in monitor. The cap rises with the screen and the
+           * brief widens with it, so a bigger display buys a bigger composition
+           * instead of a bigger margin:
+           *
+           *   1024   chat 368   brief 640   margin 8
+           *   1280   chat 496   brief 768   margin 8
+           *   1512   chat 672   brief 768   margin 36
+           *   1920   chat 768   brief 832   margin 160
+           *
+           * Past about 2000 it stops growing and centres, which is the right
+           * answer for a screen nobody reads a document across in full.
+           */}
+          <div
+            /*
+             * A width the client chose wins over the width the breakpoints chose.
+             *
+             * Inline, because that is what "I have decided" looks like in CSS, and
+             * only while docked and only once they have actually dragged — until
+             * then there is no pinned number here at all and the responsive track
+             * above is the whole story. The brief's track is restated unchanged so
+             * the drag can only ever come out of the conversation.
+             */
+            {...(docked && documents.width !== null
+              ? {
+                  style: {
+                    gridTemplateColumns: `minmax(${chatFloor}px,1fr) ${
+                      briefLed
+                        ? `minmax(0,${briefWidth}px)`
+                        : `minmax(20rem,${briefWidth}px)`
+                    } ${documents.width}px`,
+                  },
+                }
+              : {})}
+            className={cn(
+              'grid min-h-0 flex-1 transition-[grid-template-columns] duration-500 ease-out motion-reduce:transition-none',
+              /*
+               * Nothing animates while a drag is in flight. The half-second ease
+               * that makes the panel arrive gracefully makes a drag feel like it is
+               * being argued with — the column chases the pointer instead of
+               * following it.
+               */
+              documents.resizing && 'transition-none',
+              /*
+               * A third track, and nothing else about the two beside it changes.
+               *
+               * The rule is the same one the pair was built on: the flexible track
+               * absorbs the slack, so the document and the brief each take a
+               * document width and no more, and what is left over goes to the
+               * conversation rather than into a margin. The brief holds its
+               * existing floor (22rem) so it never drops below the width a
+               * label-and-value list stops reading at, and the panel is bounded
+               * where a page stops being worth widening.
+               *
+               * Measured, not guessed — the widths below are what the browser
+               * computed once all three were on screen together:
+               *
+               *   1280   chat 384   brief 448   document 448
+               *   1512   chat 520   brief 448   document 544
+               *   1920   chat 800   brief 480   document 640
+               *
+               * Two passes to get here. The first gave the document and the brief
+               * less and the conversation more, and both of the two that matter
+               * suffered for it: the brief's values wrapped to three words a line
+               * beside their Accept buttons, and the page fitted to 65% — small
+               * type on a contract somebody is being asked to check.
+               *
+               * The shape of the tracks is doing the work. The document is
+               * `minmax(0,34rem)`, so it takes a document width wherever there is
+               * one and gives it up first where there is not; the brief keeps the
+               * range it has always had; and the conversation is the flexible
+               * track with a floor, so it absorbs what is left and stops when a
+               * transcript stops being readable. That ordering is why 1280 lands
+               * on three usable columns rather than overflowing: the document
+               * yields 96px there rather than the chat going below its floor.
+               *
+               * Only from `xl`. Below it there is no third column worth having and
+               * the panel opens as an overlay instead — see `roomToDock`. The `lg`
+               * classes therefore stay exactly as they were, which is also what
+               * makes the closed state provably unchanged.
+               */
+              docked
+                ? briefLed
+                  ? 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:grid-cols-[minmax(22rem,1fr)_minmax(0,34rem)_minmax(0,34rem)] 2xl:grid-cols-[minmax(28rem,1fr)_minmax(0,40rem)_minmax(0,40rem)]'
+                  : 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:grid-cols-[minmax(24rem,1fr)_minmax(20rem,28rem)_minmax(0,34rem)] 2xl:grid-cols-[minmax(28rem,1fr)_minmax(22rem,30rem)_minmax(0,40rem)]'
+                : briefLed
+                  ? 'lg:mx-auto lg:w-full lg:max-w-[90rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)] 2xl:max-w-[100rem] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)]'
+                  : 'lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)]',
+            )}
+          >
+            {/*
+             * One pane at a time on a phone. Both panes own their own scroll, so
+             * stacking them inside a fixed-height grid gave each a slice of the
+             * viewport: the brief was clipped mid-field and the conversation
+             * started underneath it. Opening the brief takes the screen, and
+             * closing it hands the screen back to the conversation.
+             */}
+            <div
+              className={cn(
+                'order-2 flex min-h-0 flex-col px-4 py-8 sm:px-6 lg:order-1 lg:flex',
+                // A 40px gutter is generous beside a wide transcript and absurd
+                // beside a narrow one: it was eating a fifth of the strip.
+                briefLed ? 'lg:pl-7 lg:pr-6' : 'lg:pl-10 lg:pr-8',
+                /*
+                 * Room for the document tab below the two-column breakpoint.
+                 *
+                 * The tab is `fixed` to the right edge at mid-height, which on a
+                 * desktop lands in the `lg:pr-*` gutter above and on a phone lands
+                 * on top of the text: at 390px both panes run to 16px of the edge
+                 * and the tab is wider than that, so it sat over the middle of a
+                 * sentence. An overlay control whose whole claim is "there is a
+                 * surface over here" cannot be the thing covering the words.
+                 *
+                 * A reserved gutter rather than moving the tab, because every other
+                 * position on a phone is worse — the top is the summary bar, the
+                 * bottom is the composer and the primary button — and because the
+                 * edge is where the panel actually comes from.
+                 */
+                documentTabShowing && 'max-lg:pe-14',
+                briefOpenOnMobile && 'max-lg:hidden',
+              )}
+            >
+              <div
+                className={cn(
+                  'mx-auto flex min-h-0 w-full flex-1 flex-col',
+                  briefLed ? 'max-w-none' : 'max-w-[56rem]',
+                )}
+              >
+                {chat}
+              </div>
+            </div>
+            <div
+              ref={briefPaneRef}
+              id="intake-brief-panel"
+              className={cn(
+                'border-border mz-scrollbar-on-scroll order-1 min-h-0 overflow-y-auto px-4 py-8 sm:px-6 lg:order-2 lg:block lg:border-l lg:pl-8 lg:pr-10',
+                // Same gutter as the transcript pane. See the note there.
+                documentTabShowing && 'max-lg:pe-14',
+                !briefOpenOnMobile && 'hidden',
+              )}
+            >
+              {/*
+               * No inner width cap any more. The grid track is bounded at 46rem, so
+               * a second cap inside it could only ever re-open the gap it was
+               * introduced to close.
+               */}
+              <div className="h-full">{briefPanel}</div>
+            </div>
+
+            {/*
+             * The document, in the track that was made for it. Third in the DOM as
+             * well as on screen, after the two panes rather than between them, so
+             * the tab order runs conversation → brief → document and neither pane
+             * had to move to make room.
+             */}
+            {docked && documentPanelProps !== null && (
+              <DocumentPanel
+                {...documentPanelProps}
+                compact
+                maximised={false}
+                resizeHandle={
+                  <DocumentResizeHandle
+                    chatFloor={chatFloor}
+                    width={documents.width}
+                    onResize={documents.setWidth}
+                    onReset={documents.resetWidth}
+                    onResizeStart={() => documents.setResizing(true)}
+                    onResizeEnd={() => documents.setResizing(false)}
+                  />
+                }
+                className="border-border order-3 hidden min-h-0 lg:border-l xl:flex"
               />
-            }
-            className="border-border order-3 hidden min-h-0 lg:border-l xl:flex"
-          />
-        )}
+            )}
+          </div>
+        </div>
       </div>
 
+      {/*
+       * The overlays sit outside the capped content and beside the rail,
+       * because every one of them covers the whole page and the rail is part
+       * of the page they cover.
+       */}
       {documentSurface}
 
       {dropOverlay}

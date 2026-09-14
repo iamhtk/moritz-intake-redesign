@@ -12,6 +12,7 @@ export { DocumentRailTrigger } from './document-rail-trigger';
 export {
   DocumentResizeHandle,
   MIN_DOCUMENT_WIDTH,
+  gridTrackWidth,
 } from './document-resize-handle';
 export type { DocumentCitation } from './document-about';
 export {

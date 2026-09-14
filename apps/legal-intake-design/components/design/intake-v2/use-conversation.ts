@@ -818,12 +818,51 @@ export function useConversation({
     ]);
   }, []);
 
-  /** Moritz speaking without the client having typed, e.g. after an upload. */
+  /**
+   * Moritz speaking without the client having typed, e.g. after an upload.
+   *
+   * @returns the turn's id, so a caller that may have to take the line back
+   * can name it later. Only the prototype controls do — see `rewindTo`.
+   */
   const say = useCallback((text: string) => {
+    const id = newId();
     setMessages((current) => [
       ...current,
-      { id: newId(), role: 'assistant', text, at: Date.now() },
+      { id, role: 'assistant', text, at: Date.now() },
     ]);
+    return id;
+  }, []);
+
+  /**
+   * Drop a turn and everything said after it.
+   *
+   * ───────────────────────────────────────────────────────────────────────────
+   * FOR THE PROTOTYPE CONTROLS ONLY, AND THE NARROWNESS IS THE POINT.
+   * ───────────────────────────────────────────────────────────────────────────
+   *
+   * Nothing in the product un-says anything. A transcript is the record the
+   * case is built from (`case-transcript.ts` copies it onto the matter at
+   * submission), so a client-facing path that could delete turns would be a
+   * record that disagrees with what the client was told — which is the exact
+   * class of defect the confidence marks and the "we have kept both" line
+   * exist to avoid.
+   *
+   * This is for the one thing that is genuinely not the product: the reviewer
+   * pressing "Back to the confirmation" after skipping ahead to the quote.
+   * Without it the flow rewinds the case and not the conversation, so the
+   * rail ticks back to "a lawyer prices the work" while the chat two inches
+   * away still says the price arrived — a contradiction on the screen a
+   * reviewer is evaluating.
+   *
+   * Truncates rather than deletes by id, because a rewind is to a moment
+   * rather than to a message: anything said while the client was on the quote
+   * screen belongs to the part of the story being wound back.
+   */
+  const rewindTo = useCallback((id: string) => {
+    setMessages((current) => {
+      const index = current.findIndex((message) => message.id === id);
+      return index === -1 ? current : current.slice(0, index);
+    });
   }, []);
 
   /**
@@ -904,6 +943,7 @@ export function useConversation({
     send,
     retry,
     say,
+    rewindTo,
     sayClient,
     sayWhile,
     finishSaying,

@@ -114,16 +114,38 @@ const OPPOSING_ACME: ParticipantRef = {
 };
 
 /**
- * The case the intake flow just created (Decision 8).
+ * Where "Go to case" lands (Decision 8, and §3's Decision 1).
  *
- * "Go to case" on the submission confirmation used to deep-link to the mock
- * client's most recent *existing* matter — an in-progress case with a cancelled
- * invoice — so a reviewer who clicked it concluded the prototype was broken.
- * This is the case the confirmation is actually talking about: submitted today,
- * no quote yet, no lawyer assigned, which puts their five-step client timeline
- * at step one and lets it do the "where am I" work for free.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THIS WAS `case_009` AND THE SWITCH BACK WAS DELIBERATE. READ BOTH SIDES.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Moritz's own confirmation card links to `case_006`, and matching that
+ * exactly is the point: a reviewer comparing the old flow with this one sees
+ * the same handoff, and `case_006` is the page where the quote and the
+ * payment actually happen in their product — which is what the reframed quote
+ * card is meant to be read against.
+ *
+ * What that costs, stated rather than discovered. `case_009` was written for
+ * this job: submitted today, no quote, no lawyer, which puts their five-step
+ * client timeline at step one and lets it do the "where am I" work for free.
+ * `case_006` is three weeks old, `IN_PROGRESS`, priced at US$5,600 and has
+ * Aélita assigned since 27 May. So a client who presses "Go to case" seconds
+ * after a confirmation saying *nobody is assigned until you accept the quote*
+ * lands on a case with a lawyer and a price on it. The rail says a lawyer is
+ * pricing the work; that page says one was assigned in May.
+ *
+ * `applySubmission` in `lib/mocks/submitted-cases.ts` covers the half of this
+ * that it can: the title, the description, the documents and the dates are
+ * overlaid with what the client actually sent, so the page is at least about
+ * their matter. It deliberately does not touch status, quote or lawyer — a
+ * submission has no business deciding where a case sits in the firm's queue —
+ * so those three stay as the fixture has them.
+ *
+ * `case_009` keeps its own id below and stays in the list. Nothing points at
+ * it now; retiring it is a fixture cleanup rather than part of this change.
  */
-export const SUBMITTED_CASE_ID = 'case_009';
+export const SUBMITTED_CASE_ID = 'case_006';
 
 /**
  * Today, at a fixed time of day.
@@ -143,7 +165,16 @@ function todayAt(hour: number): string {
 
 export const MOCK_CASES: LegalCase[] = [
   {
-    id: SUBMITTED_CASE_ID,
+    /*
+     * Its own id, not `SUBMITTED_CASE_ID`, and that is load-bearing now.
+     *
+     * This fixture used to *be* the submitted case and named itself after the
+     * constant. Once the constant moved to `case_006` that spelling would
+     * have given the list two cases with the same id, and `getCaseById` would
+     * have returned this one — so the switch would have silently changed
+     * nothing except the name of the target.
+     */
+    id: 'case_009',
     caseNumber: 'M-2026-0126',
     title: 'MSA review and early exit: Acme Technologies',
     description: `We signed a master services agreement with Acme Technologies for warehousing and last-mile distribution, and we now want to understand what it would take to get out of it early.

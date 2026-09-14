@@ -101,6 +101,29 @@ export function isSubmitted(phase: IntakePhase): boolean {
 }
 
 /**
+ * Whether the confirmation has taken over the top of the panel.
+ *
+ * A third boundary, one phase later than `isSubmitted`, and the gap between
+ * them is exactly `sending`.
+ *
+ * It exists because folding the brief away and sealing it are different
+ * questions asked at different moments. `isSubmitted` is about editing, and
+ * that closes on the click — the request is in flight and a value changing
+ * underneath it would be a brief that no longer matches the case being
+ * created. Folding is about whether the brief is still the thing on the
+ * screen, and during the wait it emphatically is: the confirmation does not
+ * exist yet, the sending steps are four lines in the footer, and folding the
+ * document above them leaves a column that is empty apart from a "Show" link
+ * — at the exact moment the client is watching to see that something is
+ * happening.
+ *
+ * Reusing `isSubmitted` for both did that, and it looked broken.
+ */
+export function hasConfirmation(phase: IntakePhase): boolean {
+  return phase === 'sent' || phase === 'quoted';
+}
+
+/**
  * The same boundary, read off the stage instead of the phase.
  *
  * `isSubmitted` needs a phase, and a phase needs to know whether the

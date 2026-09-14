@@ -3,10 +3,13 @@ import { applyFieldUpdates, confirmField, createBrief } from './brief';
 import {
   canEnterReview,
   canSend,
+  hasConfirmation,
+  INTAKE_PHASES,
   intakePhase,
   isSealed,
   isSubmitted,
   splitFor,
+  type IntakePhase,
   type IntakeStage,
 } from './phase';
 
@@ -82,6 +85,34 @@ describe('isSubmitted', () => {
     expect(isSubmitted('review')).toBe(false);
     expect(isSubmitted('sending')).toBe(true);
     expect(isSubmitted('sent')).toBe(true);
+  });
+});
+
+describe('hasConfirmation', () => {
+  /*
+   * ⭐ One phase later than `isSubmitted`, and `sending` is the gap.
+   *
+   * The two were read as one boundary and the brief folded away during the
+   * wait, leaving a column that was empty apart from a "Show" link at the
+   * exact moment the client was watching for a sign that anything was
+   * happening. Sealing the brief happens on the click; folding it happens
+   * when there is something to fold behind.
+   */
+  it('waits for the confirmation, which sending does not have', () => {
+    expect(hasConfirmation('building')).toBe(false);
+    expect(hasConfirmation('review')).toBe(false);
+    expect(hasConfirmation('sending')).toBe(false);
+    expect(hasConfirmation('sent')).toBe(true);
+    expect(hasConfirmation('quoted')).toBe(true);
+  });
+
+  /* Strictly behind `isSubmitted`: everything confirmed is also submitted. */
+  it('never runs ahead of the seal', () => {
+    for (const phase of INTAKE_PHASES) {
+      if (hasConfirmation(phase as IntakePhase)) {
+        expect(isSubmitted(phase as IntakePhase)).toBe(true);
+      }
+    }
   });
 });
 
