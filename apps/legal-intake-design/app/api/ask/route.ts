@@ -23,6 +23,12 @@ import { stripDashes } from '@/lib/intake/text';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+/*
+ * Vercel ends a function at its plan's default limit, which is shorter than
+ * a turn with thinking can take, and a function ended mid-stream reaches the
+ * client as a reply that stops. 60s is the ceiling every plan allows.
+ */
+export const maxDuration = 60;
 
 /**
  * One question to Nora.

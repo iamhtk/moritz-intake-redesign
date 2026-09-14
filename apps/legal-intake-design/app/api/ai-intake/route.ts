@@ -11,6 +11,12 @@ import type {
 // Playground is stubbed (no persistence), so there is no audit-log surface.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+/*
+ * Vercel ends a function at its plan's default limit, which is shorter than
+ * a turn with thinking can take, and a function ended mid-stream reaches the
+ * client as a reply that stops. 60s is the ceiling every plan allows.
+ */
+export const maxDuration = 60;
 
 type TurnBody = { task: 'turn' } & AiTurnRequest;
 type RecapBody = { task: 'recap' } & AiRecapRequest;

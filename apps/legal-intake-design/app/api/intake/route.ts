@@ -23,6 +23,12 @@ import { WAITING_SYSTEM_PROMPT } from '@/lib/intake/waiting-prompt';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+/*
+ * Vercel ends a function at its plan's default limit, which is shorter than
+ * a turn with thinking can take, and a function ended mid-stream reaches the
+ * client as a reply that stops. 60s is the ceiling every plan allows.
+ */
+export const maxDuration = 60;
 
 type TranscriptTurn = { role: 'user' | 'assistant'; text: string };
 
@@ -200,7 +206,10 @@ function sse(event: Record<string, unknown>): string {
  * work rather than on one well-specified turn. One constant, so a reviewer who
  * wants to trade seconds for judgement has one line to change.
  */
-const TURN_EFFORT = 'high' as const;
+// `medium` for the demo: the reply starts sooner and the brief's judgement is
+// enforced in code, not in the model's deliberation. Put `high` back for
+// production.
+const TURN_EFFORT = 'medium' as const;
 
 /**
  * The output ceiling for one turn, thinking included.
