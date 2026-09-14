@@ -113,6 +113,19 @@
     #dcf2fd 100%
   );
 
+  /*
+   * The one lift in the palette, as a token rather than as a literal.
+   *
+   * Two `box-shadow` rules below carried a raw `rgb(0 0 0 / 0.25)`, which is
+   * the only hardcoded colour `notes/check-colours.sh` still reported and the
+   * one kind it is least able to forgive: a literal in a shadow is a colour
+   * nobody can find by searching for the thing it tints. Derived from
+   * `--mz-black` so the palette owns it, and named for the surface it lifts
+   * rather than for its opacity, so the next elevation reuses it instead of
+   * inventing 0.22.
+   */
+  --mz-shadow-raised: color-mix(in srgb, var(--mz-black) 25%, transparent);
+
   /* Status */
   --mz-green: #5eae8b;
   --mz-yellow: #e8a952;
@@ -407,6 +420,48 @@
     #dcf2fd 100%
   );
 }
+/*
+ * A 44x44 tap target that costs no pixels of layout.
+ *
+ * WCAG 2.5.8 asks for 24x24 and 2.5.5 (AAA, and the platform guidance both
+ * Apple and Google actually ship) asks for 44x44. Measured on a phone, thirty
+ * controls in the intake were under it, and a third of those were inline text
+ * affordances: the source link at 233x17, Undo at 29x17, "Show more" at 74x18,
+ * the source chevron at 12x12. Those cannot grow their ink without turning a
+ * quiet line of provenance into a row of buttons, which is the composition the
+ * whole brief panel is built to avoid.
+ *
+ * So the hit area grows and the ink does not. A transparent, absolutely
+ * positioned `::after` centred on the control stretches it to 44x44 in
+ * whichever dimension is short, leaving `width`/`height` — and therefore
+ * everything around it — untouched. The element needs a positioning context,
+ * which `relative` provides, and it must not be `overflow-hidden`.
+ *
+ * `pointer-events: auto` is explicit because the pseudo-element inherits from
+ * a parent that may have switched them off, and a hit area that does not take
+ * a press is decoration.
+ *
+ * Scoped to coarse pointers. On a mouse the ink *is* the target and a 44px
+ * invisible box around a 17px link starts swallowing presses meant for the row
+ * above — the failure this pattern is known for. `any-pointer: coarse` catches
+ * phones and tablets, including a laptop with a touchscreen, and leaves a
+ * trackpad alone.
+ */
+@media (any-pointer: coarse) {
+  .mz-tap::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+  }
+}
+
 /*
  * Onboarding completion: draw the success check on mount. The lucide Check path
  * is ~23 user units long in its 24-unit viewBox, so a 26-unit dash covers it.
@@ -799,7 +854,7 @@ main:has(> .case-workspace-wide) {
   padding-left: 19px;
   box-shadow:
     inset 3px 0 0 0 var(--mz-toast-accent),
-    0 10px 24px -12px rgb(0 0 0 / 0.25);
+    0 10px 24px -12px var(--mz-shadow-raised);
 }
 
 /*
@@ -813,7 +868,7 @@ main:has(> .case-workspace-wide) {
 [data-sonner-toaster] [data-sonner-toast][data-styled='true']:focus-visible {
   box-shadow:
     inset 3px 0 0 0 var(--mz-toast-accent),
-    0 10px 24px -12px rgb(0 0 0 / 0.25),
+    0 10px 24px -12px var(--mz-shadow-raised),
     0 0 0 2px var(--ring);
 }
 

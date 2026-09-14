@@ -259,17 +259,31 @@ from assignment onwards; nothing here reaches past the quote.
   down. `notes/colour-and-type-rulebook.md` is that: the twenty greys, white,
   black and five accents read off the real site, and a rule that colour is
   reserved for state. `notes/check-colours.sh` enforces it and passes. Two
-  things follow that you should overrule if I guessed wrong. **Green appears
-  exactly once**, on the brief's progress bar, and a test fails the build if a
-  second one appears — everywhere it used to be (the confirmed mark, the High
-  label, the receipt) is now ink weight instead, because green had drifted into
-  meaning four different things. And **the serif stays**, but for a better
+  things follow that you should overrule if I guessed wrong. **Green marks and
+  never speaks.** Your green is #5eae8b, which measures 2.66:1 on white — it
+  fails WCAG AA for text by a wide margin, and so do the amber (3.73:1) and the
+  red (3.57:1). So the whole confidence ramp lives on the 18px mark beside each
+  row, where the bar to clear is 3:1 and it clears it, and the words next to it
+  — High, Check this, You confirmed — are ink. A tick is content; a green word
+  is decoration. Guard tests cap how much of each colour the flow can spend and
+  fail the build on any colour that is not one of yours. And **the serif stays**, but for a better
   reason than inheritance: Legora, which you named as the reference, does use a
   display serif — roughly one line per screen, and that line is the largest
   thing on it. That is a deliberate match with your own reference rather than a
   playground habit. There are twelve `font-serif` uses in the flow and I would
   defend the large ones and the italic asides; the three step titles in the
   gold panel are the ones I would cut first.
+- **The rail folds at 1280px**, and that is the width worth writing down
+  because nothing in the code said it. At 1280 and up the journey rail is its
+  own column at the far left; below it, it lies down into the sticky bar at the
+  top of the page and opens on a tap. Two columns — conversation and brief —
+  appear at 1024, so there is a step where the brief is beside the chat and the
+  rail is still folded. That is deliberate: three columns need a brief wide
+  enough to keep values beside their labels and a transcript wide enough to
+  read, and 1024 has room for one of those, not both. Below 768 it is a single
+  column; between 768 and 1024 that column stops growing and centres at 40rem
+  rather than stretching to fill a tablet. Walked at every width in the table
+  from 320 to 2560, on seven screens each.
 - **Submission is stubbed**, so the sending state is a manufactured gap. The
   gap itself is not a fiction: you said the final pass "takes a few minutes"
   today and that the design has to survive it, so the wait is named rather than

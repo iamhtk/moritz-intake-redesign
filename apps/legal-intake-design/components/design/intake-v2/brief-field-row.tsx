@@ -42,11 +42,15 @@ function StatusMark({
    *
    * The direction now is the opposite: give green **one** meaning and use it
    * everywhere that meaning applies. It means *settled and good* — the tick on
-   * a confirmed row, the High reading, the word "Accepted" on the receipt, and
-   * the client's own confirmation. Those are not four meanings, they are four
-   * views of one, so the repetition reinforces rather than dilutes. The
-   * confidence ramp reads as the traffic light it always wanted to be: green,
-   * amber, red.
+   * a confirmed row, the tick on the "Accepted" receipt, and the client's own
+   * confirmation. Those are not three meanings, they are three views of one,
+   * so the repetition reinforces rather than dilutes.
+   *
+   * It applies to **marks only**. The green/amber/red ramp used to colour the
+   * reading *words* beside these marks too, and every step of it failed AA at
+   * text size — see `LEVEL_STYLE` below for the measurements and the argument.
+   * A mark is a graphic and clears 3:1 at 18px; a word has to clear 4.5:1 and
+   * does not. So the hue lives here, on the circle, and nowhere in a sentence.
    *
    * `text-background` rather than `text-success-foreground` for the check
    * itself: the foreground token is near-black, and a dark tick inside a
@@ -68,7 +72,7 @@ function StatusMark({
     return (
       <span
         aria-hidden="true"
-        className="border-warning bg-background ring-warning/10 flex size-[18px] shrink-0 items-center justify-center rounded-full border-[1.5px] ring-4"
+        className="border-warning bg-background ring-warning/10 flex size-[18px] shrink-0 items-center justify-center rounded-full border-2 ring-4"
       >
         <span className="bg-warning size-1.5 rounded-full" />
       </span>
@@ -84,25 +88,32 @@ function StatusMark({
 }
 
 /**
- * The three readings as a traffic light: green, amber, red.
+ * The three readings, in ink rather than in hue.
  *
- * This went ink / muted-ink / amber for a while (L12), to keep green to one
- * use in the flow. It is a hue ramp again, because the reading is an ordered
- * three-step scale and hue is the channel people already read ordered
- * three-step scales in. Ink-versus-muted-ink asks the client to notice a
- * weight difference between two greys and then remember which way round it
- * goes; green-amber-red asks nothing.
+ * This was a green / amber / red traffic light, and the traffic light is the
+ * right idea in the wrong channel. Measured against white at this size, all
+ * three failed WCAG AA for text: `success` 2.66:1, `warning-strong` 3.73:1,
+ * `destructive` 3.57:1, against the 4.5:1 a sentence has to clear. Not one
+ * colour — the whole ramp. A hue scale whose every step is unreadable is not
+ * an ordered scale, it is three shades of grey with extra steps.
  *
- * `warning-strong` rather than `warning` for the middle. The brand amber
- * (#e8a952) is a fill colour and is the weakest 11.5px text on the panel
- * against white; the token darkens it in `globals.css` without adding a second
- * amber to the palette. Low is `destructive` because a low reading is the one
- * the client should actually stop at.
+ * So the hue moves to the mark and the words stay ink. `StateMark` above is
+ * already the green filled tick / amber ring / empty circle, it is 18px of
+ * solid fill rather than 11px of glyph, and at that size the same tokens clear
+ * 3:1 comfortably — which is the bar for a graphic, and the bar a tick
+ * actually has to meet. The reading beside it says "High", "Medium" or
+ * "Check this" in words, so nothing is carried by colour alone either way.
+ *
+ * Low is `foreground` and the other two are `muted-foreground`: the one the
+ * client should stop at is the darkest thing in the column, which is the same
+ * ordering the ramp was for, expressed in the channel that survives at 12px.
+ * This is the brief's own rule — colour earns its place from the content, and
+ * a tick is content where a green word is decoration.
  */
 const LEVEL_STYLE: Record<ConfidenceLevel, string> = {
-  high: 'text-success',
-  medium: 'text-warning-strong',
-  low: 'text-destructive',
+  high: 'text-muted-foreground',
+  medium: 'text-muted-foreground',
+  low: 'text-foreground',
 };
 
 /** Mark (18px) plus the gap beside it, so the value lines up under the label. */
@@ -267,7 +278,7 @@ export function BriefFieldRow({
              * five rows over a total of four just looks like a bug.
              */}
             {!field.required && isEmpty ? (
-              <span className="text-muted-foreground text-[11px] font-normal">
+              <span className="text-muted-foreground text-xs font-normal">
                 {t('optional')}
               </span>
             ) : null}
@@ -291,21 +302,26 @@ export function BriefFieldRow({
            * statement: fully confirmed, by the client, as of now. The reading
            * it replaces is still on the field for anyone who needs it.
            */
-          <span className="text-success flex shrink-0 items-baseline gap-1.5 text-[11.5px]">
+          <span className="text-muted-foreground flex shrink-0 items-baseline gap-1.5 text-xs">
             {t('confidence.userConfirmed')}
-            <span className="font-mono tabular-nums opacity-70">100%</span>
+            {/*
+             * The score dropped its `opacity-70`. At 70% of an already-muted
+             * grey the percentage measured 1.93:1 against white — the lowest
+             * contrast anywhere in the flow, on a number the whole provenance
+             * argument rests on. It is quieter than the word beside it because
+             * it is mono and tabular, which is enough.
+             */}
+            <span className="font-mono tabular-nums">100%</span>
           </span>
         ) : reading ? (
           <span
             className={cn(
-              'flex shrink-0 items-baseline gap-1.5 text-[11.5px]',
+              'flex shrink-0 items-baseline gap-1.5 text-xs',
               LEVEL_STYLE[reading.level],
             )}
           >
             {t(`confidence.${reading.level}`)}
-            <span className="font-mono tabular-nums opacity-70">
-              {reading.score}%
-            </span>
+            <span className="font-mono tabular-nums">{reading.score}%</span>
           </span>
         ) : asking ? (
           /*
@@ -315,11 +331,11 @@ export function BriefFieldRow({
            * waiting on. Foreground rather than muted: it is the only row on the
            * panel with anything being asked of it.
            */
-          <span className="text-foreground shrink-0 text-[11.5px]">
+          <span className="text-foreground shrink-0 text-xs">
             {t('askingNow')}
           </span>
         ) : (
-          <span className="text-muted-foreground shrink-0 text-[11.5px]">
+          <span className="text-muted-foreground shrink-0 text-xs">
             {t('stateWord.missing')}
           </span>
         )}
@@ -367,6 +383,7 @@ export function BriefFieldRow({
                 <Button
                   type="button"
                   size="sm"
+                  className="max-lg:h-11"
                   disabled={draft.trim() === ''}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={saveDraft}
@@ -377,6 +394,7 @@ export function BriefFieldRow({
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="max-lg:h-11"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={closeEditor}
                 >
@@ -423,6 +441,7 @@ export function BriefFieldRow({
                         type="button"
                         variant="default"
                         size="sm"
+                        className="max-lg:h-11"
                         onClick={onConfirm}
                       >
                         <Check data-icon="inline-start" aria-hidden="true" />
@@ -432,6 +451,7 @@ export function BriefFieldRow({
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="max-lg:h-11"
                         onClick={openEditor}
                       >
                         <Pencil data-icon="inline-start" aria-hidden="true" />
@@ -465,6 +485,7 @@ export function BriefFieldRow({
                       type="button"
                       variant="ghost"
                       size="sm"
+                      className="max-lg:h-11"
                       aria-label={t('editLabel', { field: field.label })}
                       onClick={openEditor}
                     >
@@ -520,7 +541,7 @@ export function BriefFieldRow({
                 <button
                   type="button"
                   onClick={onOpenSource}
-                  className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid inline-flex min-w-0 items-center gap-1 text-left text-[11.5px] outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative inline-flex min-w-0 items-center gap-1 text-left text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   <span className="decoration-border truncate underline underline-offset-2">
                     {t('sourceFromDocument', { where: field.sourceNote })}
@@ -549,7 +570,7 @@ export function BriefFieldRow({
                     aria-expanded={sourceOpen}
                     {...(sourceOpen ? { 'aria-controls': passageId } : {})}
                     onClick={() => setSourceOpen((open) => !open)}
-                    className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid inline-flex shrink-0 items-center rounded-[0.5rem] outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+                    className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative inline-flex shrink-0 items-center rounded-[0.5rem] outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
                     <ChevronDown
                       aria-hidden="true"
@@ -565,12 +586,12 @@ export function BriefFieldRow({
                 ) : null}
               </span>
             ) : (
-              <span className="text-muted-foreground text-[11.5px]">
+              <span className="text-muted-foreground text-xs">
                 {t('sourceFromConversation')}
               </span>
             )}
             {field.sourceQuote ? (
-              <blockquote className="border-border text-muted-foreground border-l-2 pl-2.5 text-[11.5px] italic">
+              <blockquote className="border-border text-muted-foreground border-l-2 pl-2.5 text-xs italic">
                 {field.sourceQuote}
               </blockquote>
             ) : null}
@@ -603,12 +624,12 @@ export function BriefFieldRow({
                 id={passageId}
                 className="border-border bg-muted/40 mz-animate-reveal mt-1 flex flex-col gap-1.5 rounded-[0.5rem] border p-2.5"
               >
-                <p className="text-muted-foreground text-[10.5px] uppercase tracking-wide">
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">
                   {t('sourcePassageLabel', { where: field.sourceNote ?? '' })}
                 </p>
-                <p className="font-mono text-[11px] leading-relaxed">
+                <p className="font-mono text-xs leading-relaxed">
                   {field.sourcePassage!.before ? (
-                    <span className="text-muted-foreground/70 whitespace-pre-line">
+                    <span className="text-muted-foreground whitespace-pre-line">
                       {`${field.sourcePassage!.before} `}
                     </span>
                   ) : null}
@@ -622,7 +643,7 @@ export function BriefFieldRow({
                     {field.sourcePassage!.match}
                   </mark>
                   {field.sourcePassage!.after ? (
-                    <span className="text-muted-foreground/70 whitespace-pre-line">
+                    <span className="text-muted-foreground whitespace-pre-line">
                       {` ${field.sourcePassage!.after}`}
                     </span>
                   ) : null}
@@ -659,7 +680,7 @@ export function BriefFieldRow({
              * where both can appear.
              */}
             {field.reasoning ? (
-              <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 {field.reasoning}
               </p>
             ) : null}
@@ -701,18 +722,25 @@ function Receipt({
   const now = useNow(receipt.at);
 
   return (
-    <span className="bg-muted flex h-9 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] sm:h-7">
+    <span className="bg-muted flex h-9 items-center gap-1.5 rounded-full px-2.5 text-xs sm:h-7">
       {/*
-       * Green, and only on the verb.
+       * Green, and only on the tick.
        *
        * "Accepted" is the same fact as the green tick at the head of the row —
-       * this is settled and the client is behind it — so it takes the same
-       * colour. The rest of the pill stays muted grey: who and when are the
-       * record around the fact, not the fact, and colouring the whole pill
-       * would make a green lozenge out of something that should read quietly.
+       * this is settled and the client is behind it — so it carries the same
+       * mark. The word used to carry the colour too, and on this pill's
+       * `bg-muted` ground that measured 2.37:1: the lowest-contrast text on
+       * the row was the one word stating the outcome. The tick keeps the green
+       * (a graphic, 3:1, which it clears); the verb goes to ink and holds its
+       * emphasis with `font-medium` instead. Who and when stay muted grey:
+       * they are the record around the fact, not the fact.
        */}
-      <span className="text-success flex items-center gap-1 font-medium">
-        <Check aria-hidden="true" className="size-3" strokeWidth={2.5} />
+      <span className="text-foreground flex items-center gap-1 font-medium">
+        <Check
+          aria-hidden="true"
+          className="text-success size-3"
+          strokeWidth={2.5}
+        />
         {t(`receipt.${receipt.kind}`)}
       </span>
       {/*
@@ -734,7 +762,7 @@ function Receipt({
         type="button"
         onClick={onUndo}
         aria-label={t('receipt.undoLabel', { field: label })}
-        className="text-foreground focus-visible:outline-ring focus-visible:outline-solid cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         {t('receipt.undo')}
       </button>

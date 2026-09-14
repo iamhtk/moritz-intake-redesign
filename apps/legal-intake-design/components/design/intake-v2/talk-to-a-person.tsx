@@ -189,7 +189,7 @@ export function TalkToAPerson({
         type="button"
         onClick={open}
         className={cn(
-          'text-foreground focus-visible:ring-ring group -mx-1 flex w-fit items-center gap-2 rounded-full px-1 py-0.5 text-[11.5px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2',
+          'text-foreground focus-visible:ring-ring mz-tap group relative -mx-1 flex w-fit items-center gap-2 rounded-full px-1 py-0.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2',
           className,
         )}
       >
@@ -214,7 +214,7 @@ export function TalkToAPerson({
       type="button"
       onClick={open}
       className={cn(
-        'text-muted-foreground hover:text-foreground focus-visible:ring-ring -mx-1 flex w-fit items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-[11.5px] transition-colors focus-visible:outline-none focus-visible:ring-2',
+        'text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 flex w-fit items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2',
         className,
       )}
     >

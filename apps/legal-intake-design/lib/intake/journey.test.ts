@@ -410,7 +410,7 @@ describe('the horizontal bar', () => {
     // Here: phone widths only.
     expect(source).toContain("tBrief('percentDone', { percent })");
     expect(source).toContain(
-      'text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums lg:hidden',
+      'text-muted-foreground shrink-0 font-mono text-xs tabular-nums lg:hidden',
     );
     expect(source).toContain(
       'bg-border absolute inset-x-0 bottom-0 h-[2px] lg:hidden',
@@ -438,9 +438,7 @@ describe('the horizontal bar', () => {
    * it was the third row of status above the first line of content.
    */
   it('drops the step sentence on a phone', () => {
-    expect(source).toMatch(
-      /hidden truncate text-\[11px\] leading-snug lg:block/,
-    );
+    expect(source).toMatch(/hidden truncate text-xs leading-snug lg:block/);
   });
 
   /*

@@ -114,7 +114,7 @@ export function SentConfirmation({
    * `role="status"` line below is what gets *read*; this is what makes the
    * keyboard land somewhere sensible afterwards.
    */
-  const headingRef = useRef<HTMLParagraphElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     headingRef.current?.focus();
   }, []);
@@ -173,13 +173,24 @@ export function SentConfirmation({
             strokeWidth={1.75}
           />
         </span>
-        <p
+        {/*
+         * A heading element, not a paragraph that looks like one.
+         *
+         * Focus already moved here on submit, which was the fix for complaint
+         * #1 — but it landed on a `<p>`, so a screen-reader user was told
+         * "Case sent" with no indication it was the title of anything, and
+         * heading navigation skipped straight past the one line on the screen
+         * that answers "did that work". `h2` because the flow's `h1` is the
+         * case's own name, up in the shell, and this is the section under it.
+         * Same classes, same 14px, same weight: nothing moves.
+         */}
+        <h2
           ref={headingRef}
           tabIndex={-1}
           className="text-foreground text-sm font-medium focus-visible:outline-none"
         >
           {t('heading')}
-        </p>
+        </h2>
       </div>
 
       {/*
@@ -202,7 +213,7 @@ export function SentConfirmation({
         <DescriptionTerm className="border-t-0 sm:border-t-0">
           {t('reference')}
         </DescriptionTerm>
-        <DescriptionDetails className="font-mono text-[13px] sm:border-t-0">
+        <DescriptionDetails className="font-mono text-sm sm:border-t-0">
           {SUBMITTED_CASE.reference}
         </DescriptionDetails>
         <DescriptionTerm>{t('status')}</DescriptionTerm>
@@ -313,7 +324,7 @@ export function SentConfirmation({
        * only clause on this screen carrying the commercial promise, so it
        * moves here rather than being lost with the sentence around it.
        */}
-      <p className="text-muted-foreground text-[13px] leading-relaxed">
+      <p className="text-muted-foreground text-sm leading-relaxed">
         {t('canClose')} {t('nothingCharged')}
       </p>
 
@@ -342,7 +353,7 @@ export function SentConfirmation({
           <p
             id={summaryId}
             className={cn(
-              'text-muted-foreground text-[13px] leading-relaxed',
+              'text-muted-foreground text-sm leading-relaxed',
               summaryOpen ? null : 'line-clamp-1',
             )}
           >
@@ -353,7 +364,7 @@ export function SentConfirmation({
             onClick={() => setSummaryOpen((value) => !value)}
             aria-expanded={summaryOpen}
             aria-controls={summaryId}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mx-1 rounded-[0.5rem] px-1 text-xs underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 rounded-[0.5rem] px-1 text-xs underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2"
           >
             {t(summaryOpen ? 'summaryHide' : 'summaryShow')}
           </button>
@@ -381,19 +392,19 @@ export function SentConfirmation({
        */}
       {disagreements.length > 0 || brief.observation !== null ? (
         <div className="flex flex-col gap-2">
-          <p className="text-foreground text-[13px] font-medium">
+          <p className="text-foreground text-sm font-medium">
             {t('disagreementsTitle')}
           </p>
           <ul className="flex flex-col gap-1.5">
             {brief.observation !== null ? (
-              <li className="text-muted-foreground text-[13px] leading-relaxed">
+              <li className="text-muted-foreground text-sm leading-relaxed">
                 {brief.observation}
               </li>
             ) : null}
             {disagreements.map((entry) => (
               <li
                 key={entry.label}
-                className="text-muted-foreground text-[13px] leading-relaxed"
+                className="text-muted-foreground text-sm leading-relaxed"
               >
                 {t('disagreement', {
                   label: entry.label,

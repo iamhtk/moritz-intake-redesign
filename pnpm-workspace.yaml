@@ -132,6 +132,14 @@ overrides:
   'qs@<6.16.0': '^6.16.0'
   'flatted@<3.4.2': '>=3.4.2'
   'minimatch@>=3.0.0 <3.1.4': '>=3.1.4'
+  # eslint-plugin-jsx-a11y asks for minimatch ^3.1.2, and the security floor
+  # above ('>=3.1.4', deliberately unbounded) resolves that request to v10 —
+  # which is ESM-only with no default export, so the plugin's
+  # `label-has-associated-control` rule crashes ESLint outright with
+  # `_minimatch.default is not a function`. Pinned to the 3.x line for this
+  # one dev dependency: 3.1.5 is above the security floor, so nothing is
+  # weakened, and the fix stays off every other package's resolution.
+  'eslint-plugin-jsx-a11y>minimatch': '^3.1.4'
   'handlebars@>=4.6.0 <=4.7.8': '>=4.7.9'
   'lodash@>=4.0.0 <4.18.0': '>=4.18.0'
   'axios@<1.15.2': '>=1.15.2'

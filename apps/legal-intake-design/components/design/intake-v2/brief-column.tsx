@@ -198,7 +198,7 @@ export function BriefColumn({
    * the signature folds with it.
    */
   const signature = preparedWith ? (
-    <p className="text-muted-foreground mt-6 font-serif text-[13px] italic">
+    <p className="text-muted-foreground mt-6 font-serif text-sm italic">
       {t('preparedWith', {
         name: preparedWith.name,
         timestamp: preparedWith.timestamp,
@@ -229,13 +229,24 @@ export function BriefColumn({
          * would re-announce the whole panel label, so the pending state is a
          * plain swap and the reply in the chat is what announces it.
          */}
-        <h2 className="text-foreground font-serif text-[25px] font-medium tracking-[-0.01em] max-lg:hidden">
+        {/*
+         * The page's `h1`, not a section's `h2`.
+         *
+         * This line is the case's own name and it is the most important thing
+         * on the screen, so it was already doing an `h1`'s job while being
+         * marked up a level down — which left the whole flow with no
+         * level-one heading and an outline that started at two. It is
+         * `max-lg:hidden`, so below `lg` the shell renders an `sr-only`
+         * `h1` carrying the same string in its place; exactly one of the two
+         * is in the tree at any width.
+         */}
+        <h1 className="text-foreground font-serif text-2xl font-medium tracking-[-0.01em] max-lg:hidden">
           {brief.title ?? (
             <span className={titlePending ? 'shimmer' : undefined}>
               {titlePending ? t('writingNotes') : t('title')}
             </span>
           )}
-        </h2>
+        </h1>
 
         {showProgress ? (
           <div className="flex flex-col gap-3 max-lg:hidden">
@@ -254,7 +265,7 @@ export function BriefColumn({
                * the same units; "4 / 5" left the client to work out that the
                * missing one did not count.
                */}
-              <span className="text-muted-foreground font-mono text-[11.5px] tabular-nums">
+              <span className="text-muted-foreground font-mono text-xs tabular-nums">
                 {t('percentDone', { percent: progress.percent })}
               </span>
             </div>
@@ -266,6 +277,21 @@ export function BriefColumn({
               aria-valuemin={0}
               aria-valuemax={100}
               aria-label={t('progressLabel')}
+              /*
+               * "4 of 5 confirmed", not "80%".
+               *
+               * Without `aria-valuetext` a progress bar is announced as its
+               * percentage, so this one read "80%" — a number the client has
+               * no way to turn back into "one row left". The panel's own
+               * visible line says the percentage because the bar beside it
+               * makes a proportion legible at a glance; a screen reader gets
+               * no bar, so it gets the count instead. Same two numbers
+               * `progress` already computes.
+               */
+              aria-valuetext={t('progressValueText', {
+                confirmed: progress.confirmed,
+                total: progress.total,
+              })}
             >
               {/*
                * The one green in the intake (L12).
@@ -317,7 +343,7 @@ export function BriefColumn({
           onOpenChange={setFieldsOpen}
           className="mt-6 flex flex-col"
         >
-          <CollapsibleTrigger className="border-border text-muted-foreground hover:text-foreground focus-visible:ring-ring -mx-1 flex items-center justify-between gap-3 rounded-[0.5rem] border-t px-1 pt-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2">
+          <CollapsibleTrigger className="border-border text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 flex items-center justify-between gap-3 rounded-[0.5rem] border-t px-1 pt-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2">
             <span>{t('foldedFields', { count: brief.fields.length })}</span>
             <span className="flex shrink-0 items-center gap-1.5 underline underline-offset-4">
               {t(fieldsOpen ? 'foldedHide' : 'foldedShow')}
@@ -357,7 +383,7 @@ export function BriefColumn({
               <p
                 key={savedAt}
                 role="status"
-                className="text-muted-foreground mz-animate-saved pt-1.5 text-[11.5px]"
+                className="text-muted-foreground mz-animate-saved pt-1.5 text-xs"
               >
                 {t('saved')}
               </p>

@@ -92,7 +92,7 @@ export function IntakeBriefPanel({
     <div className="flex w-full flex-col gap-7">
       <section className="flex flex-col gap-2.5">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.18em]">
+          <span className="text-muted-foreground text-xs font-medium uppercase tracking-[0.18em]">
             Case brief
           </span>
           <span className="text-muted-foreground/80 text-xs tabular-nums">

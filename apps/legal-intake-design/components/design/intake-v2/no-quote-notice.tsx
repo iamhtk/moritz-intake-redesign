@@ -58,19 +58,19 @@ export function NoQuoteNotice({
   return (
     <div className="border-border flex flex-col gap-4 rounded-2xl border p-4">
       <div className="flex flex-col gap-1">
-        <p className="text-foreground font-serif text-[19px] leading-tight tracking-tight">
+        <p className="text-foreground font-serif text-xl leading-tight tracking-tight">
           {t('heading')}
         </p>
-        <p className="text-muted-foreground text-[11px] uppercase tracking-wide">
+        <p className="text-muted-foreground text-xs uppercase tracking-wide">
           {t('reasonLabel')}
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-foreground text-[13px] font-medium leading-relaxed">
+        <p className="text-foreground text-sm font-medium leading-relaxed">
           {t(`${reason}.title`)}
         </p>
-        <p className="text-muted-foreground text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           {t(`${reason}.body`)}
         </p>
       </div>
@@ -82,14 +82,14 @@ export function NoQuoteNotice({
        * read at all. Left rule and a tint, the flow's existing treatment for a
        * block that wants attention without alarming anyone.
        */}
-      <p className="border-foreground/20 bg-muted/40 text-foreground border-l-2 py-2.5 pl-3 pr-3 text-[13px] leading-relaxed">
+      <p className="border-foreground/20 bg-muted/40 text-foreground border-l-2 py-2.5 pl-3 pr-3 text-sm leading-relaxed">
         {t(`${reason}.instead`)}
       </p>
 
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="no-quote-reply"
-          className="text-foreground text-[13px] font-medium"
+          className="text-foreground text-sm font-medium"
         >
           {t('talkToUs')}
         </label>

@@ -35,7 +35,7 @@ import { type MatterId } from './intake-types';
 /** Eyebrow label above a lawyer section. */
 export function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-muted-foreground text-center text-[11px] font-medium uppercase tracking-[0.14em]">
+    <div className="text-muted-foreground text-center text-xs font-medium uppercase tracking-[0.14em]">
       {children}
     </div>
   );

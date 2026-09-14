@@ -2512,6 +2512,7 @@
     "brief": {
       "title": "Your case brief",
       "progressLabel": "Fields you have confirmed",
+      "progressValueText": "{confirmed} of {total} confirmed",
       "editLabel": "Edit {field}",
       "label": "Case brief",
       "stateWord": {

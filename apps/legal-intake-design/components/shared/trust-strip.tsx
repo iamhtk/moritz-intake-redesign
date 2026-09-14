@@ -98,7 +98,7 @@ export function TrustStrip({
          * baseline the words sit on as soon as the certifications wrap.
          */
         className={cn(
-          'text-muted-foreground flex flex-wrap items-baseline gap-x-1.5 text-[11.5px] leading-relaxed',
+          'text-muted-foreground flex flex-wrap items-baseline gap-x-1.5 text-xs leading-relaxed',
           className,
         )}
       >
@@ -139,7 +139,7 @@ export function TrustStrip({
       aria-label="Security and confidentiality"
       className={cn('flex flex-wrap items-center gap-1.5', className)}
     >
-      <span className="bg-primary text-primary-foreground inline-flex h-5 items-center gap-1.5 rounded-full pl-2 pr-2.5 text-[10px] font-medium uppercase leading-none tracking-[0.08em]">
+      <span className="bg-primary text-primary-foreground inline-flex h-5 items-center gap-1.5 rounded-full pl-2 pr-2.5 text-xs font-medium uppercase leading-none tracking-[0.08em]">
         {/*
          * 16px, up from 12px, in a pill whose height is now fixed rather than
          * derived.
@@ -174,7 +174,7 @@ export function TrustStrip({
            * two pixels apart. Centred in a flex row that reads as a wobble
            * rather than as a decision.
            */
-          className="border-foreground/40 text-foreground inline-flex h-5 items-center rounded-full border px-2.5 text-[10px] font-medium uppercase leading-none tracking-[0.08em]"
+          className="border-foreground/40 text-foreground inline-flex h-5 items-center rounded-full border px-2.5 text-xs font-medium uppercase leading-none tracking-[0.08em]"
         >
           {certification.text}
         </span>

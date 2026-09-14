@@ -137,3 +137,133 @@ describe('colour restraint in the intake', () => {
     );
   });
 });
+
+/**
+ * The other half of the rule: not how much colour, but whether it is ours.
+ *
+ * `notes/check-colours.sh` has asked this question for a while and nothing
+ * ran it. A shell script that has to be remembered is a rule that holds until
+ * the first hurried afternoon, which is how `text-green-600` — Tailwind's
+ * `#16a34a`, a different green from the brand's `#5eae8b`, three times over —
+ * ended up on the progress bar and the stepper of a flow whose whole argument
+ * is restraint. So the script's rules move into the suite, where `pnpm verify`
+ * runs them whether anybody remembers or not.
+ *
+ * Wider than the count above on purpose. `INTAKE_DIR` alone was the blind spot
+ * the script itself had to fix: the composer, the message rows, the drop zone
+ * and the trust strip are on screen for the entire flow and live in three
+ * other directories.
+ *
+ * **The file-type exception is deliberate and is the only one.** `describeFile`
+ * returns `text-red-600` for a PDF, `text-blue-600` for Word, `text-green-600`
+ * for Excel. Those are not brand decisions, they are the file's own identity —
+ * the icons every one of these clients already recognises from their desktop,
+ * and the brief's own worked example of a colour that is allowed to be off
+ * palette because it is carrying information the palette cannot. Scoped to the
+ * one file that owns the map, so a stray `text-blue-600` anywhere else still
+ * fails.
+ */
+const PALETTE_DIRS = [
+  'components/design/intake-v2',
+  'components/design/intake/chat',
+  'components/design/new-case',
+  'components/shared',
+];
+
+/** The file-type colour map, and nothing else. */
+const FILE_TYPE_COLOURS = 'components/design/new-case/file-utils.ts';
+
+/**
+ * The email preview, which cannot use a class or a custom property at all.
+ *
+ * Gmail strips `<style>` and does not resolve `var()`, so every colour in a
+ * rendered email is an inline literal by necessity. Same carve-out, same file,
+ * same reason as `check-colours.sh`'s.
+ */
+const INLINE_EMAIL = 'components/design/intake-v2/confirmation-email.tsx';
+
+function paletteFiles(): string[] {
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, name.name);
+      if (name.isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(name.name)) out.push(path);
+    }
+  };
+  for (const dir of PALETTE_DIRS) walk(join(process.cwd(), dir));
+  return out;
+}
+
+function offences(pattern: RegExp, skip: string[] = []): string[] {
+  const root = process.cwd();
+  const found: string[] = [];
+  for (const path of paletteFiles()) {
+    const relative = path.slice(root.length + 1);
+    if (skip.some((one) => relative.endsWith(one))) continue;
+    code(readFileSync(path, 'utf8'))
+      .split('\n')
+      .forEach((line, index) => {
+        for (const match of line.matchAll(pattern)) {
+          found.push(`${relative}:${index + 1}  ${match[0]}`);
+        }
+      });
+  }
+  return found;
+}
+
+const HUES =
+  'red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|gray|grey|zinc|slate|neutral|stone';
+const PREFIXES =
+  'bg|text|border|ring|from|to|via|fill|stroke|shadow|outline|decoration|accent|caret|divide|placeholder';
+
+describe('every colour in the intake is a Moritz colour', () => {
+  it('has files to check', () => {
+    expect(paletteFiles().length).toBeGreaterThan(20);
+  });
+
+  it('uses no stock Tailwind colour classes', () => {
+    const found = offences(
+      new RegExp(`\\b(?:${PREFIXES})-(?:${HUES})-[0-9]{2,3}\\b`, 'g'),
+      [FILE_TYPE_COLOURS],
+    );
+    expect(found).toEqual([]);
+  });
+
+  it('uses no hex literals', () => {
+    const found = offences(/#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b/g, [
+      INLINE_EMAIL,
+    ]);
+    expect(found).toEqual([]);
+  });
+
+  it('uses no raw rgb() or hsl()', () => {
+    const found = offences(/\b(?:rgba?|hsla?)\([0-9]/g, [INLINE_EMAIL]);
+    expect(found).toEqual([]);
+  });
+
+  /*
+   * The exception has to still be an exception. If `describeFile` ever stops
+   * returning these, the skip above is dead weight pretending to be a policy —
+   * and worse, it is a hole nobody is watching.
+   */
+  it('still needs the file-type exception it grants', () => {
+    const source = readFileSync(join(process.cwd(), FILE_TYPE_COLOURS), 'utf8');
+    expect(source).toContain('text-red-600');
+    expect(source).toContain('text-blue-600');
+    expect(source).toContain('text-green-600');
+  });
+
+  /* And the scan has to be able to fail. */
+  it('would catch a stock colour if one came back', () => {
+    const pattern = new RegExp(
+      `\\b(?:${PREFIXES})-(?:${HUES})-[0-9]{2,3}\\b`,
+      'g',
+    );
+    expect('className="text-green-600"'.match(pattern)).toEqual([
+      'text-green-600',
+    ]);
+    expect('className="bg-slate-50"'.match(pattern)).toEqual(['bg-slate-50']);
+    expect('className="bg-success"'.match(pattern)).toBeNull();
+  });
+});

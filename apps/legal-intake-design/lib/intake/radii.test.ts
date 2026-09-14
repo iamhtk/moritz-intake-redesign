@@ -27,7 +27,24 @@ import { describe, expect, it } from 'vitest';
  * matches the foundations.
  */
 
-const INTAKE_DIR = join(process.cwd(), 'components/design/intake-v2');
+/**
+ * The directories the intake renders from, which is not only `intake-v2`.
+ *
+ * This test scanned one directory and reported a clean scale while the
+ * composer sat in another with a `rounded-[0.375rem]` on it — a fourth
+ * radius, on a control that is on screen for the entire flow, passing this
+ * test for months. It is the same one-directory blind spot
+ * `notes/check-colours.sh` had and fixed, and the fix is the same: scan what
+ * the client actually looks at.
+ *
+ * `components/shared` is in for the drop zone, whose `choose a file` button
+ * is the keyboard route into the upload and had picked up a `rounded-sm`.
+ */
+const INTAKE_DIRS = [
+  join(process.cwd(), 'components/design/intake-v2'),
+  join(process.cwd(), 'components/design/intake/chat'),
+  join(process.cwd(), 'components/shared'),
+];
 
 /**
  * The three, plus the side-scoped forms of them.
@@ -57,24 +74,25 @@ function code(source: string): string {
 
 describe('the radii in the intake', () => {
   const found = new Map<string, string[]>();
-  for (const name of readdirSync(INTAKE_DIR)) {
-    if (!name.endsWith('.tsx') && !name.endsWith('.ts')) continue;
-    const source = code(readFileSync(join(INTAKE_DIR, name), 'utf8'));
-    /*
-     * The side prefixes are listed rather than matched as "one or two letters",
-     * which is what the first version did and it silently read `rounded-full`
-     * as the side `fu` with no size — so the flow's most-used radius was
-     * reported as a stray and the "still uses all three" check failed on it.
-     * Two-letter corners come first, or `tl` matches as `t` and leaves an `l`
-     * behind.
-     */
-    for (const match of source.matchAll(
-      /\brounded(?:-(?:tl|tr|bl|br|ss|se|es|ee|t|b|l|r|s|e))?(?:-(?:none|sm|md|lg|xl|2xl|3xl|full))?(?:-\[[^\]]+\])?/g,
-    )) {
-      const token = match[0];
-      found.set(token, [...(found.get(token) ?? []), name]);
+  for (const dir of INTAKE_DIRS)
+    for (const name of readdirSync(dir)) {
+      if (!name.endsWith('.tsx') && !name.endsWith('.ts')) continue;
+      const source = code(readFileSync(join(dir, name), 'utf8'));
+      /*
+       * The side prefixes are listed rather than matched as "one or two letters",
+       * which is what the first version did and it silently read `rounded-full`
+       * as the side `fu` with no size — so the flow's most-used radius was
+       * reported as a stray and the "still uses all three" check failed on it.
+       * Two-letter corners come first, or `tl` matches as `t` and leaves an `l`
+       * behind.
+       */
+      for (const match of source.matchAll(
+        /\brounded(?:-(?:tl|tr|bl|br|ss|se|es|ee|t|b|l|r|s|e))?(?:-(?:none|sm|md|lg|xl|2xl|3xl|full))?(?:-\[[^\]]+\])?/g,
+      )) {
+        const token = match[0];
+        found.set(token, [...(found.get(token) ?? []), name]);
+      }
     }
-  }
 
   it('finds corners to check', () => {
     expect(found.size).toBeGreaterThan(2);

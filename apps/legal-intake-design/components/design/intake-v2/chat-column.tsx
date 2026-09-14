@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
 import {
@@ -99,6 +99,8 @@ export function ChatColumn({
   composerLeading?: ReactNode;
 }) {
   const t = useTranslations('intake.chat');
+  /** Stable id so the composer's field can describe itself with the failure. */
+  const failureId = useId();
   const hasMessages = messages.length > 0;
   /*
    * A reply streams into an assistant turn that starts out empty, so the turn
@@ -171,7 +173,7 @@ export function ChatColumn({
                  * its assistant turns also carried a "Moritz" name label above
                  * the bubble (~22rem of label, margin and stack) and set text
                  * at `text-sm leading-relaxed`. v2 dropped the label and reads
-                 * at `text-[15px] leading-7`, so a literal 32px lands at only
+                 * at `text-base leading-7`, so a literal 32px lands at only
                  * 1.14x the line height and the turns run together where the
                  * original cleared its own leading by 1.4x.
                  *
@@ -333,7 +335,19 @@ export function ChatColumn({
             role="alert"
             className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-1"
           >
-            <p className="text-destructive min-w-0 flex-1 text-sm">
+            {/*
+             * `id` so the composer below can name this as its description.
+             * The announcement and the association are two different
+             * requirements and this block only met the first: `role="alert"`
+             * reads the sentence once, when it appears, to whoever happens to
+             * be listening; `aria-describedby` is what makes it findable
+             * afterwards from the field it is about. See `errorId` on
+             * `ChatComposer`.
+             */}
+            <p
+              id={failureId}
+              className="text-destructive min-w-0 flex-1 text-sm"
+            >
               {failure.text}
             </p>
             {failure.retryable ? (
@@ -363,6 +377,7 @@ export function ChatColumn({
             busy={busy}
             onSend={onSend}
             onAttach={onAttach}
+            {...(failure ? { errorId: failureId } : {})}
             /*
              * The page owns the drag, not the composer.
              *

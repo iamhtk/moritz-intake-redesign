@@ -102,11 +102,6 @@ import {
   writeStoredJson,
 } from '@/lib/intake/session-storage';
 import { prepareDemoSession } from '@/lib/intake/demo-session';
-import {
-  clearSentSession,
-  readSentSession,
-  writeSentSession,
-} from '@/lib/intake/sent-session';
 import { progressNoteFor } from '@/lib/intake/progress-note';
 import { WaitingQuestions } from './waiting-questions';
 import { BriefColumn } from './brief-column';
@@ -121,6 +116,7 @@ import { QuoteCard } from './quote-card';
 import { ReviewNotice } from './review-notice';
 import { SentConfirmation } from './sent-confirmation';
 import { SendingSteps } from './sending-steps';
+import { TABLET_COLUMN } from '@/lib/intake/layout';
 import { describeFile } from '@/components/design/new-case/file-utils';
 import { JourneyBar } from './journey-bar';
 import { PrototypeLink } from './prototype-link';
@@ -297,7 +293,6 @@ export function IntakeV2() {
     markDocumentsSuggested,
     unconfirmed,
     blocking,
-    replace,
   } = useBrief('contract', { persist: !sealed });
 
   /**
@@ -2652,7 +2647,7 @@ export function IntakeV2() {
    * disclaimer nobody reads, which would be a worse answer than cutting it.
    */
   const briefExplanation = (
-    <p className="text-muted-foreground text-[10.5px] leading-[1.5]">
+    <p className="text-muted-foreground text-xs leading-[1.5]">
       {t(FOOTER_SENTENCE[phase])}
     </p>
   );
@@ -2740,7 +2735,7 @@ export function IntakeV2() {
          * the version of this gate that makes people think it is broken.
          */}
         {canSend(brief) ? null : (
-          <p className="text-muted-foreground text-center text-[11.5px]">
+          <p className="text-muted-foreground text-center text-xs">
             {t('send.blocked', { count: blocking.length })}
           </p>
         )}
@@ -2796,7 +2791,7 @@ export function IntakeV2() {
          * drift from the button it is under.
          */}
         {canEnterReview(brief) ? null : (
-          <p className="text-muted-foreground text-center text-[11.5px]">
+          <p className="text-muted-foreground text-center text-xs">
             {t('quote.blocked', { count: blocking.length })}
           </p>
         )}
@@ -3191,7 +3186,7 @@ export function IntakeV2() {
              * rebuild; uncomment the `<p>` to bring it back.
              */}
             {/*
-             * Italic and 7px because it is an aside: permission to leave, not
+             * Italic and text-xs because it is an aside: permission to leave, not
              * an instruction.
              *
              * It spent a while rendered with an inline `fontSize` while sizes
@@ -3201,7 +3196,7 @@ export function IntakeV2() {
              * why three successive attempts at "smaller" all looked
              * identical. Worth knowing the next time a size will not take.
              */}
-            {/* <p className="text-muted-foreground px-1 text-[7px] italic leading-relaxed">
+            {/* <p className="text-muted-foreground px-1 text-xs italic leading-relaxed">
             {t('start.reassurance')}
           </p> */}
           </div>
@@ -3285,6 +3280,38 @@ export function IntakeV2() {
        * the transcript never takes it off screen, and whatever it opens is
        * drawn over the panes rather than pushing them down.
        */}
+      {/*
+       * The one `h1` for every screen after the start, and it is invisible.
+       *
+       * axe reported `page-has-heading-one` on twelve of fourteen runs: the
+       * start screen has a real `h1` ("Welcome back, Alex."), and the moment
+       * a client types a word that screen unmounts and the flow spends the
+       * rest of its life with no level-one heading at all. Everything below
+       * is an `h2` — "Your case brief", the matter title, "Case sent" — so
+       * the document outline started at level two and a screen-reader user
+       * navigating by heading had nothing to orient against.
+       *
+       * `sr-only` rather than visible because the screen genuinely has no
+       * title to show. The brief panel names itself, the summary bar carries
+       * the matter, and adding a third line saying the same thing would be
+       * the "row of status above the first line of content" problem the
+       * journey bar was written to fix. A heading that exists for the outline
+       * and not for the eye is exactly what `sr-only` is for.
+       *
+       * It says the case's name once there is one, and falls back to the
+       * panel's own title before the recap has written one — the same string,
+       * from the same place, as the summary bar two rows down, so the page
+       * and its heading can never disagree.
+       *
+       * `lg:hidden`, and that is the half that stops this being a
+       * duplicate. From `lg` up the brief panel's own title is visible and
+       * is the real `h1` (see `brief-column.tsx`); without this the tree
+       * carried two headings with identical text, which is worse than the
+       * missing one it was added to fix. Below `lg` that title is
+       * `max-lg:hidden` and this takes over. Exactly one, at every width.
+       */}
+      <h1 className="sr-only lg:hidden">{brief.title ?? t('brief.title')}</h1>
+
       <JourneyBar
         phase={phase}
         accepted={quoteAccepted}
@@ -3296,6 +3323,8 @@ export function IntakeV2() {
          * finished thing.
          */
         percent={isSubmitted(phase) ? null : progress.percent}
+        confirmed={isSubmitted(phase) ? null : progress.confirmed}
+        total={isSubmitted(phase) ? null : progress.total}
         className="xl:hidden"
       />
 
@@ -3345,12 +3374,14 @@ export function IntakeV2() {
            * drawn behind it. See the note on the `z-30` in `journey-bar.tsx`.
            */}
           <div className="bg-background sticky top-0 z-20 shrink-0 px-4 sm:px-6 lg:hidden">
-            <BriefSummaryBar
-              brief={brief}
-              open={briefOpenOnMobile}
-              onToggle={() => setBriefOpenOnMobile((open) => !open)}
-              titlePending={recapPending}
-            />
+            <div className={TABLET_COLUMN}>
+              <BriefSummaryBar
+                brief={brief}
+                open={briefOpenOnMobile}
+                onToggle={() => setBriefOpenOnMobile((open) => !open)}
+                titlePending={recapPending}
+              />
+            </div>
           </div>
 
           {/*
@@ -3519,7 +3550,19 @@ export function IntakeV2() {
               <div
                 className={cn(
                   'mx-auto flex min-h-0 w-full flex-1 flex-col',
-                  briefLed ? 'max-w-none' : 'max-w-[56rem]',
+                  /*
+                   * Three measures, not two. `md`–`lg` takes the 40rem tablet
+                   * column (see `TABLET_COLUMN`); from `lg` the pane is a grid
+                   * track again and goes back to the measure it always had.
+                   * Spelled out rather than composed with `TABLET_COLUMN`
+                   * because this wrapper already centres itself and already
+                   * has an `lg` value to restore, so the shared string's
+                   * `lg:max-w-none` would be the wrong ending for it.
+                   */
+                  'md:max-w-[40rem]',
+                  briefLed
+                    ? 'max-w-none lg:max-w-none'
+                    : 'max-w-[56rem] lg:max-w-[56rem]',
                 )}
               >
                 {chat}
@@ -3538,7 +3581,7 @@ export function IntakeV2() {
                * a second cap inside it could only ever re-open the gap it was
                * introduced to close.
                */}
-              <div className="h-full">{briefPanel}</div>
+              <div className={cn('h-full', TABLET_COLUMN)}>{briefPanel}</div>
             </div>
 
             {/*
@@ -3590,7 +3633,38 @@ export function IntakeV2() {
            * the footer goes back to the bottom of it, unchanged.
            */}
           <div className="border-border bg-background shrink-0 border-t px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 sm:px-6 lg:hidden">
-            {briefAction}
+            <div className={cn('flex flex-col gap-2.5', TABLET_COLUMN)}>
+              {briefAction}
+              {/*
+               * The way out, on the screens that had lost it.
+               *
+               * `TalkToAPerson` is rendered once, under the composer, inside
+               * the chat pane — and below `lg` the brief-led screens hide that
+               * pane outright (`briefOpenOnMobile && 'max-lg:hidden'` above).
+               * So from the moment a case is reviewed onward, a client on a
+               * phone or a tablet had no route to a human on review, sent,
+               * quote or no-quote: five of the seven screens, at six of the
+               * ten widths. The escape hatch has to be reachable at every
+               * width, and it was reachable at none of the small ones.
+               *
+               * Gated on `briefOpenOnMobile` rather than rendered always,
+               * because that flag is exactly "the chat pane is not on screen".
+               * With the brief shut the original is visible two rows up and a
+               * second copy would be the same offer twice in 80px. Two call
+               * sites, never both at once.
+               *
+               * In the action bar rather than at the foot of the brief pane so
+               * it does not need scrolling to: this bar is a sibling of both
+               * panes and is pinned, and a way out you have to reach the
+               * bottom of a long confirmation to find is not a way out.
+               *
+               * From `lg` up nothing here renders at all and the chat pane's
+               * own copy is the only one, unchanged.
+               */}
+              {briefOpenOnMobile ? (
+                <TalkToAPerson matterId={matterId} className="lg:hidden" />
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

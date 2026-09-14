@@ -66,7 +66,7 @@ export function DocumentsTrigger({
       onClick={onOpen}
       aria-label={label}
       title={label}
-      className={cn('relative rounded-full', className)}
+      className={cn('relative rounded-full max-lg:size-11', className)}
     >
       <PanelRight aria-hidden="true" />
       {/*
@@ -77,7 +77,7 @@ export function DocumentsTrigger({
        */}
       <span
         aria-hidden="true"
-        className="bg-foreground text-background absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums leading-none"
+        className="bg-foreground text-background absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-xs font-medium tabular-nums leading-none"
       >
         {count > 9 ? '9+' : count}
       </span>

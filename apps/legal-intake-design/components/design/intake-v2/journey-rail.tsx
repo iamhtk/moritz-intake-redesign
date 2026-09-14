@@ -276,6 +276,16 @@ function JourneyStep({
   const line = lineKey === null ? null : t(lineKey);
   const note = step === 'quote' ? t('note.quote') : null;
 
+  /*
+   * The step's state as one of the three `state.*` keys, resolved here
+   * rather than inline in the `t()` call. `copy-keys.test.ts` reads these
+   * templates statically to prove every key exists, and a nested ternary
+   * inside the interpolation reads to it as three bare keys with the
+   * `state.` prefix lost — so a correct call failed a test that was right to
+   * ask. Same shape as the sub-rows' `state.${row.state}` below.
+   */
+  const stepState = done ? 'done' : current ? 'current' : 'future';
+
   return (
     <li aria-current={current ? 'step' : undefined} className="flex gap-2">
       {/*
@@ -297,7 +307,7 @@ function JourneyStep({
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={panelId}
-          className="focus-visible:ring-ring group -mx-1 flex items-center gap-1.5 rounded-[0.5rem] px-1 text-left focus-visible:outline-none focus-visible:ring-2"
+          className="focus-visible:ring-ring mz-tap group relative -mx-1 flex items-center gap-1.5 rounded-[0.5rem] px-1 text-left focus-visible:outline-none focus-visible:ring-2"
         >
           {/*
            * Bold, and the only bold in the rail. The four headings are what a
@@ -306,7 +316,7 @@ function JourneyStep({
            */}
           <span
             className={cn(
-              'flex-1 truncate text-[12px] font-semibold leading-none',
+              'flex-1 truncate text-xs font-medium leading-none',
               current || done ? 'text-foreground' : 'text-muted-foreground',
             )}
           >
@@ -320,6 +330,19 @@ function JourneyStep({
             )}
             strokeWidth={2}
           />
+          {/*
+           * The step's own state in words, on the same rule the sub-rows
+           * below already follow.
+           *
+           * `StepMark` is the visual answer and it is `aria-hidden`, so a
+           * finished step announced exactly like an untouched one: "Brief,
+           * button, collapsed". `aria-current="step"` marks the one you are
+           * on, which leaves the four-way distinction between done, current
+           * and the two still to come resting entirely on a green tick
+           * nobody can hear. One line, the same `state.*` strings the rows
+           * use, so the rail says the same thing at both levels.
+           */}
+          <span className="sr-only">{t(`state.${stepState}`)}</span>
           <span className="sr-only">{t(open ? 'collapse' : 'expand')}</span>
         </button>
 
@@ -332,7 +355,7 @@ function JourneyStep({
           {open ? (
             <div id={panelId} className="flex flex-col pt-1.5">
               {line !== null ? (
-                <p className="text-muted-foreground text-[11px] leading-snug">
+                <p className="text-muted-foreground text-xs leading-snug">
                   {line}
                 </p>
               ) : null}
@@ -344,7 +367,7 @@ function JourneyStep({
                 </ol>
               ) : null}
               {note !== null ? (
-                <p className="text-muted-foreground/80 mt-2 text-[11px] leading-snug">
+                <p className="text-muted-foreground mt-2 text-xs leading-snug">
                   {note}
                 </p>
               ) : null}
@@ -378,7 +401,7 @@ function StageRow({ row }: { row: CaseStageRow }) {
       <div className="flex min-w-0 flex-col">
         <span
           className={cn(
-            'text-[11px] leading-snug',
+            'text-xs leading-snug',
             current
               ? 'text-foreground font-medium'
               : done
@@ -395,7 +418,7 @@ function StageRow({ row }: { row: CaseStageRow }) {
          * `case-stages.ts`.
          */}
         {row.hasDetail ? (
-          <span className="text-muted-foreground/80 mt-0.5 text-[10.5px] leading-snug">
+          <span className="text-muted-foreground mt-0.5 text-xs leading-snug">
             {t(`detail.${row.id}`)}
           </span>
         ) : null}
@@ -435,7 +458,7 @@ function StepMark({ done, current }: { done: boolean; current: boolean }) {
     <span
       className={cn(
         'flex size-3 items-center justify-center rounded-full border',
-        current ? 'border-foreground border-[1.5px]' : 'border-border',
+        current ? 'border-foreground border-2' : 'border-border',
       )}
     />
   );

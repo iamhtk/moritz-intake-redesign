@@ -61,6 +61,7 @@ export function SuggestionChips({
               disabled={locked && !isSelected}
               aria-pressed={isSelected || undefined}
               className={cn(
+                'max-lg:h-11',
                 isSelected &&
                   'border-primary bg-primary text-primary-foreground not-disabled:hover:bg-primary',
                 locked && 'cursor-default',

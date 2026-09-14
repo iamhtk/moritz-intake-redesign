@@ -45,7 +45,7 @@ export function OneMoreThing({
 
   if (added) {
     return (
-      <p className="text-muted-foreground flex items-start gap-2 text-[13px] leading-relaxed">
+      <p className="text-muted-foreground flex items-start gap-2 text-sm leading-relaxed">
         <Check
           className="text-foreground mt-0.5 size-3.5 shrink-0"
           strokeWidth={2.5}
@@ -68,8 +68,8 @@ export function OneMoreThing({
         setAdded(true);
       }}
     >
-      <p className="text-foreground text-[13px] font-medium">{t('title')}</p>
-      <p className="text-muted-foreground text-[13px] leading-relaxed">
+      <p className="text-foreground text-sm font-medium">{t('title')}</p>
+      <p className="text-muted-foreground text-sm leading-relaxed">
         {t('body')}
       </p>
       <label htmlFor={inputId} className="sr-only">
@@ -81,7 +81,7 @@ export function OneMoreThing({
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder={t('placeholder')}
-        className="text-[13px]"
+        className="text-sm"
       />
       {/*
        * Disabled on empty rather than hidden, and no "skip" control beside it.
@@ -90,7 +90,12 @@ export function OneMoreThing({
        * offer into a decision.
        */}
       <div className="flex justify-end">
-        <Button type="submit" size="sm" disabled={trimmed === ''}>
+        <Button
+          type="submit"
+          size="sm"
+          className="max-lg:h-11"
+          disabled={trimmed === ''}
+        >
           {t('button')}
         </Button>
       </div>

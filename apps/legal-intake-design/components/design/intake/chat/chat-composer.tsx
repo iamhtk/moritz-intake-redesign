@@ -159,6 +159,16 @@ type ChatComposerProps = {
    * existing call site is unchanged.
    */
   labels?: { field?: string; send?: string; stop?: string };
+  /**
+   * The id of a visible error message this composer's field should point at.
+   *
+   * Optional, because the error does not belong to the composer: the intake
+   * renders it above, in the transcript column, where it sits next to the
+   * client's own words and a Retry that can put them back. The composer is
+   * simply the control the error is *about*, and `aria-describedby` is how a
+   * field says so across a DOM boundary. Absent, nothing changes.
+   */
+  errorId?: string;
 };
 
 const MAX_LINES = 6;
@@ -198,6 +208,7 @@ export function ChatComposer({
   dropTarget = true,
   showAttach = true,
   labels,
+  errorId,
 }: ChatComposerProps) {
   const [internalValue, setInternalValue] = useState('');
   const isControlled = valueProp !== undefined;
@@ -375,6 +386,9 @@ export function ChatComposer({
   };
 
   return (
+    // The mouse-target widening below is not an interaction this element
+    // owns; see the note on `onMouseDown`.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <form
       data-slot="control"
       {...dropHandlers}
@@ -382,6 +396,17 @@ export function ChatComposer({
         event.preventDefault();
         handleSubmit();
       }}
+      /*
+       * jsx-a11y reads a `<form>` with a mouse handler as an interactive
+       * element that is not keyboard-reachable. It is not one. This adds no
+       * behaviour and removes none: the composer's keyboard route is the
+       * textarea inside it, which is a real control in the tab order, and
+       * every button in the toolbar is its own tab stop. What the handler
+       * does is widen the *mouse* target to the padding around them, which is
+       * how every native text field behaves and which a keyboard never needs.
+       * A `role` here would be a lie and a `tabIndex` would be a second stop
+       * on the way to the field.
+       */
       onMouseDown={(event) => {
         // Clicking the composer's empty padding/toolbar space should focus the
         // textarea, like a real input. Ignore clicks on interactive controls
@@ -454,7 +479,7 @@ export function ChatComposer({
       {dragging ? (
         <div
           aria-hidden="true"
-          className="bg-background/80 text-foreground mz-animate-reveal pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-[inherit] text-[13px] font-medium supports-[backdrop-filter]:backdrop-blur-[2px]"
+          className="bg-background/80 text-foreground mz-animate-reveal pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-[inherit] text-sm font-medium supports-[backdrop-filter]:backdrop-blur-[2px]"
         >
           <span className="border-border bg-background flex size-6 items-center justify-center rounded-full border">
             <UploadCloud className="size-3.5" strokeWidth={1.75} />
@@ -512,7 +537,7 @@ export function ChatComposer({
                       type="button"
                       onClick={() => onOpenAttachment(attachment)}
                       title={attachment.name}
-                      className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -mx-0.5 flex min-w-0 flex-1 cursor-pointer items-start rounded-[0.375rem] px-0.5 text-left outline-none transition-colors focus-visible:outline-2"
+                      className="focus-visible:outline-ring focus-visible:outline-solid hover:bg-foreground/[0.04] -mx-0.5 flex min-w-0 flex-1 cursor-pointer items-start rounded-[0.5rem] px-0.5 text-left outline-none transition-colors focus-visible:outline-2"
                     >
                       <AttachmentContent>
                         {/*
@@ -592,6 +617,26 @@ export function ChatComposer({
           placeholder={placeholder}
           disabled={disabled}
           aria-label={labels?.field ?? t('composer.field')}
+          /*
+           * The failure above this field is *about* this field, and until now
+           * nothing said so.
+           *
+           * The message was announced — it sits in a `role="alert"` — but a
+           * client who tabbed back into the composer afterwards, or who
+           * arrived at it by any route other than hearing the alert, got a
+           * textarea that reported itself as perfectly fine. WCAG 3.3.1 wants
+           * the error identified *on the control*, which is what these two
+           * attributes do: `aria-invalid` marks the field, `aria-describedby`
+           * hands the reader the sentence explaining why.
+           *
+           * Spread rather than written as `|| undefined` so a composer with
+           * no error carries neither attribute, instead of `aria-invalid
+           * ="false"` — which some readers announce, and "edit, not invalid"
+           * is a strange thing to be told about a message you have not sent.
+           */
+          {...(errorId
+            ? { 'aria-describedby': errorId, 'aria-invalid': true }
+            : {})}
           className="placeholder:text-field-placeholder selection:bg-accent selection:text-accent-foreground min-h-10 w-full resize-none bg-transparent text-base/6 outline-none disabled:cursor-not-allowed sm:text-sm/6"
         />
         {fade.top ? (
@@ -644,7 +689,7 @@ export function ChatComposer({
        * rather talk, and most matters are not that sensitive.
        */}
       {dictation.recording ? (
-        <p className="text-muted-foreground px-3 pt-1 text-[11.5px] leading-relaxed">
+        <p className="text-muted-foreground px-3 pt-1 text-xs leading-relaxed">
           {t('voice.cost')}
         </p>
       ) : null}
@@ -671,7 +716,7 @@ export function ChatComposer({
                 disabled={disabled}
                 onClick={handleAttachClick}
                 aria-label={t('composer.attach')}
-                className="rounded-full"
+                className="rounded-full max-lg:size-11"
               >
                 <Paperclip aria-hidden="true" />
               </Button>
@@ -718,7 +763,7 @@ export function ChatComposer({
                 // Recording: a pill with symmetric insets and a gap between
                 // the waveform and the stop square. `py` is zeroed in both so
                 // the height stays the full h-9.
-                'grid h-9 items-center rounded-full duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+                'grid h-9 items-center rounded-full duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none max-lg:h-11',
                 dictation.recording
                   ? 'grid-cols-[auto_1fr] gap-1.5 px-2.5 py-0 sm:px-2.5 sm:py-0'
                   : 'grid-cols-[auto_0fr] gap-0 p-0 sm:p-0',
@@ -767,7 +812,7 @@ export function ChatComposer({
             type={busy ? 'button' : 'submit'}
             size="icon"
             onClick={busy ? onStop : undefined}
-            className="rounded-full"
+            className="rounded-full max-lg:size-11"
             disabled={
               busy
                 ? false

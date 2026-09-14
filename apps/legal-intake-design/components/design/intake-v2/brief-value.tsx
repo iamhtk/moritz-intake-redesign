@@ -138,7 +138,7 @@ export function BriefValue({
         <p
           className={cn(
             'whitespace-pre-line text-sm',
-            muted ? 'text-muted-foreground/70' : 'text-foreground',
+            muted ? 'text-muted-foreground' : 'text-foreground',
           )}
         >
           {value}
@@ -170,7 +170,7 @@ export function BriefValue({
           type="button"
           onClick={() => setExpanded((current) => !current)}
           aria-expanded={expanded}
-          className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid w-fit cursor-pointer text-[11.5px] outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-muted-foreground hover:text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative w-fit cursor-pointer text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {expanded ? t('showLess') : t('readMore')}
         </button>

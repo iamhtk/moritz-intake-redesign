@@ -31,7 +31,7 @@ export function BriefOutline() {
       <ol className="text-muted-foreground flex flex-col gap-1.5 text-xs leading-relaxed">
         {['one', 'two', 'three'].map((step, index) => (
           <li key={step} className="flex gap-2">
-            <span className="text-muted-foreground/60 font-mono text-[11px]">
+            <span className="text-muted-foreground font-mono text-xs">
               {index + 1}
             </span>
             {t(`howItWorks.${step}`)}

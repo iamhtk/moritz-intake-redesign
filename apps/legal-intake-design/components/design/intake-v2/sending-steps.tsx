@@ -69,10 +69,10 @@ export function SendingSteps({ className }: { className?: string }) {
             <li
               key={step.id}
               className={cn(
-                'flex items-start gap-2.5 text-[13px] leading-5 transition-colors',
+                'flex items-start gap-2.5 text-sm leading-5 transition-colors',
                 finished || running
                   ? 'text-foreground'
-                  : 'text-muted-foreground/60',
+                  : 'text-muted-foreground',
               )}
             >
               <span
@@ -103,7 +103,7 @@ export function SendingSteps({ className }: { className?: string }) {
        * the confirmation that tells them otherwise is on the far side of the
        * thing they are worried about.
        */}
-      <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+      <p className="text-muted-foreground text-xs leading-relaxed">
         {t('send.sendingNote')}
       </p>
     </div>

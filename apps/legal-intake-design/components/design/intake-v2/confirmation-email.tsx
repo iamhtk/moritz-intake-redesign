@@ -223,7 +223,7 @@ export function ConfirmationEmailTrigger({
           body,
         })
       }
-      className="focus-visible:outline-ring focus-visible:outline-solid group flex cursor-pointer items-center gap-1.5 rounded-[0.5rem] text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="focus-visible:outline-ring focus-visible:outline-solid mz-tap group relative flex cursor-pointer items-center gap-1.5 rounded-[0.5rem] text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <span className="text-foreground truncate">{MOCK_CLIENT_USER.email}</span>
       <span className="text-muted-foreground group-hover:text-foreground shrink-0 underline underline-offset-4 transition-colors">

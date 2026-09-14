@@ -73,6 +73,7 @@
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "globals": "catalog:",
     "jsdom": "catalog:",
     "typescript": "catalog:",

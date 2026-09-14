@@ -131,7 +131,7 @@ function Eyebrow() {
   const t = useTranslations('intake');
 
   return (
-    <span className="text-muted-foreground block text-[11px] font-medium uppercase tracking-[0.14em]">
+    <span className="text-muted-foreground block text-xs font-medium uppercase tracking-[0.14em]">
       {t('howItWorks.title')}
     </span>
   );
@@ -225,7 +225,7 @@ function LawyerFace({
        * and leaving the image out entirely is what used to leave Radix's root
        * thinking a photograph was still up, blanking the fallback.
        */}
-      <AvatarFallback className="bg-primary/10 text-foreground text-[9px] font-medium tracking-wide">
+      <AvatarFallback className="bg-primary/10 text-foreground text-xs font-medium tracking-wide">
         {initials}
       </AvatarFallback>
     </Avatar>
@@ -300,7 +300,7 @@ export function HowItWorksCard({
                    * four words" has to be one key with one place to edit it,
                    * or the card and the tracker drift.
                    */}
-                  <p className="text-foreground font-serif text-[15px] font-semibold leading-tight tracking-tight">
+                  <p className="text-foreground font-serif text-base font-semibold leading-tight tracking-tight">
                     {t(`journey.step.${step}`)}
                   </p>
                   <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
@@ -312,7 +312,7 @@ export function HowItWorksCard({
                    * words and wants to know which one is now.
                    */}
                   {here ? (
-                    <p className="text-muted-foreground/70 mt-1 text-[11px] leading-snug">
+                    <p className="text-muted-foreground mt-1 text-xs leading-snug">
                       {t('howItWorks.youAreHere')}
                     </p>
                   ) : null}
@@ -366,7 +366,7 @@ export function HowItWorksCard({
                       imageUrl={lawyer.imageUrl}
                     />
                   ) : null}
-                  <span className="text-muted-foreground text-[11px] leading-snug">
+                  <span className="text-muted-foreground text-xs leading-snug">
                     {t(`howItWorks.when.${step}`)}
                   </span>
                 </div>
@@ -397,7 +397,7 @@ export function HowItWorksCard({
        * aside (see the file note in `brief-column.tsx`).
        */}
       <div className="border-foreground/10 tall:mt-4 tall:pt-3.5 mt-3 border-t pt-3">
-        <p className="text-foreground/75 font-serif text-[13px] italic leading-relaxed">
+        <p className="text-foreground/75 font-serif text-sm italic leading-relaxed">
           {t('howItWorks.footer')}
         </p>
         {/*

@@ -63,7 +63,7 @@ export function PostSubmitDropzone({
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-foreground text-[13px] font-medium">
+      <p className="text-foreground text-sm font-medium">
         {isTheOneThing ? t('oneMore.document.title') : t('addMoreTitle')}
       </p>
 
@@ -72,7 +72,7 @@ export function PostSubmitDropzone({
        * contract does not need to be told what a contract is for.
        */}
       {isTheOneThing ? (
-        <p className="text-muted-foreground text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           {t('oneMore.document.hint')}
         </p>
       ) : null}
@@ -93,7 +93,7 @@ export function PostSubmitDropzone({
                   type="button"
                   onClick={() => onOpen(added.name)}
                   title={added.name}
-                  className="text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] focus-visible:outline-ring focus-visible:outline-solid -mx-1.5 flex w-full cursor-pointer items-center gap-2 rounded-[0.5rem] px-1.5 py-1 text-left text-[13px] outline-none transition-colors focus-visible:outline-2"
+                  className="text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04] focus-visible:outline-ring focus-visible:outline-solid mz-tap relative -mx-1.5 flex w-full cursor-pointer items-center gap-2 rounded-[0.5rem] px-1.5 py-1 text-left text-sm outline-none transition-colors focus-visible:outline-2"
                 >
                   <FileGlyph name={added.name} />
                   <span className="decoration-border truncate underline underline-offset-2">
@@ -101,7 +101,7 @@ export function PostSubmitDropzone({
                   </span>
                 </button>
               ) : (
-                <span className="text-muted-foreground flex items-center gap-2 py-1 text-[13px]">
+                <span className="text-muted-foreground flex items-center gap-2 py-1 text-sm">
                   <FileGlyph name={added.name} />
                   <span className="truncate">{added.name}</span>
                 </span>

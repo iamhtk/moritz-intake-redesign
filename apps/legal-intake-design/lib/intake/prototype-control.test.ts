@@ -144,8 +144,8 @@ describe('the control does not read as a feature', () => {
    */
   it('is not built out of the product’s button', () => {
     expect(LINK).not.toContain('<Button');
-    expect(LINK).toContain('text-muted-foreground/70');
-    expect(LINK).toContain('text-[11px]');
+    expect(LINK).toContain('text-muted-foreground');
+    expect(LINK).toContain('text-xs');
   });
 
   /*

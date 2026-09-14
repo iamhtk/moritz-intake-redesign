@@ -144,7 +144,7 @@ export function ChatMessage({
       <MessageScrollerItem messageId={messageId}>
         <div className="flex items-start gap-2.5">
           <Bubble variant="muted" align="end">
-            <BubbleContent className="space-y-2 px-4 py-3 text-[15px] leading-relaxed">
+            <BubbleContent className="space-y-2 px-4 py-3 text-base leading-relaxed">
               {children ? (
                 <div className="whitespace-pre-wrap">{children}</div>
               ) : null}
@@ -172,7 +172,7 @@ export function ChatMessage({
     <MessageScrollerItem messageId={messageId}>
       <div className="flex gap-3.5">
         <MoritzAvatar />
-        <div className="text-foreground min-w-0 flex-1 space-y-4 pt-0.5 text-[15px] leading-7">
+        <div className="text-foreground min-w-0 flex-1 space-y-4 pt-0.5 text-base leading-7">
           {rail ?? null}
           {thinking && !rail ? (
             <ThinkingMarker
@@ -181,7 +181,7 @@ export function ChatMessage({
           ) : null}
           {hasBody ? (
             <Bubble variant="ghost" align="start">
-              <BubbleContent className="space-y-3 text-[15px] leading-7">
+              <BubbleContent className="space-y-3 text-base leading-7">
                 {children ? (
                   <div className="whitespace-pre-wrap">
                     {streamable ? (

@@ -113,7 +113,7 @@ export function BriefSummaryBar({
                * the same mark the brief's own rows use for a confirmed
                * value, in the same ink weight.
                */
-              <span className="bg-muted text-foreground inline-flex max-w-[55%] shrink items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] leading-none">
+              <span className="bg-muted text-foreground inline-flex max-w-[55%] shrink items-center gap-1 rounded-full px-1.5 py-0.5 text-xs leading-none">
                 <Check
                   aria-hidden="true"
                   className="text-success size-2.5 shrink-0"
@@ -125,7 +125,7 @@ export function BriefSummaryBar({
                 </span>
               </span>
             ) : null}
-            <span className="text-muted-foreground min-w-0 flex-1 truncate text-[11.5px]">
+            <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
               {detail}
             </span>
           </span>

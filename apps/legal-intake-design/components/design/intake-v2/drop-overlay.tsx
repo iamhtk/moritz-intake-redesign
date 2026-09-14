@@ -36,7 +36,7 @@ export function DropOverlay({
         <span className="border-border bg-background text-foreground flex size-11 items-center justify-center rounded-full border">
           <UploadCloud className="size-5" strokeWidth={1.75} />
         </span>
-        <p className="text-foreground text-[15px] font-medium">{heading}</p>
+        <p className="text-foreground text-base font-medium">{heading}</p>
         <p className="text-muted-foreground max-w-xs text-xs leading-relaxed">
           {hint}
         </p>

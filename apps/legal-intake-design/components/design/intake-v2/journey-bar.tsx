@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, ChevronDown } from '@repo/ui/icons';
 import { cn } from '@repo/ui/lib/utils';
+import { TABLET_COLUMN } from '@/lib/intake/layout';
 import {
   JOURNEY_STEPS,
   journeyLineKey,
@@ -65,6 +66,8 @@ export function JourneyBar({
   phase,
   accepted = false,
   percent = null,
+  confirmed = null,
+  total = null,
   className,
 }: {
   phase: IntakePhase;
@@ -91,6 +94,16 @@ export function JourneyBar({
    * the brief.
    */
   percent?: number | null;
+  /**
+   * The same measure as `percent`, unrounded, for `aria-valuetext`.
+   *
+   * A screen reader gets no bar to look at, so "80%" is the one reading it
+   * cannot use; "4 of 5 confirmed" is the same fact in the form that answers
+   * "how much is left". Passed rather than derived because this component is
+   * given the percentage and has never seen the brief.
+   */
+  confirmed?: number | null;
+  total?: number | null;
   className?: string;
 }) {
   const t = useTranslations('intake.journey');
@@ -166,7 +179,28 @@ export function JourneyBar({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls={panelId}
-        className="focus-visible:ring-ring flex w-full flex-col gap-1 px-4 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset sm:px-6"
+        className={cn(
+          'focus-visible:ring-ring flex w-full flex-col gap-1 px-4 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset sm:px-6',
+          /*
+           * The doc's list of tap targets names "the rail's tap-to-open", and
+           * this band is it below `xl`. It measured 34px because `py-2` is
+           * sized for the bar's density rather than for a thumb. `min-h`
+           * rather than the transparent `mz-tap` expansion used elsewhere: a
+           * 44px invisible box centred on a 34px band overhangs the sticky
+           * row directly beneath it by 5px and starts eating presses meant
+           * for the brief summary. A band can afford the 10px; a hit area
+           * that overlaps its neighbour cannot.
+           */
+          'max-lg:min-h-11 max-lg:justify-center',
+          /*
+           * The bar is the fifth band that has to take the tablet measure, or
+           * four step names spread across 752px sit above a 640px column and
+           * the two stop reading as the same page. The bar's own background
+           * and its bottom progress rule stay full width: they are the page's
+           * edge, not the column's.
+           */
+          TABLET_COLUMN,
+        )}
       >
         <span className="sr-only">{t(`step.${active}`)}</span>
 
@@ -194,7 +228,7 @@ export function JourneyBar({
            * line, and the number is the part that is news.
            */}
           {percent !== null ? (
-            <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums lg:hidden">
+            <span className="text-muted-foreground shrink-0 font-mono text-xs tabular-nums lg:hidden">
               <span className="@max-[360px]:hidden">
                 {tBrief('percentDone', { percent })}
               </span>
@@ -236,7 +270,7 @@ export function JourneyBar({
          */}
         <span
           aria-hidden="true"
-          className="text-muted-foreground @max-[400px]:text-[10px] hidden truncate text-[11px] leading-snug lg:block"
+          className="text-muted-foreground hidden truncate text-xs leading-snug lg:block"
         >
           {t(journeyLineKey(active, phase))}
         </span>
@@ -261,6 +295,16 @@ export function JourneyBar({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label={tBrief('progressLabel')}
+          {...(confirmed !== null && total !== null
+            ? {
+                // The count rather than the percentage. Same rule, same
+                // strings, as the panel's bar — see `brief-column.tsx`.
+                'aria-valuetext': tBrief('progressValueText', {
+                  confirmed,
+                  total,
+                }),
+              }
+            : {})}
         >
           <div
             className="bg-success h-full transition-[width] duration-[550ms] ease-out motion-reduce:transition-none"
@@ -283,12 +327,20 @@ export function JourneyBar({
           id={panelId}
           className="border-border bg-background absolute inset-x-0 top-full z-30 border-b px-4 py-3 shadow-sm sm:px-6"
         >
-          <div className="max-w-sm">
-            <JourneySteps
-              phase={phase}
-              accepted={accepted}
-              omitLineFor={active}
-            />
+          {/*
+           * The disclosure takes the same measure as the bar that opened it,
+           * so its rows line up with the step marks above them instead of
+           * hugging the left edge of a wider page. `max-w-sm` stays as the
+           * inner limit: the step list is a list, not a column of prose.
+           */}
+          <div className={cn(TABLET_COLUMN, 'lg:mx-0')}>
+            <div className="max-w-sm">
+              <JourneySteps
+                phase={phase}
+                accepted={accepted}
+                omitLineFor={active}
+              />
+            </div>
           </div>
         </div>
       ) : null}
@@ -312,7 +364,7 @@ function BarStep({
       <BarMark done={done} current={current} />
       <span
         className={cn(
-          'truncate text-[12px] font-semibold leading-none',
+          'truncate text-xs font-medium leading-none',
           current || done ? 'text-foreground' : 'text-muted-foreground',
         )}
       >
@@ -353,7 +405,7 @@ function BarMark({ done, current }: { done: boolean; current: boolean }) {
     <span
       className={cn(
         'size-2.5 shrink-0 rounded-full border',
-        current ? 'border-foreground border-[1.5px]' : 'border-border',
+        current ? 'border-foreground border-2' : 'border-border',
       )}
     />
   );

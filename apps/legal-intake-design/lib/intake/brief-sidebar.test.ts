@@ -144,25 +144,55 @@ describe('the sidebar, read as source', () => {
   const value = read('components/design/intake-v2/brief-value.tsx');
   const column = read('components/design/intake-v2/brief-column.tsx');
 
-  /* 1. The traffic light, and the tick that matches it. */
-  it('reads the three confidence levels as green, amber, red', () => {
-    expect(row).toContain("high: 'text-success'");
-    expect(row).toContain("medium: 'text-warning-strong'");
-    expect(row).toContain("low: 'text-destructive'");
+  /*
+   * 1. The traffic light lives on the mark, and the reading stays ink.
+   *
+   * This test used to pin the opposite — green / amber / red on the three
+   * reading *words*. Measured against white at this size every step of that
+   * ramp failed WCAG AA for text (2.66:1, 3.73:1, 3.57:1 against 4.5:1), so
+   * the hue moved to the 18px mark, which only has 3:1 to clear and clears
+   * it. Pinned as the absence of a colour class rather than as prose, because
+   * the failure mode here is somebody reaching for `text-success` again to
+   * make a reading "read as good".
+   */
+  it('reads the three confidence levels in ink, not in hue', () => {
+    expect(row).toContain("high: 'text-muted-foreground'");
+    expect(row).toContain("medium: 'text-muted-foreground'");
+    expect(row).toContain("low: 'text-foreground'");
+  });
+
+  it('keeps every status colour off the reading words', () => {
+    const levelStyle = row.match(
+      /const LEVEL_STYLE[\s\S]*?\n\};/,
+    )?.[0] as string;
+    expect(levelStyle).toBeTruthy();
+    for (const banned of [
+      'text-success',
+      'text-warning',
+      'text-warning-strong',
+      'text-destructive',
+    ]) {
+      expect(levelStyle).not.toContain(banned);
+    }
   });
 
   it('ticks a confirmed row in green', () => {
     expect(row).toContain('bg-success text-background');
   });
 
-  it('shows the client’s own confirmation at 100%, in green', () => {
+  it('shows the client’s own confirmation at 100%, in ink', () => {
     expect(row).toContain('field.confirmedByClient ?');
     expect(row).toContain("t('confidence.userConfirmed')");
     expect(row).toContain('100%');
+    // The percentage dropped `opacity-70`, which measured 1.93:1 on white.
+    expect(row).not.toContain('font-mono tabular-nums opacity-70');
   });
 
-  it('greens only the verb on the receipt, not the whole pill', () => {
-    expect(row).toContain('text-success flex items-center gap-1 font-medium');
+  it('greens only the tick on the receipt, not the verb or the pill', () => {
+    expect(row).toContain(
+      'text-foreground flex items-center gap-1 font-medium',
+    );
+    expect(row).toContain('text-success size-3');
     // Who and when stay muted: they are the record around the fact.
     expect(row).toContain('<span className="text-muted-foreground">');
   });
@@ -237,15 +267,17 @@ describe('the sidebar, read as source', () => {
   });
 
   /*
-   * 4. The footer sentence, at the floor. `leading-[1.5]` travels with the
-   * size: small type fails from tight leading before it fails from size, and
-   * three wrapped lines at 10.5px/1.25 read as a block rather than sentences.
+   * 4. The footer sentence, at the floor — and the floor is now 12px.
+   *
+   * It was 10.5px, which is below the 12px minimum this flow now holds to, so
+   * it is `text-xs` like every other small line. `leading-[1.5]` stays and is
+   * still the load-bearing half: small type fails from tight leading before it
+   * fails from size, and three wrapped lines of it read as a block rather than
+   * as sentences without it.
    */
-  it('sets the send explanation at its smallest readable size', () => {
+  it('sets the send explanation at the smallest size on the scale', () => {
     const intake = read('components/design/intake-v2/intake-v2.tsx');
-    expect(intake).toContain(
-      'text-muted-foreground text-[10.5px] leading-[1.5]',
-    );
+    expect(intake).toContain('text-muted-foreground text-xs leading-[1.5]');
   });
 
   /*

@@ -241,13 +241,13 @@ export function IntakeLawyerNote({
            * layout instead.
            */}
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <p className="text-foreground font-serif text-[19px] font-semibold leading-tight tracking-tight">
+            <p className="text-foreground font-serif text-xl font-semibold leading-tight tracking-tight">
               {lawyer.name}
             </p>
             <span aria-hidden="true" className="text-foreground/25 text-xs">
               &middot;
             </span>
-            <span className="text-muted-foreground text-[11px] leading-snug">
+            <span className="text-muted-foreground text-xs leading-snug">
               {lawyer.title}
             </span>
             {/*
@@ -271,7 +271,7 @@ export function IntakeLawyerNote({
             <span aria-hidden="true" className="text-foreground/25 text-xs">
               &middot;
             </span>
-            <span className="text-muted-foreground text-[11px] leading-snug">
+            <span className="text-muted-foreground text-xs leading-snug">
               {schoolOf(lawyer.education)}
             </span>
           </div>
@@ -292,7 +292,7 @@ export function IntakeLawyerNote({
            * A line about what somebody does is not an instruction and not a
            * label, and the italic is what says so without adding a word.
            */}
-          <p className="text-foreground/75 mt-2 font-serif text-[13px] italic leading-relaxed">
+          <p className="text-foreground/75 mt-2 font-serif text-sm italic leading-relaxed">
             {isSettled
               ? t(`practice.${practiceCopyKeyForMatter(matterId)}`, {
                   firstName,
@@ -318,7 +318,7 @@ export function IntakeLawyerNote({
            * qualification. It is the one line here that exists to manage an
            * expectation rather than to introduce a person.
            */}
-          <p className="text-muted-foreground mt-1.5 text-[11.5px] leading-relaxed">
+          <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">
             {t('note', { firstName })}
           </p>
           {/*

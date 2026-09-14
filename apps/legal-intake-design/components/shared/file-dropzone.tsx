@@ -111,6 +111,9 @@ export function FileDropzone({
   };
 
   return (
+    // The keyboard route into this zone is the labelled button inside it, not
+    // the zone; see the note on `onClick`.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       className={cn(
         'group relative flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed px-6 py-10 text-center transition-colors',
@@ -129,6 +132,17 @@ export function FileDropzone({
        * button. The click and drop targets are unchanged: the whole area still
        * opens the picker on a click and still takes a drop. What the keyboard
        * gets is the control that says what it does, which is the link below.
+       *
+       * Which is also the answer to the two rules disabled below, and the
+       * reason they are disabled here rather than switched off in the config.
+       * Both are asking "how does a keyboard reach this?" — and the honest
+       * answer is that it does not reach *this*, it reaches the labelled
+       * button inside it, which is a real `<button>` with a real
+       * `aria-label` and its own focus ring. Giving this div a `tabIndex` and
+       * a key handler would put the exact duplicate stop back that T34
+       * removed; giving it `role="button"` would nest one inside another.
+       * Drag-and-drop is mouse-only by nature and the keyboard alternative is
+       * the requirement — that requirement is met, ten lines down.
        */
       onClick={handleClick}
       onDragEnter={handleDragEnter}
@@ -187,7 +201,7 @@ export function FileDropzone({
                 fileInputRef.current?.click();
               }
             }}
-            className="text-foreground focus-visible:outline-ring focus-visible:outline-solid rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="text-foreground focus-visible:outline-ring focus-visible:outline-solid mz-tap relative rounded-[0.5rem] font-medium underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             {buttonLabel ?? t('dropzoneButton')}
           </button>

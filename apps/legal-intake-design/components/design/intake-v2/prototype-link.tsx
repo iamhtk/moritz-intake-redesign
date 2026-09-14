@@ -57,7 +57,7 @@ export function PrototypeLink({
       <button
         type="button"
         onClick={onClick}
-        className="text-muted-foreground/70 hover:text-muted-foreground focus-visible:ring-ring -mx-1 flex items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring mz-tap relative -mx-1 flex items-center gap-1.5 rounded-[0.5rem] px-1 py-0.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2"
       >
         {direction === 'back' ? (
           <Arrow className="size-3 shrink-0" strokeWidth={1.75} />

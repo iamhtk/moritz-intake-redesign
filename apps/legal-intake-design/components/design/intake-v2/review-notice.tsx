@@ -51,7 +51,7 @@ export function ReviewNotice({
        * surfaces saying "this is settled" have to say it the same way, and
        * green is now spent entirely on the progress bar.
        */
-      <p className="text-muted-foreground flex items-start gap-2 text-[13px] leading-relaxed">
+      <p className="text-muted-foreground flex items-start gap-2 text-sm leading-relaxed">
         <span
           aria-hidden="true"
           className="bg-foreground text-background mt-[3px] flex size-[15px] shrink-0 items-center justify-center rounded-full"
@@ -73,7 +73,7 @@ export function ReviewNotice({
       role="status"
       className="border-warning bg-warning/[0.06] flex flex-col gap-2.5 border-l-2 py-3 pl-3.5 pr-3"
     >
-      <p className="text-foreground text-[13px] font-medium">
+      <p className="text-foreground text-sm font-medium">
         {t('heading', { count: unconfirmed.length })}
       </p>
       {/*
@@ -91,7 +91,7 @@ export function ReviewNotice({
        * sentence does not name are not hidden — they are one glance away, which
        * is exactly the distance an overflow count should imply.
        */}
-      <p className="text-muted-foreground text-[13px] leading-relaxed">
+      <p className="text-muted-foreground text-sm leading-relaxed">
         {t('body', {
           count: unconfirmed.length,
           fields: joinNames(named),
@@ -119,7 +119,7 @@ export function ReviewNotice({
           <Check data-icon="inline-start" aria-hidden="true" />
           {t('confirmAll', { count: unconfirmed.length })}
         </Button>
-        <span className="text-muted-foreground text-[11.5px]">
+        <span className="text-muted-foreground text-xs">
           {t('confirmAllCost', { count: unconfirmed.length })}
         </span>
       </div>

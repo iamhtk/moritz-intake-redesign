@@ -215,10 +215,10 @@ export function QuoteCard({
   return (
     <div className="border-border flex flex-col gap-4 rounded-2xl border p-4">
       <div className="flex flex-col gap-1">
-        <p className="text-foreground font-serif text-[19px] leading-tight tracking-tight">
+        <p className="text-foreground font-serif text-xl leading-tight tracking-tight">
           {t(accepted ? 'accepted.heading' : 'arrivedHeading')}
         </p>
-        <p className="text-muted-foreground text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           {t(accepted ? 'accepted.body' : 'arrivedBody', {
             name: lawyerFirstName,
           })}
@@ -255,7 +255,7 @@ export function QuoteCard({
        * unmarked would be the one place in the submission where a made-up figure
        * sat on screen looking like a quote.
        */}
-      <p className="text-muted-foreground text-[11px] leading-relaxed">
+      <p className="text-muted-foreground text-xs leading-relaxed">
         {t('exampleNote')}
       </p>
 
@@ -302,7 +302,7 @@ export function QuoteCard({
            * hold survives, what the four options are for, and what re-quoting
            * actually means.
            */}
-          <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+          <p className="text-muted-foreground text-xs leading-relaxed">
             {t(`responseHint.${open}`)}
           </p>
 
@@ -324,7 +324,7 @@ export function QuoteCard({
                   key={one}
                   htmlFor={`too-high-${one}`}
                   className={cn(
-                    'flex cursor-pointer items-start gap-2.5 rounded-[0.5rem] px-2 py-1.5 text-[13px] leading-relaxed transition-colors',
+                    'flex cursor-pointer items-start gap-2.5 rounded-[0.5rem] px-2 py-1.5 text-sm leading-relaxed transition-colors',
                     reason === one ? 'bg-muted' : 'hover:bg-muted/50',
                   )}
                 >
@@ -345,7 +345,7 @@ export function QuoteCard({
               {scope.map((one) => (
                 <label
                   key={one.key}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-[0.5rem] px-2 py-1.5 text-[13px]"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-[0.5rem] px-2 py-1.5 text-sm"
                 >
                   <Checkbox
                     checked={parts.includes(one.key)}
@@ -361,9 +361,7 @@ export function QuoteCard({
                 </label>
               ))}
               {scope.length === 0 ? (
-                <p className="text-muted-foreground text-[13px]">
-                  {t('partNone')}
-                </p>
+                <p className="text-muted-foreground text-sm">{t('partNone')}</p>
               ) : null}
             </fieldset>
           ) : null}
@@ -371,7 +369,7 @@ export function QuoteCard({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="quote-detail"
-              className="text-foreground text-[13px] font-medium"
+              className="text-foreground text-sm font-medium"
             >
               {t(DETAIL_LABEL[open])}
             </label>
