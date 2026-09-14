@@ -2975,10 +2975,12 @@ export function IntakeV2() {
           onOpen={openDocumentPanel}
           className="shrink-0 lg:hidden"
         />
-        <div className="min-w-0 flex-1">{action}</div>
+        <div data-tour="brief-action" className="min-w-0 flex-1">
+          {action}
+        </div>
       </div>
     ) : (
-      action
+      <div data-tour="brief-action">{action}</div>
     );
 
   /**
@@ -3514,6 +3516,7 @@ export function IntakeV2() {
           <SuggestionChips
             className={ENTRANCE_CLASS}
             style={entrance(2)}
+            tourTarget="matter-chips"
             chips={chipsByField[MATTER_TYPE_KEY] ?? []}
             label={t('start.orStartWith')}
             {...(startChoice !== undefined
@@ -3575,7 +3578,10 @@ export function IntakeV2() {
     documents.mode === 'docked' && canDock && documentPanelProps !== null;
 
   return (
-    <div className="flex h-full w-full flex-col">
+    // `data-intake-phase` is the tour's only view of state: it waits for the
+    // phase a screen names before it points at anything on it. See
+    // `lib/tour/registry.ts`.
+    <div data-intake-phase={phase} className="flex h-full w-full flex-col">
       {/*
        * The rail, lying down, for the widths with no room for a column.
        *

@@ -26,6 +26,7 @@ export function SuggestionChips({
   selectedValue,
   onSelect,
   className,
+  tourTarget,
   style,
 }: {
   chips: readonly SuggestionChip[];
@@ -44,6 +45,8 @@ export function SuggestionChips({
    * so the caller sets it and can place this row in its own cascade.
    */
   className?: string;
+  /** A `data-tour` target for the group, when the tour points at it. */
+  tourTarget?: string;
   style?: CSSProperties;
 }) {
   const groupId = useId();
@@ -56,7 +59,7 @@ export function SuggestionChips({
       {label ? (
         <span className="text-muted-foreground text-xs">{label}</span>
       ) : null}
-      <div role="group" className="flex flex-wrap gap-2">
+      <div role="group" data-tour={tourTarget} className="flex flex-wrap gap-2">
         {chips.map((chip, index) => {
           const isSelected = chip.value === selectedValue;
           const hintId = chip.hint ? `${groupId}-${chip.id}` : undefined;
