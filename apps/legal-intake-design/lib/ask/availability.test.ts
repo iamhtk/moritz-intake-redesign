@@ -63,12 +63,33 @@ describe('every surface reads the same gate', () => {
   const read = (relativePath: string) =>
     readFileSync(join(process.cwd(), relativePath), 'utf8');
 
+  /*
+   * The two client surfaces now read the gate through `useAskAvailable`, which
+   * is the one place the whole rule lives. They used to each spell it out, and
+   * the copies drifted twice: first `TopNav` was missing a term the shell had,
+   * which left a dead ⌘J trigger over an unmounted panel on `/client/new`;
+   * then the term was added to both, which removed Nora from that screen
+   * entirely. Asserting the *indirection* is the point — a surface that
+   * mentions `isAskAvailableFor` itself is a surface building its own answer
+   * again.
+   */
   it.each([
     'components/design/top-nav/top-nav.tsx',
     'components/navigation/dashboard-shell.tsx',
-    'app/api/ask/route.ts',
-  ])('%s gates on isAskAvailableFor', (relativePath) => {
-    expect(read(relativePath)).toContain('isAskAvailableFor');
+  ])('%s reads the shared useAskAvailable hook', (relativePath) => {
+    const source = read(relativePath);
+    expect(source).toContain('useAskAvailable');
+    expect(source).not.toContain('isAskAvailableFor');
+  });
+
+  it('the hook is the one place the client-side rule is read', () => {
+    const source = read('components/design/ask/use-ask-available.ts');
+    expect(source).toContain('askOffered');
+    expect(source).toContain('useAskNora');
+  });
+
+  it('the route gates on isAskAvailableFor, read from the cookie', () => {
+    expect(read('app/api/ask/route.ts')).toContain('isAskAvailableFor');
   });
 
   /*

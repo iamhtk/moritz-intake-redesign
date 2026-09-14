@@ -51,3 +51,40 @@ export const ASK_ROLES: readonly Role[] = ['NON_LEGAL'];
 export function isAskAvailableFor(role: Role): boolean {
   return ASK_ROLES.includes(role);
 }
+
+/**
+ * Whether Ask is offered on a screen: the flag and the role, and nothing else.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ONE PREDICATE, BECAUSE TWO COPIES HID NORA TWICE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * `TopNav` decides whether the ⌘J trigger exists; `DashboardOverlays` decides
+ * whether `AskPanel` mounts and whether the command palette gets an
+ * `onAskNora`. They used to compute that separately, and both regressions came
+ * out of the gap:
+ *
+ * 1. `TopNav` had `flag && role` while the shell had `flag && role && !intake`.
+ *    On `/client/new` that is a button and a bound keyboard chord over a panel
+ *    that was never mounted — `setOpen(true)` into a context with no listener.
+ *    Visible, focusable, and completely inert.
+ * 2. Adding the missing route term to `TopNav` made them agree by taking Ask
+ *    off the intake screen altogether, which is the screen it is wanted on
+ *    most.
+ *
+ * The boolean was never the bug. Two call sites computing one rule is the bug,
+ * because when they drift nothing throws and nothing logs. So this is the only
+ * copy, `useAskAvailable` is the only way a component reaches it, and
+ * `offered.test.ts` asserts both.
+ *
+ * **There is deliberately no pathname parameter.** Ask is offered on every
+ * screen, the intake included: that is the longest and most confusing flow in
+ * the product, and the questions a client has there ("what happens after I
+ * submit?", "who sees this?") are exactly the ones the intake agent is not
+ * taking a statement about. If some future screen genuinely must not carry
+ * Ask, the term belongs here, where both surfaces read it at once — never at a
+ * call site.
+ */
+export function askOffered(role: Role, flagEnabled: boolean): boolean {
+  return flagEnabled && isAskAvailableFor(role);
+}

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { isIntakeRoute } from './route-match';
-import { isAskAvailableFor } from '@/lib/ask/availability';
-import type { Role } from '@/lib/types';
 
 describe('isIntakeRoute', () => {
   it('matches the intake flow and everything under it', () => {
@@ -26,63 +24,28 @@ describe('isIntakeRoute', () => {
 });
 
 /**
- * The regression this file exists for.
+ * What still reads this, now that Ask does not.
  *
- * `TopNav` decides whether the ⌘J trigger exists and `DashboardOverlays`
- * decides whether `AskPanel` mounts. The trigger only flips a context boolean,
- * so a `true` here against a `false` there is not a cosmetic mismatch: it is a
- * visible, focusable, keyboard-bound control that opens nothing. That is what
- * shipped — `TopNav` had no intake-route term at all — and on `/client/new`
- * Ask Nora was dead.
- *
- * Both predicates are reproduced from their call sites rather than imported,
- * because the point is that two *separately written* conditions agree. A
- * shared helper would make this test pass by construction and prove nothing.
+ * This matcher used to gate three things: the shell's two layout branches, the
+ * support launcher, and Ask. The Ask term is gone — it hid Nora on the one
+ * screen she is wanted on most, and the rule now lives route-free in
+ * `components/design/ask/use-ask-available.ts`, which has its own test saying
+ * so. The two survivors are genuinely about the route.
  */
-describe('the Ask trigger and the Ask panel agree', () => {
-  const askTriggerMounts = (
-    role: Role,
-    flag: boolean,
-    pathname: string,
-  ): boolean => flag && isAskAvailableFor(role) && !isIntakeRoute(pathname);
-
-  const askPanelMounts = (
-    role: Role,
-    flag: boolean,
-    pathname: string,
-  ): boolean => flag && isAskAvailableFor(role) && !isIntakeRoute(pathname);
-
-  const roles: Role[] = ['NON_LEGAL', 'LEGAL', 'INTERNAL_ADMIN'];
-  const paths = [
-    '/client/cases',
-    '/client/new',
-    '/client/new/review',
-    '/client/newsletter',
-    '/',
-  ];
-
-  it.each(roles)('agree for every path, role %s', (role) => {
-    for (const pathname of paths) {
-      for (const flag of [true, false]) {
-        expect(askTriggerMounts(role, flag, pathname)).toBe(
-          askPanelMounts(role, flag, pathname),
-        );
-      }
-    }
+describe('the intake route still owns its layout and its support launcher', () => {
+  it('switches the shell to the intake layout', () => {
+    // `dashboard-shell.tsx` uses this to drop the page padding and let the
+    // intake run full height.
+    expect(isIntakeRoute('/client/new')).toBe(true);
+    expect(isIntakeRoute('/client/cases')).toBe(false);
   });
 
-  it('offers Ask to a client off the intake route', () => {
-    expect(askTriggerMounts('NON_LEGAL', true, '/client/cases')).toBe(true);
-    expect(askPanelMounts('NON_LEGAL', true, '/client/cases')).toBe(true);
-  });
-
-  it('offers Ask to nobody on the intake route', () => {
-    // The intake carries its own chat; two AI surfaces on one screen is the
-    // thing the flag's description promises never happens.
-    expect(askTriggerMounts('NON_LEGAL', true, '/client/new')).toBe(false);
-    expect(askPanelMounts('NON_LEGAL', true, '/client/new')).toBe(false);
-    expect(askTriggerMounts('NON_LEGAL', true, '/client/new/review')).toBe(
-      false,
-    );
+  it('withholds the floating support launcher', () => {
+    // Unlike Ask, this one really would be a second support surface over a
+    // flow that already has its own way to reach a person.
+    const supportLauncherShows = (pathname: string) => !isIntakeRoute(pathname);
+    expect(supportLauncherShows('/client/new')).toBe(false);
+    expect(supportLauncherShows('/client/new/review')).toBe(false);
+    expect(supportLauncherShows('/client/cases')).toBe(true);
   });
 });

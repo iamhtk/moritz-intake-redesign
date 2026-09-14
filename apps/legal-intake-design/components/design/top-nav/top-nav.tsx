@@ -5,8 +5,7 @@ import Logo from '@/components/logo';
 import { Button } from '@/components/design/design-system/button';
 import { useIntakeProgressPanel } from '@/components/design/intake/intake-progress-panel-context';
 import { AskTrigger } from '@/components/design/ask/ask-trigger';
-import { isAskAvailableFor } from '@/lib/ask/availability';
-import { isIntakeRoute } from '@/lib/intake/route-match';
+import { useAskAvailable } from '@/components/design/ask/use-ask-available';
 import { CommandPaletteTrigger } from '@/components/design/command-palette/command-palette-trigger';
 import { NotificationMenu } from '@/components/design/top-nav/notification-menu';
 import { TopNavMobileNav } from '@/components/design/top-nav/top-nav-mobile-nav';
@@ -66,10 +65,13 @@ type TopNavProps = {
  */
 export function TopNav({ user }: TopNavProps) {
   const pathname = usePathname();
-  // Read once and shared with the Ask gate below, which must agree with
-  // `DashboardOverlays`. See `lib/intake/route-match.ts`.
-  const onIntakeRoute = isIntakeRoute(pathname);
   const companyType = user.company.type;
+  /*
+   * The same hook `DashboardOverlays` mounts the panel from. Not a condition
+   * written out again here: that is twice now that a second copy of this rule
+   * drifted from the first and took Ask down with it.
+   */
+  const askAvailable = useAskAvailable(companyType);
   const homePath = homePathByCompanyType[companyType];
   const { flags } = useDesignFlags();
   // One shared builder, so the command palette's generated "Jump to" cannot
@@ -338,25 +340,18 @@ export function TopNav({ user }: TopNavProps) {
             {/*
              * N9 / decision 2 — Ask beside the bell, not a floating bubble.
              *
-             * Client-only (`isAskAvailableFor`). The ⌘J chord is bound inside
-             * the trigger, so not mounting it is also what unbinds the
-             * shortcut: a lawyer pressing ⌘J gets nothing rather than a panel
-             * with no entry point.
+             * Client-only, and flag-gated, both decided by `useAskAvailable`
+             * rather than restated here. The ⌘J chord is bound inside the
+             * trigger, so not mounting it is also what unbinds the shortcut: a
+             * lawyer pressing ⌘J gets nothing rather than a panel with no
+             * entry point.
              *
-             * `!onIntakeRoute` is the third term and it is not cosmetic. This
-             * condition has to match `DashboardOverlays`' `askAvailable`
-             * exactly, because that is what decides whether `AskPanel` is
-             * mounted at all. Without it the intake route rendered this button
-             * and bound ⌘J over a panel that was never there, so both opened
-             * nothing: `setOpen(true)` on a context with no listener. Same
-             * matcher on both sides (`isIntakeRoute`) so they cannot drift
-             * again.
+             * Every screen, including the intake. The route term that used to
+             * be the third condition here is gone on purpose — see the long
+             * note in `use-ask-available.ts` for why it cost Nora two
+             * disappearances and is not coming back to a call site.
              */}
-            {flags.useAskNora &&
-            isAskAvailableFor(companyType) &&
-            !onIntakeRoute ? (
-              <AskTrigger />
-            ) : null}
+            {askAvailable ? <AskTrigger /> : null}
             <NotificationMenu />
             {intakePanel?.isAvailable ? (
               <Tooltip>

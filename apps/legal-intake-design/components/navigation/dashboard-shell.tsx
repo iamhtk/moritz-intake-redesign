@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@repo/ui/lib/utils';
 import { AskPanel } from '@/components/design/ask/ask-panel';
 import { AskProvider, useAsk } from '@/components/design/ask/ask-context';
-import { isAskAvailableFor } from '@/lib/ask/availability';
+import { useAskAvailable } from '@/components/design/ask/use-ask-available';
 import { CommandPalette } from '@/components/design/command-palette/command-palette';
 import { CommandPaletteProvider } from '@/components/design/command-palette/command-palette-context';
 import { useDesignFlags } from '@/components/design/feature-flags/design-flags-context';
@@ -56,24 +56,13 @@ function DashboardOverlays({ user }: { user: AuthUser }) {
   const { openAsk } = useAsk();
 
   /*
-   * The intake carries its own chat, under its own name. Nora on top of it
-   * would put two AI chat surfaces on one screen, which is the thing the
-   * flag's own description promises never happens; the support launcher is
-   * already excluded from this route for the same reason. Read here rather
-   * than in the flag default so a reviewer who turns Nora on still cannot
-   * break the invariant.
+   * Asked, not computed. `TopNav` renders the trigger from this same hook, so
+   * the panel and the ⌘J chord cannot end up on opposite sides of a condition
+   * — which is how Ask managed to be inert on one screen and absent on it a
+   * fix later. The palette's *Ask Nora* row hangs off the same boolean below,
+   * so it is never offered-and-inert either.
    */
-  const onIntakeRoute = isIntakeRoute(usePathname());
-
-  /*
-   * Ask is a client surface, so the flag alone is not enough: a lawyer or an
-   * admin with the flag on still gets no panel. One local, read twice, because
-   * the panel and the palette's *Ask Nora* row must never disagree — see
-   * `lib/ask/availability.ts` for why the other three roles are off rather
-   * than deleted.
-   */
-  const askAvailable =
-    flags.useAskNora && isAskAvailableFor(user.company.type) && !onIntakeRoute;
+  const askAvailable = useAskAvailable(user.company.type);
 
   return (
     <>
