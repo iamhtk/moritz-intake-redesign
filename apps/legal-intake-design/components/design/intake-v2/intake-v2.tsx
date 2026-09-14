@@ -121,6 +121,8 @@ import { describeFile } from '@/components/design/new-case/file-utils';
 import {
   clearSentSession,
   readSentSession,
+  SENT_PARAM,
+  sentCaseIdOf,
   writeSentSession,
 } from '@/lib/intake/sent-session';
 import { useJustTurnedTrue } from './use-landed';
@@ -955,6 +957,29 @@ export function IntakeV2() {
         documentNames: readDocuments,
       });
 
+      /*
+       * And the address, which is what makes the receipt above readable only
+       * by the client who meant to read it.
+       *
+       * `replaceState` rather than `router.replace`: this is a query-string
+       * change on the screen the client is already looking at, so there is no
+       * navigation to run, no locale to re-resolve (the current `pathname`
+       * already carries it), and nothing for the App Router to re-render. It
+       * also leaves no extra history entry, so Back still goes where the
+       * client came from rather than to the same screen without its mark.
+       *
+       * Every other parameter is dropped, and `?demo=` is the one that
+       * matters. A demo link left in the URL re-seeds on the next reload and
+       * sets the stage back to whatever the demo asked for, which lands a
+       * reviewer who has just sent a case on the review screen they sent it
+       * from. The case is sent; the address should say only that.
+       */
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}?${SENT_PARAM}=${encodeURIComponent(SUBMITTED_CASE.id)}`,
+      );
+
       raisePortalNotification(
         'NON_LEGAL',
         caseReceivedNotification({
@@ -1021,6 +1046,14 @@ export function IntakeV2() {
      * refusing to let go of a case they have finished with.
      */
     clearSentSession();
+    /*
+     * And the address, or the next reload would ask for a confirmation whose
+     * record has just been deleted, and land on a blank intake at a URL that
+     * claims to be a receipt.
+     */
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     reset();
     clear();
     setAttachments([]);
@@ -2087,6 +2120,34 @@ export function IntakeV2() {
 
     const sent = readSentSession();
     if (!sent) return;
+
+    /*
+     * Only when the address says so, and this is the whole of the fix for
+     * "New case took me back to the case I had already sent".
+     *
+     * The receipt alone cannot tell the two intentions apart: a refresh and a
+     * client pressing "New case" both arrive here as a mount with a record in
+     * `localStorage`. The URL can. Submission writes the case id into it (see
+     * the `replaceState` in `submitCase`), a refresh keeps it, and every route
+     * into a *new* case asks for the bare path.
+     *
+     * The id is matched rather than merely present, so a stale or hand-typed
+     * `?sent=` cannot put somebody else's confirmation on screen. Same
+     * browser either way, so this is tidiness rather than security.
+     */
+    if (sentCaseIdOf(window.location.search) !== sent.caseId) {
+      /*
+       * A finished case, reached from a link that meant to start a new one.
+       * Dropped rather than left to expire, because a record that is never
+       * restored is a record that can only surprise somebody later: it is the
+       * twelve-hour window this defect used to live inside.
+       *
+       * The case itself is untouched. It is on the client's account and in
+       * Your cases, which is where the notification and the email both point.
+       */
+      clearSentSession();
+      return;
+    }
 
     replace(sent.brief);
     setReadDocuments([...sent.documentNames]);

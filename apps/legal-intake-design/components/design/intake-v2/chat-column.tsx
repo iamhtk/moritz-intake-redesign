@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, type ReactNode } from 'react';
+import { useId, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@repo/ui/lib/utils';
 import {
@@ -11,6 +11,7 @@ import {
   MessageScrollerViewport,
 } from '@/components/design/foundations/components/message-scroller';
 import { useRotatingPlaceholder } from './use-rotating-placeholder';
+import { useStickToBottom } from './use-stick-to-bottom';
 import { useValueLanded } from './use-landed';
 import {
   ChatComposer,
@@ -23,6 +24,21 @@ import { SuggestionChips } from './suggestion-chips';
 import { WetInk } from './wet-ink';
 import { WorkRail } from './work-rail';
 import type { ChatMessage as Turn, IntakeFailure } from './use-conversation';
+
+/**
+ * Keeps the newest words on screen. See `use-stick-to-bottom.ts`.
+ *
+ * A component rather than a call in `ChatColumn`, because the hook it wraps
+ * reads the scroller's context and `ChatColumn` is what renders the provider.
+ * Renders nothing; it is here for its effects.
+ */
+function StickToBottom(props: {
+  viewportRef: React.RefObject<HTMLDivElement | null>;
+  sendCount: number;
+}) {
+  useStickToBottom(props);
+  return null;
+}
 
 /**
  * The conversation. Not the product, the way the brief gets filled in.
@@ -190,6 +206,17 @@ export function ChatColumn({
         !message.pending,
     )?.id;
 
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  /*
+   * How many times the client has said something, which is what re-arms the
+   * scroll hold. Counted off the transcript rather than passed in, because the
+   * transcript is the record of it and a second prop would be a second thing
+   * to keep in step.
+   */
+  const sendCount = messages.filter(
+    (message) => message.role === 'user',
+  ).length;
+
   return (
     <MessageScrollerProvider autoScroll>
       {/*
@@ -202,8 +229,12 @@ export function ChatColumn({
       >
         {hasMessages ? (
           <div className="min-h-0 flex-1">
+            <StickToBottom viewportRef={viewportRef} sendCount={sendCount} />
             <MessageScroller>
-              <MessageScrollerViewport className="mz-scrollbar-on-scroll">
+              <MessageScrollerViewport
+                ref={viewportRef}
+                className="mz-scrollbar-on-scroll"
+              >
                 {/*
                  * Turn separation. The original shell used a flat `gap-8`, but
                  * its assistant turns also carried a "Moritz" name label above

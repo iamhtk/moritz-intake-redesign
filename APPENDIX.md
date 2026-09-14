@@ -446,7 +446,7 @@ consequences and the client keeps the last word.
 ## B10. The tests worth opening
 
 `pnpm verify` runs prettier, eslint with zero warnings, the type checker, and
-1,791 tests. A few enforce decisions rather than behaviour:
+1,812 tests. A few enforce decisions rather than behaviour:
 
 - `waits.test.ts` — fails if two loading states share a sentence
 - `timeline.test.ts` — fails if a step appears that no listed wait produced

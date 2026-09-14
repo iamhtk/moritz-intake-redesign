@@ -48,12 +48,68 @@ import { readStoredJson, writeStoredJson } from './session-storage';
 export const SENT_STORAGE_KEY = 'moritz.intake.sent.v1';
 
 /**
+ * The query key that makes a confirmation an address rather than a leftover.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHY THE RECEIPT IS NOT ENOUGH ON ITS OWN.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The record above answers "did that actually go through" after a refresh, and
+ * it did that correctly. What it could not do is tell a refresh apart from a
+ * client deliberately asking for a new case, because both arrive as the same
+ * thing: a mount of `/client/new` with a receipt sitting in `localStorage`. So
+ * for twelve hours after sending, every route into the intake landed on the
+ * confirmation for a case the client had finished with:
+ *
+ *   send it → Go to case → Home → New case → the previous case, again
+ *
+ * That is four of the four ways in. "New case" in the sidebar, the card on the
+ * dashboard, the command palette and the engagement-gated button are all plain
+ * `<Link href="/client/new">`, so none of them goes through the navigation
+ * guard, and the one place that *does* clear the receipt on the way out
+ * (`onLeaveSent`) only fires for navigation routed through `navigate()`.
+ * Clearing it from each link in turn would be four fixes and a fifth one owed
+ * to whoever adds the next entry point.
+ *
+ * So the discriminator is the address, which is the one thing that genuinely
+ * differs between the two intentions. A refresh keeps the query string; a
+ * client clicking "New case" asks for the bare path. Submission puts the case
+ * id in the URL, the restore below happens only when it is there, and a bare
+ * `/client/new` therefore means what it says.
+ *
+ * The default is a new case. That is the direction that has to be safe: the
+ * cost of a missed restore is one extra click through to Your cases, and the
+ * cost of a missed *reset* is a client who cannot start a second case at all.
+ */
+export const SENT_PARAM = 'sent';
+
+/**
+ * The case id in the address bar, or `null` when the URL is not a confirmation.
+ *
+ * Takes the search string rather than reading `window` so it can be tested and
+ * so the caller decides which URL is being asked about.
+ */
+export function sentCaseIdOf(search: string): string | null {
+  try {
+    return new URLSearchParams(search).get(SENT_PARAM) || null;
+  } catch {
+    // A malformed search string is not a confirmation.
+    return null;
+  }
+}
+
+/**
  * How long a sent case keeps the intake route, in milliseconds.
  *
  * Twelve hours: long enough to cover "I sent it this morning and want to check
  * it went", short enough that it cannot become a permanent redirect away from
- * starting a second case. "Start another case" clears it immediately, so this
- * is the backstop rather than the way out.
+ * starting a second case.
+ *
+ * It is the third of three backstops now, and the least important. `SENT_PARAM`
+ * above is what actually keeps a finished case off a new one, because it is
+ * checked on every mount rather than after half a day; "Start another case"
+ * clears the record outright. This is what catches the client who sends a case
+ * and leaves the tab open until Friday.
  */
 export const SENT_TTL_MS = 12 * 60 * 60 * 1000;
 

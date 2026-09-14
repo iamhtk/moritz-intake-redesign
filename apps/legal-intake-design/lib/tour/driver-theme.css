@@ -1,0 +1,323 @@
+/*
+ * driver.js, in Moritz's colours. This file replaces the library's stylesheet.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * `driver.js/dist/driver.css` IS DELIBERATELY NOT IMPORTED ANYWHERE.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * The usual way to theme this library is to import its stylesheet and then
+ * override the parts you dislike. That would have been the wrong shape here
+ * twice over. The stock sheet ships a 19px bold title, a 5px radius, a
+ * `0 1px 10px #0006` drop shadow and `#2d2d2d` text, none of which are on this
+ * palette or this type scale; overriding them one by one leaves every one of
+ * those values still in the bundle, waiting for the next version bump to add
+ * a rule nothing here overrides. And `colour-restraint.test.ts` could not see
+ * any of it, because a colour inside `node_modules` is not a file this repo
+ * scans.
+ *
+ * So the stock sheet is never imported and this file carries the whole of it:
+ * the structural rules the library genuinely needs (fixed positioning, the
+ * pointer-events arrangement that makes the highlight the only live thing on
+ * the page, the arrow geometry) rewritten in our tokens, and nothing else.
+ * `theme.test.ts` holds that claim — it fails if a hex literal, a stock
+ * Tailwind hue or an off-scale font size appears in here, and it fails if
+ * anything in the app starts importing the library's own CSS.
+ *
+ * ## What is not in here
+ *
+ * **The three controls.** Back, Next and Skip are styled by `buttonVariants`
+ * in `use-tour.tsx`, which is the app's real Button. Writing a button here
+ * would be a fourth button in a repo that has spent a lot of effort getting
+ * down to one, and it would drift from it the first time the foundation
+ * changed. The rules below only lay the footer out; what sits in it is the
+ * design system's.
+ *
+ * **Anything but the overlay's alpha.** The wash is `--mz-black` at 0.25,
+ * passed as configuration rather than written here, because driver paints the
+ * cut-out as an inline `fill` on an SVG path and an inline style would beat a
+ * stylesheet without `!important`. One `!important` to win a fight we can
+ * avoid entirely by handing the library the right value in the first place is
+ * a bad trade.
+ */
+
+/* ── The popover ─────────────────────────────────────────────────────────── */
+
+.driver-popover {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10001;
+
+  box-sizing: border-box;
+  margin: 0;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  /*
+   * Narrow on purpose. Two short sentences is the whole brief for every stop
+   * in `registry.ts`, and a wider box invites a third.
+   */
+  min-width: 16rem;
+  max-width: 20rem;
+
+  font-family: var(--font-sans);
+  color: var(--mz-black);
+  background-color: var(--mz-white);
+
+  /*
+   * The card radius, one of the three the foundations allow, because this is
+   * a card. The controls inside it take the 0.5rem field radius from
+   * `buttonVariants`, which is the same pairing every panel in the app uses.
+   */
+  border-radius: var(--radius-2xl, 1rem);
+  /* The hairline, which is what makes the shadow below able to stay this quiet. */
+  border: 1px solid var(--border);
+  /*
+   * The foundations card's shadow token and no more. The stock sheet uses
+   * `0 1px 10px #0006`, which is four times this and reads as a modal.
+   */
+  box-shadow: var(--shadow);
+}
+
+.driver-popover-title {
+  display: block;
+  margin: 0;
+  /*
+   * The serif, for the same reason "Case sent" is in it: these lines are the
+   * product speaking rather than labelling.
+   */
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--mz-black);
+}
+
+.driver-popover-description {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--mz-gray-160);
+}
+
+/*
+ * The close control is the popover's Skip, and it lives in the footer beside
+ * Back and Next rather than as an X in the corner.
+ *
+ * A corner X on a tour popover means one of two things and the reviewer has to
+ * guess which: close this tip, or stop the tour. `use-tour.tsx` moves the
+ * button into the footer and labels it, so all three exits say what they do.
+ */
+.driver-popover-close-btn {
+  order: -1;
+  margin-inline-end: auto;
+}
+
+.driver-popover-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.driver-popover-navigation-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/*
+ * Progress as dots, never as a count.
+ *
+ * "Step 3 of 28" is a number that makes a tour feel long; a row of dots is
+ * the same information at a glance and reads as position rather than as
+ * homework. The span is driver's own progress slot, refilled in
+ * `use-tour.tsx`; the count survives for screen readers as an `sr-only`
+ * sentence inside it, because "no number on screen" is a visual decision and
+ * a reader with no dots to look at still needs to know where they are.
+ */
+.driver-popover-progress-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--mz-gray-100);
+}
+
+.mz-tour-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background-color: var(--mz-gray-50);
+  transition: background-color 200ms ease;
+}
+
+.mz-tour-dot[data-state='done'] {
+  background-color: var(--mz-gray-100);
+}
+
+.mz-tour-dot[data-state='current'] {
+  width: 10px;
+  background-color: var(--mz-black);
+}
+
+/* ── The arrow ───────────────────────────────────────────────────────────── */
+
+/*
+ * Geometry copied from the library, colour taken from ours. driver measures
+ * this element to place it, so the border technique and the 1:1 box have to
+ * stay; only the fill and the size are ours.
+ */
+.driver-popover-arrow {
+  content: '';
+  position: absolute;
+  border: 7px solid var(--mz-white);
+}
+
+.driver-popover-arrow-side-over,
+.driver-popover-arrow-side-center,
+.driver-popover-arrow-none {
+  display: none;
+}
+
+.driver-popover-arrow-side-left {
+  left: 100%;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+
+.driver-popover-arrow-side-right {
+  right: 100%;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+
+.driver-popover-arrow-side-top {
+  top: 100%;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.driver-popover-arrow-side-bottom {
+  bottom: 100%;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+/* ── The page, while the tour is running ─────────────────────────────────── */
+
+/*
+ * The pointer-events arrangement, which is the whole of driver's modality and
+ * is behaviour rather than theme. Everything on the page goes inert except
+ * the popover and the element being described; the element stays live so the
+ * stops that ask the reviewer to *do* something — hover a matter chip, open
+ * the rail's Quote step — are things they can actually do.
+ */
+.driver-active .driver-overlay {
+  pointer-events: none;
+}
+
+.driver-active * {
+  pointer-events: none;
+}
+
+.driver-active .driver-active-element,
+.driver-active .driver-active-element *,
+.driver-popover,
+.driver-popover * {
+  pointer-events: auto;
+}
+
+.driver-active.driver-no-scroll {
+  overflow: hidden;
+}
+
+.driver-active-element-parent-no-scroll {
+  overflow: hidden !important;
+}
+
+.driver-no-interaction,
+.driver-no-interaction * {
+  pointer-events: none !important;
+}
+
+/*
+ * Anything Radix puts in a portal has to clear the wash.
+ *
+ * The overlay is an SVG at `z-index: 10000`, set inline by the library. A
+ * Radix popper wrapper carries no z-index of its own and its content sits at
+ * `z-50`, so the matter chip's own hint — the thing stop three asks the
+ * reviewer to go and look at — rendered *under* the dimming and read as a
+ * grey smudge. One rule, scoped to `.driver-active`, so nothing about the
+ * page's normal stacking changes when no tour is running.
+ */
+.driver-active [data-radix-popper-content-wrapper] {
+  z-index: 10001 !important;
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+
+/*
+ * 200ms, and the same 200ms on both halves.
+ *
+ * The cut-out is animated by the library in JavaScript from its `duration`
+ * config, which `use-tour.tsx` sets to the same number this file uses. The
+ * popover is rebuilt from scratch on every step rather than moved, so it
+ * cannot be transitioned between positions; it fades and lifts instead, which
+ * reads as the same movement and costs nothing.
+ */
+@keyframes mz-tour-pop {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.driver-fade .driver-popover {
+  animation: mz-tour-pop 200ms ease;
+}
+
+@keyframes mz-tour-wash {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.driver-fade .driver-overlay {
+  animation: mz-tour-wash 200ms ease;
+}
+
+/*
+ * Plain swaps under reduced motion.
+ *
+ * The JavaScript half is handled too: `use-tour.tsx` passes `animate: false`,
+ * which stops the library tweening the cut-out and makes it jump. This is the
+ * CSS half, and it is written separately rather than trusted to the config
+ * because the preference can change while a tour is open.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .driver-fade .driver-popover,
+  .driver-fade .driver-overlay {
+    animation: none;
+  }
+
+  .mz-tour-dot {
+    transition: none;
+  }
+}
